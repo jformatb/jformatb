@@ -1,0 +1,50 @@
+plugins {
+    id 'java-library'
+    id 'io.freefair.lombok'
+}
+
+dependencies {
+    api project(':jformatb-api')
+
+    implementation 'org.apache.commons:commons-lang3:3.12.0'
+
+    testImplementation 'org.assertj:assertj-core:3.25.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testImplementation 'org.hibernate.validator:hibernate-validator:6.2.5.Final'
+    testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+    testImplementation 'commons-validator:commons-validator:1.8.0'
+
+    testRuntimeOnly 'org.jboss.weld.se:weld-se-shaded:3.1.9.Final'
+    testRuntimeOnly 'org.glassfish:jakarta.el:3.0.3'
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+tasks.named('jar') {
+    manifest {
+        attributes(
+            'Implementation-Title': project.name,
+            'Implementation-Version': project.version
+        )
+    }
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+
+            pom {
+                name = 'Java Format Binding Runtime Implementation'
+                description = 'An implementation of Java Format Binding API'
+            }
+        }
+    }
+}
