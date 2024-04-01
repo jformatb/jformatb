@@ -45,6 +45,15 @@ publishing {
                 name = 'Java Format Binding Runtime Implementation'
                 description = 'An implementation of Java Format Binding API'
             }
+
+            versionMapping {
+                usage('java-api') {
+                    fromResolutionOf('runtimeClasspath')
+                }
+                usage('java-runtime') {
+                    fromResolutionResult()
+                }
+            }
         }
     }
 }

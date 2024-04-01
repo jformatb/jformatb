@@ -1,0 +1,23 @@
+plugins {
+    id 'java-platform'
+}
+
+dependencies {
+    constraints {
+        api project(':jformatb-api')
+        api project(':jformatb-ri')
+    }
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.javaPlatform
+
+            pom {
+                name = 'Java Format Binding Platform'
+                description = 'Bill of Material for getting full, complete set of compatible versions of Java Format Binding Platform'
+            }
+        }
+    }
+}

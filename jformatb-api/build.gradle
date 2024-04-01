@@ -40,6 +40,15 @@ publishing {
                 name = 'Java Format Binding API'
                 description = 'Turn formatted text to java bean and vice versa'
             }
+
+            versionMapping {
+                usage('java-api') {
+                    fromResolutionOf('runtimeClasspath')
+                }
+                usage('java-runtime') {
+                    fromResolutionResult()
+                }
+            }
         }
     }
 }

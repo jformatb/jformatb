@@ -9,5 +9,6 @@
 
 rootProject.name = 'jformatb'
 
+include 'jformatb-bom'
 include 'jformatb-api'
 include 'jformatb-ri'
