@@ -642,9 +642,10 @@ public class Formatter<T> {
 			listener.get().postProcessing(obj, resolvedFields);
 
 			return output.toString();
-		} catch (NumberFormatException | NullPointerException | IllegalAccessException | InvocationTargetException
-				| NoSuchMethodException e) {
-			throw new IllegalArgumentException(e);
+		} catch (FormatException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new FormatProcessingException(String.format("Unable to format object [%s]", obj), e);
 		}
 	}
 
@@ -725,8 +726,10 @@ public class Formatter<T> {
 			listener.get().postProcessing(obj, resolvedFields);
 
 			return obj;
-		} catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-			throw new IllegalArgumentException(e);
+		} catch (FormatException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new FormatProcessingException(String.format("Unable to parse text [%s]", text), e);
 		}
 	}
 

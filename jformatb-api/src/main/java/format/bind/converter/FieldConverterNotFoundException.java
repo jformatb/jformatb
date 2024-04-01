@@ -2,8 +2,9 @@
 * Copyright (c) 2019 by Diebold Nixdorf
 * This software is the confidential and proprietary information of Diebold Nixdorf.
 */
-package format.bind;
+package format.bind.converter;
 
+import format.bind.FormatException;
 import format.bind.converter.spi.FieldConverterProvider;
 
 /**

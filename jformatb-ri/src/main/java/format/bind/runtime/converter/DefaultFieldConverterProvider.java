@@ -19,9 +19,9 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import format.bind.FieldConverterNotFoundException;
 import format.bind.Formatter;
 import format.bind.converter.FieldConverter;
+import format.bind.converter.FieldConverterNotFoundException;
 import format.bind.converter.spi.FieldConverterProvider;
 
 /**
