@@ -2,10 +2,11 @@
 * Copyright (c) 2019 by Diebold Nixdorf
 * This software is the confidential and proprietary information of Diebold Nixdorf.
 */
-package format.bind.runtime.converter;
+package format.bind.runtime.impl.converter;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
+import java.time.temporal.TemporalQuery;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
@@ -14,13 +15,13 @@ import format.bind.FormatFieldSpec;
 import format.bind.converter.FieldConversionException;
 import format.bind.converter.FieldConverter;
 
-final class DateConverter implements FieldConverter<Date> {
+abstract class TemporalAccessorConverter<T extends TemporalAccessor> implements FieldConverter<T> {
 
 	@Override
-	public String format(final FormatFieldSpec fieldSpec, final Date value) throws FieldConversionException {
+	public String format(final FormatFieldSpec fieldSpec, final T value) throws FieldConversionException {
 		try {
 			String str = Optional.ofNullable(value)
-					.map(new SimpleDateFormat(fieldSpec.format())::format)
+					.map(DateTimeFormatter.ofPattern(fieldSpec.format())::format)
 					.orElseGet(fieldSpec::placeholder);
 			return StringUtils.leftPad(str, fieldSpec.length(), "0");
 		} catch (Exception e) {
@@ -29,16 +30,18 @@ final class DateConverter implements FieldConverter<Date> {
 	}
 
 	@Override
-	public Date parse(final FormatFieldSpec fieldSpec, final String source) throws FieldConversionException {
+	public T parse(final FormatFieldSpec fieldSpec, final String source) throws FieldConversionException {
 		try {
 			if (source.equals(fieldSpec.placeholder())) {
 				return null;
 			}
 
-			return new SimpleDateFormat(fieldSpec.format()).parse(source);
+			return DateTimeFormatter.ofPattern(fieldSpec.format()).parse(source, query());
 		} catch (Exception e) {
 			return FieldConverterUtil.throwFieldConversionParseException(fieldSpec, source, e);
 		}
 	}
+
+	protected abstract TemporalQuery<T> query();
 
 }

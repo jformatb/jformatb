@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package format.bind.runtime.converter;
+package format.bind.runtime.impl.converter;
 
 import format.bind.FormatFieldSpec;
 import format.bind.converter.FieldConversionException;

@@ -28,7 +28,7 @@ public interface FieldConverterProvider {
 	 * @return The {@link FieldConverter} service provider instance.
 	 */
 	static FieldConverterProvider provider() {
-		return provider("format.bind.runtime.converter.DefaultFieldConverterProvider");
+		return provider("format.bind.runtime.impl.converter.DefaultFieldConverterProvider");
 	}
 
 	/**
