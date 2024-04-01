@@ -14,7 +14,6 @@ dependencies {
     testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
     testImplementation 'commons-validator:commons-validator:1.8.0'
 
-    testRuntimeOnly 'org.jboss.weld.se:weld-se-shaded:3.1.9.Final'
     testRuntimeOnly 'org.glassfish:jakarta.el:3.0.3'
 }
 

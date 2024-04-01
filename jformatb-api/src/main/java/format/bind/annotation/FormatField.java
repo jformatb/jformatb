@@ -12,6 +12,8 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import format.bind.FormatFieldSpec.Type;
+
 /**
  * Maps a JavaBean property to a text format field.
  * 
@@ -78,21 +80,5 @@ public @interface FormatField {
 	 * @return The placeholder of the text format field.
 	 */
 	String placeholder() default "";
-
-	/**
-	 * Used in {@link FormatField#type()} to specify the type of the
-	 * text format field.
-	 */
-	public enum Type {
-
-		/** Inferred from property signature. */
-		DEFAULT,
-
-		/** Alphanumeric text format field. */
-		ALPHANUMERIC,
-
-		/** Numeric text format field. */
-		NUMERIC
-	}
 
 }

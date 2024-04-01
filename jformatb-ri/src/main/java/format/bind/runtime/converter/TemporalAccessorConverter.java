@@ -11,26 +11,26 @@ import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 
-import format.bind.annotation.FormatField;
+import format.bind.FormatFieldSpec;
 import format.bind.converter.FieldConverter;
 
 abstract class TemporalAccessorConverter<T extends TemporalAccessor> implements FieldConverter<T> {
 
 	@Override
-	public String format(final FormatField field, final T value) {
+	public String format(final FormatFieldSpec fieldSpec, final T value) {
 		String str = Optional.ofNullable(value)
-				.map(DateTimeFormatter.ofPattern(field.format())::format)
-				.orElseGet(field::placeholder);
-		return StringUtils.leftPad(str, field.length(), "0");
+				.map(DateTimeFormatter.ofPattern(fieldSpec.format())::format)
+				.orElseGet(fieldSpec::placeholder);
+		return StringUtils.leftPad(str, fieldSpec.length(), "0");
 	}
 
 	@Override
-	public T parse(final FormatField field, final String source) {
-		if (source.equals(field.placeholder())) {
+	public T parse(final FormatFieldSpec fieldSpec, final String source) {
+		if (source.equals(fieldSpec.placeholder())) {
 			return null;
 		}
 
-		return DateTimeFormatter.ofPattern(field.format()).parse(source, query());
+		return DateTimeFormatter.ofPattern(fieldSpec.format()).parse(source, query());
 	}
 
 	protected abstract TemporalQuery<T> query();

@@ -25,8 +25,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import javax.enterprise.util.AnnotationLiteral;
-
 import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.NestedNullException;
 import org.apache.commons.beanutils.PropertyUtilsBean;
@@ -46,6 +44,7 @@ import format.bind.converter.FieldConverter;
 import format.bind.converter.spi.FieldConverterProvider;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -74,39 +73,34 @@ import lombok.experimental.UtilityClass;
 @Getter(AccessLevel.NONE)
 public class Formatter<T> {
 
-	@Value
+	@Data
 	@Accessors(fluent = true)
-	@AllArgsConstructor(access = AccessLevel.PRIVATE)
-	@EqualsAndHashCode(callSuper = true)
-	@With
-	private static class FormatFieldLiteral extends AnnotationLiteral<FormatField> implements FormatField {
+	private static final class FormatFieldSpecImpl implements FormatFieldSpec {
 
-		private static final long serialVersionUID = 786817301793039607L;
+		private String name;
 
-		String name;
+		private Type type;
 
-		Type type;
+		private int length;
 
-		int length;
+		private int scale;
 
-		int scale;
+		private String format;
 
-		String format;
+		private String placeholder;
 
-		String placeholder;
-
-		public static final FormatFieldLiteral from(final FormatField field) {
+		public static final FormatFieldSpecImpl from(FormatField field) {
 			Objects.requireNonNull(field);
-			return new FormatFieldLiteral(
-					field.name(),
-					field.type(),
-					field.length(),
-					field.scale(),
-					field.format(),
-					field.placeholder());
+			return new FormatFieldSpecImpl()
+					.name(field.name())
+					.type(field.type())
+					.length(field.length())
+					.scale(field.scale())
+					.format(field.format())
+					.placeholder(field.placeholder());
 		}
 
-		public static final FormatFieldLiteral from(final FormatField field, final FormatFieldOverride override) {
+		public static final FormatFieldSpecImpl from(FormatField field, FormatFieldOverride override) {
 			if (override == null) {
 				return from(field);
 			}
@@ -115,13 +109,13 @@ public class Formatter<T> {
 				FormatField field1 = field;
 				FormatField field2 = override.field();
 				Class<FormatField> type = FormatField.class;
-				return new FormatFieldLiteral(
-						(!type.getDeclaredMethod("name").getDefaultValue().equals(field2.name()) ? field2.name() : field1.name()),
-						(!type.getDeclaredMethod("type").getDefaultValue().equals(field2.type()) ? field2.type() : field1.type()),
-						(!type.getDeclaredMethod("length").getDefaultValue().equals(field2.length()) ? field2.length() : field1.length()),
-						(!type.getDeclaredMethod("scale").getDefaultValue().equals(field2.scale()) ? field2.scale() : field1.scale()),
-						(!type.getDeclaredMethod("format").getDefaultValue().equals(field2.format()) ? field2.format() : field1.format()),
-						(!type.getDeclaredMethod("placeHolder").getDefaultValue().equals(field2.placeholder()) ? field2.placeholder() : field1.placeholder()));
+				return new FormatFieldSpecImpl()
+						.name(!type.getDeclaredMethod("name").getDefaultValue().equals(field2.name()) ? field2.name() : field1.name())
+						.type(!type.getDeclaredMethod("type").getDefaultValue().equals(field2.type()) ? field2.type() : field1.type())
+						.length(!type.getDeclaredMethod("length").getDefaultValue().equals(field2.length()) ? field2.length() : field1.length())
+						.scale(!type.getDeclaredMethod("scale").getDefaultValue().equals(field2.scale()) ? field2.scale() : field1.scale())
+						.format(!type.getDeclaredMethod("format").getDefaultValue().equals(field2.format()) ? field2.format() : field1.format())
+						.placeholder(!type.getDeclaredMethod("placeHolder").getDefaultValue().equals(field2.placeholder()) ? field2.placeholder() : field1.placeholder());
 			} catch (NoSuchMethodException | SecurityException e) {
 				throw new IllegalArgumentException(e);
 			}
@@ -136,7 +130,7 @@ public class Formatter<T> {
 
 		private Class<?> type;
 
-		private FormatField annotation;
+		private FormatFieldSpec annotation;
 
 		private FormatTypeInfo typeInfo;
 
@@ -258,7 +252,7 @@ public class Formatter<T> {
 	@UtilityClass
 	private static class Util {
 		
-		public <T> List<Class<? extends T>> getFormattableSubTypes(final Class<T> superclass) {
+		private <T> List<Class<? extends T>> getFormatSubTypes(final Class<T> superclass) {
 			List<Class<? extends T>> subclasses = new ArrayList<>();
 
 			if (superclass.isAnnotationPresent(FormatSubTypes.class)) {
@@ -266,7 +260,7 @@ public class Formatter<T> {
 					if (subclass.isAnnotationPresent(FormatTypeValue.class)) {
 						subclasses.add(subclass.asSubclass(superclass));
 					} else if (subclass.isAnnotationPresent(FormatSubTypes.class)) {
-						subclasses.addAll(getFormattableSubTypes(subclass.asSubclass(superclass)));
+						subclasses.addAll(getFormatSubTypes(subclass.asSubclass(superclass)));
 					}
 				});
 			}
@@ -274,8 +268,8 @@ public class Formatter<T> {
 			return subclasses;
 		}
 
-		public <T> Class<? extends T> getFormattableSubType(final Class<T> type, final String typeValue) {
-			return Util.getFormattableSubTypes(type).stream()
+		public <T> Class<? extends T> getFormatSubType(final Class<T> type, final String typeValue) {
+			return getFormatSubTypes(type).stream()
 					.filter(subclass -> Arrays.stream(subclass.getDeclaredAnnotationsByType(FormatTypeValue.class))
 							.anyMatch(annotation -> annotation.value().equals(typeValue)))
 					.findFirst()
@@ -346,7 +340,7 @@ public class Formatter<T> {
 			FieldUtils.getFieldsListWithAnnotation(type, FormatField.class).forEach(field -> {
 				String propertyName = getFieldPropertyName(field, context);
 				Class<?> fieldType = getFieldPropertyType(field);
-				FormatField annotation = FormatFieldLiteral.from(
+				FormatFieldSpec annotation = FormatFieldSpecImpl.from(
 						field.getAnnotation(FormatField.class),
 						overrides.get(propertyName));
 				FormatTypeInfo typeInfo = field.getAnnotation(FormatTypeInfo.class);
@@ -418,7 +412,7 @@ public class Formatter<T> {
 		}
 
 		@SuppressWarnings("unchecked")
-		public <T, C extends FieldConverter<T>> String formatFieldValue(final Object value, final FormatField annotation, final FieldConverter<?> converter, final Matcher matcher, final boolean array) {
+		public <T, C extends FieldConverter<T>> String formatFieldValue(final Object value, final FormatFieldSpec annotation, final FieldConverter<?> converter, final Matcher matcher, final boolean array) {
 			StringBuilder output = new StringBuilder();
 			int size = array ? Integer.parseInt(matcher.group(SIZE_GROUP)) : 1;
 			int index = 0;
@@ -440,7 +434,7 @@ public class Formatter<T> {
 			return output.toString();
 		}
 
-		public Object parseFieldValue(final String text, final FormatField annotation, final FieldConverter<?> converter, final Matcher matcher, final AtomicInteger matcherEnd, final AtomicInteger lastIndex) {
+		public Object parseFieldValue(final String text, final FormatFieldSpec annotation, final FieldConverter<?> converter, final Matcher matcher, final AtomicInteger matcherEnd, final AtomicInteger lastIndex) {
 			List<Object> values = new ArrayList<>();
 			boolean array = StringUtils.isNotBlank(matcher.group(ARRAY_GROUP));
 			int size = array ? Integer.parseInt(matcher.group(SIZE_GROUP)) : 1;
@@ -527,7 +521,7 @@ public class Formatter<T> {
 		if (type.isAnnotationPresent(FormatTypeInfo.class)) {
 			FormatTypeInfo typeInfo = type.getAnnotation(FormatTypeInfo.class);
 			String typeValue = StringUtils.substring(text, typeInfo.start(), typeInfo.start() + typeInfo.length());
-			Class<? extends T> subType = Util.getFormattableSubType(type, typeValue);
+			Class<? extends T> subType = Util.getFormatSubType(type, typeValue);
 			return subType.getConstructor().newInstance();
 		}
 
@@ -624,11 +618,11 @@ public class Formatter<T> {
 				Object value = getValue(obj, propertyName);
 
 				FieldConverter<?> converter = fieldProperty.getConverter();
-				FormatFieldLiteral annotation = FormatFieldLiteral.from(fieldProperty.getAnnotation());
+				FormatFieldSpecImpl annotation = (FormatFieldSpecImpl) fieldProperty.getAnnotation();
 
 				if (parts.length > 1) {
 					// Override annotation field length
-					annotation = annotation.withLength(Integer.parseInt(parts[1]));
+					annotation = annotation.length(Integer.parseInt(parts[1]));
 				}
 
 				if (converter == null) {
@@ -703,18 +697,18 @@ public class Formatter<T> {
 
 				FieldProperty fieldProperty = properties.get(name);
 				FieldConverter<?> converter = fieldProperty.getConverter();
-				FormatFieldLiteral annotation = FormatFieldLiteral.from(fieldProperty.getAnnotation());
+				FormatFieldSpecImpl annotation = (FormatFieldSpecImpl) fieldProperty.getAnnotation();
 
 				if (parts.length > 1) {
 					// Override annotation field length
-					annotation = annotation.withLength(Integer.parseInt(parts[1]));
+					annotation = annotation.length(Integer.parseInt(parts[1]));
 				}
 
 				if (converter == null) {
 					Class<?> type = fieldProperty.getType();
 					FormatTypeInfo typeInfo = fieldProperty.getTypeInfo();
 					String typeValue = StringUtils.substring(text, typeInfo.start(), typeInfo.start() + typeInfo.length());
-					Class<?> subType = Util.getFormattableSubType(type, typeValue);
+					Class<?> subType = Util.getFormatSubType(type, typeValue);
 					converter = converterProvider().getConverter(Formatter.of(subType));
 				}
 

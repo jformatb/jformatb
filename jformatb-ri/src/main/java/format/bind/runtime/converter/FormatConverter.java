@@ -6,8 +6,8 @@ package format.bind.runtime.converter;
 
 import java.util.Optional;
 
+import format.bind.FormatFieldSpec;
 import format.bind.Formatter;
-import format.bind.annotation.FormatField;
 import format.bind.converter.FieldConverter;
 import lombok.Value;
 
@@ -17,15 +17,15 @@ class FormatConverter<T> implements FieldConverter<T> {
 	private Formatter<T> formatter;
 
 	@Override
-	public String format(FormatField field, T value) {
+	public String format(FormatFieldSpec fieldSpec, T value) {
 		return Optional.ofNullable(value)
 				.map(formatter::format)
-				.orElseGet(field::placeholder);
+				.orElseGet(fieldSpec::placeholder);
 	}
 
 	@Override
-	public T parse(FormatField field, String source) {
-		return source.equals(field.placeholder()) ? null : formatter.parse(source);
+	public T parse(FormatFieldSpec fieldSpec, String source) {
+		return source.equals(fieldSpec.placeholder()) ? null : formatter.parse(source);
 	}
 
 }

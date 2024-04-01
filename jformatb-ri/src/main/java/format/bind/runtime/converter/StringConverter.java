@@ -9,34 +9,34 @@ import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 
-import format.bind.annotation.FormatField;
-import format.bind.annotation.FormatField.Type;
+import format.bind.FormatFieldSpec;
+import format.bind.FormatFieldSpec.Type;
 import format.bind.converter.FieldConverter;
 
 final class StringConverter implements FieldConverter<String> {
 
 	@Override
-	public String format(final FormatField field, final String value) {
-		if (field.type() == Type.NUMERIC) {
+	public String format(final FormatFieldSpec fieldSpec, final String value) {
+		if (fieldSpec.type() == Type.NUMERIC) {
 			String str = Optional.ofNullable(value)
-					.orElse(StringUtils.defaultIfBlank(field.placeholder(), "0"));
-			return StringUtils.leftPad(String.valueOf(Long.parseLong(str)), field.length(), "0");
+					.orElse(StringUtils.defaultIfBlank(fieldSpec.placeholder(), "0"));
+			return StringUtils.leftPad(String.valueOf(Long.parseLong(str)), fieldSpec.length(), "0");
 		} else {
-			return StringUtils.rightPad(StringUtils.defaultString(value, field.placeholder()), field.length());
+			return StringUtils.rightPad(StringUtils.defaultString(value, fieldSpec.placeholder()), fieldSpec.length());
 		}
 	}
 
 	@Override
-	public String parse(final FormatField field, final String source) {
-		if (field.type() == Type.NUMERIC) {
+	public String parse(final FormatFieldSpec fieldSpec, final String source) {
+		if (fieldSpec.type() == Type.NUMERIC) {
 			long value = Long.parseLong(source);
-			if (field.placeholder().equals(String.valueOf(value))) {
+			if (fieldSpec.placeholder().equals(String.valueOf(value))) {
 				return null;
 			} else {
-				return new DecimalFormat(StringUtils.defaultIfBlank(field.format(), "0")).format(value);
+				return new DecimalFormat(StringUtils.defaultIfBlank(fieldSpec.format(), "0")).format(value);
 			}
 		} else {
-			return StringUtils.trimToNull((source.equals(field.placeholder()) ? "" : source));
+			return StringUtils.trimToNull((source.equals(fieldSpec.placeholder()) ? "" : source));
 		}
 	}
 

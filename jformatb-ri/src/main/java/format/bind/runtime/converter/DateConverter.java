@@ -11,27 +11,27 @@ import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 
-import format.bind.annotation.FormatField;
+import format.bind.FormatFieldSpec;
 import format.bind.converter.FieldConverter;
 
 final class DateConverter implements FieldConverter<Date> {
 
 	@Override
-	public String format(final FormatField field, final Date value) {
+	public String format(final FormatFieldSpec fieldSpec, final Date value) {
 		String str = Optional.ofNullable(value)
-				.map(new SimpleDateFormat(field.format())::format)
-				.orElseGet(field::placeholder);
-		return StringUtils.leftPad(str, field.length(), "0");
+				.map(new SimpleDateFormat(fieldSpec.format())::format)
+				.orElseGet(fieldSpec::placeholder);
+		return StringUtils.leftPad(str, fieldSpec.length(), "0");
 	}
 
 	@Override
-	public Date parse(final FormatField field, final String source) {
-		if (source.equals(field.placeholder())) {
+	public Date parse(final FormatFieldSpec fieldSpec, final String source) {
+		if (source.equals(fieldSpec.placeholder())) {
 			return null;
 		}
 
 		try {
-			return new SimpleDateFormat(field.format()).parse(source);
+			return new SimpleDateFormat(fieldSpec.format()).parse(source);
 		} catch (ParseException e) {
 			throw new IllegalArgumentException(e);
 		}

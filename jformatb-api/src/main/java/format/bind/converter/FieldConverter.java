@@ -4,7 +4,7 @@
 */
 package format.bind.converter;
 
-import format.bind.annotation.FormatField;
+import format.bind.FormatFieldSpec;
 import format.bind.annotation.FormatFieldConverter;
 
 /**
@@ -22,22 +22,22 @@ public interface FieldConverter<T> {
 	/**
 	 * Converts a bound type value to a text format value.
 	 * 
-	 * @param field The text format field specification.
+	 * @param fieldSpec The text format field specification.
 	 * @param value The Java value to be converted. Can be null.
 	 * @return The formatted text value.
 	 * @throws IllegalArgumentException if there is an error during the conversion.
 	 */
-	String format(final FormatField field, final T value);
+	String format(final FormatFieldSpec fieldSpec, final T value);
 
 	/**
 	 * Converts a text format value to a bound type value.
 	 * 
-	 * @param field The text format field specification.
+	 * @param fieldSpec The text format field specification.
 	 * @param source The text format value to be converted. Cannot be empty, but
 	 * 		can be blank.
 	 * @return The bound type value.
 	 * @throws IllegalArgumentException if there is an error during the conversion.
 	 */
-	T parse(final FormatField field, final String source);
+	T parse(final FormatFieldSpec fieldSpec, final String source);
 
 }
