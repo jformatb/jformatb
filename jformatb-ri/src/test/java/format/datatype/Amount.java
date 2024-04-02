@@ -17,12 +17,9 @@ package format.datatype;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
+import java.text.NumberFormat;
 import java.util.Currency;
 import java.util.Locale;
-
-import org.apache.commons.lang3.StringUtils;
 
 import format.bind.annotation.FormatField;
 import lombok.AllArgsConstructor;
@@ -66,14 +63,11 @@ public class Amount implements Serializable {
 		return BigDecimal.valueOf(value, currency.getDefaultFractionDigits());
 	}
 
-	public String toFormattedString() {
-		return toFormattedString(locale);
-	}
-
-	public String toFormattedString(Locale locale) {
-		int fractionDigits = currency.getDefaultFractionDigits();
-		String pattern = "#,##0." + StringUtils.rightPad(StringUtils.rightPad("", fractionDigits, "0"), 3, "#");
-		return new DecimalFormat(pattern, DecimalFormatSymbols.getInstance(locale)).format(toBigDecimal());
+	@Override
+	public String toString() {
+		NumberFormat format = NumberFormat.getCurrencyInstance(locale);
+		format.setCurrency(currency);
+		return format.format(toBigDecimal());
 	}
 
 }

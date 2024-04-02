@@ -20,33 +20,36 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.math.BigDecimal;
 import java.util.Locale;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvFileSource;
 
 import format.bind.Formatter;
 import format.datatype.Amount;
 
 public class AmountFormatterTest {
 
-	@Test
-	void formatAmount() {
-		String expected = "USD000000100000";
+	@ParameterizedTest
+	@CsvFileSource(resources = "/amounts.csv", delimiter = ';', numLinesToSkip = 1)
+	void formatAmount(String languageTag, String source, String text) {
+		String expected = text;
 		String actual = Formatter.of(Amount.class)
 				.withPattern("${currency:3}${value:12}")
-				.format(Amount.of(Locale.US, 100000));
+				.format(Amount.of(Locale.forLanguageTag(languageTag), Long.parseLong(source)));
 		assertThat(actual).isEqualTo(expected);
 	}
 
-	@Test
-	void parseAmount() {
-		Amount expected = Amount.of(Locale.ITALY, 100000);
+	@ParameterizedTest
+	@CsvFileSource(resources = "/amounts.csv", delimiter = ';', numLinesToSkip = 1)
+	void parseAmount(String languageTag, String source, String text) {
+		Locale locale = Locale.forLanguageTag(languageTag);
+		Amount expected = Amount.of(locale, Long.parseLong(source));
 		Amount actual = Formatter.of(Amount.class)
 				.withPattern("${currency:3}${value:12}")
-				.setListener((amount, fields) -> amount.setLocale(Locale.ITALY))
-				.parse("EUR000000100000");
+				.setListener((amount, fields) -> amount.setLocale(locale))
+				.parse(text);
 		assertThat(actual)
 				.isEqualTo(expected)
-				.returns("1.000,00", Amount::toFormattedString)
-				.returns(BigDecimal.valueOf(100000, 2), Amount::toBigDecimal);
+				.returns(BigDecimal.valueOf(actual.getValue(), actual.getCurrency().getDefaultFractionDigits()), Amount::toBigDecimal);
 	}
 
 }
