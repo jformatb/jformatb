@@ -29,7 +29,7 @@ final class BooleanConverter implements FieldConverter<Boolean> {
 		try {
 			return StringUtils.leftPad(String.valueOf(BooleanUtils.toInteger(value.booleanValue())), descriptor.length());
 		} catch (Exception e) {
-			return FieldConverterUtil.throwFormatFieldConversionException(descriptor, value, e);
+			return FieldConverters.throwFormatFieldConversionException(descriptor, value, e);
 		}
 	}
 
@@ -38,7 +38,7 @@ final class BooleanConverter implements FieldConverter<Boolean> {
 		try {
 			return BooleanUtils.toBooleanObject(Integer.parseInt(StringUtils.trim(source)));
 		} catch (Exception e) {
-			return FieldConverterUtil.throwParseFieldConversionException(descriptor, source, e);
+			return FieldConverters.throwParseFieldConversionException(descriptor, source, e);
 		}
 	}
 

@@ -31,7 +31,7 @@ class CharacterConverter implements FieldConverter<Character> {
 					.getConverter(String.class)
 					.format(descriptor, String.valueOf(value.charValue()));
 		} catch (Exception e) {
-			return FieldConverterUtil.throwFormatFieldConversionException(descriptor, value, e);
+			return FieldConverters.throwFormatFieldConversionException(descriptor, value, e);
 		}
 	}
 
@@ -45,7 +45,7 @@ class CharacterConverter implements FieldConverter<Character> {
 					.map(str -> str.charAt(0))
 					.orElse(null);
 		} catch (Exception e) {
-			return FieldConverterUtil.throwParseFieldConversionException(descriptor, source, e);
+			return FieldConverters.throwParseFieldConversionException(descriptor, source, e);
 		}
 	}
 

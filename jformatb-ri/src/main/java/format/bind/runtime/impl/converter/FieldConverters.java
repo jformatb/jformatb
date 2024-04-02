@@ -1,0 +1,163 @@
+/*
+ * Copyright 2024 jFormat-B
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package format.bind.runtime.impl.converter;
+
+import java.lang.reflect.InvocationTargetException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
+import java.time.ZonedDateTime;
+import java.util.Date;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
+import format.bind.FormatFieldDescriptor;
+import format.bind.Formatter;
+import format.bind.converter.FieldConversionException;
+import format.bind.converter.FieldConverter;
+import format.bind.converter.FieldConverterNotFoundException;
+import lombok.experimental.UtilityClass;
+
+@UtilityClass
+class FieldConverters {
+
+	/** The collection of all resolved field converters. */
+	private static final ConcurrentMap<Class<?>, FieldConverter<?>> converters = new ConcurrentHashMap<>();
+
+	static {
+		addConverter(Boolean.class, BooleanConverter::new);
+		addConverter(Byte.class, ByteConverter::new);
+		addConverter(Short.class, ShortConverter::new);
+		addConverter(Integer.class, IntegerConverter::new);
+		addConverter(Long.class, LongConverter::new);
+		addConverter(Float.class, FloatConverter::new);
+		addConverter(Double.class, DoubleConverter::new);
+		addConverter(BigInteger.class, BigIntegerConverter::new);
+		addConverter(BigDecimal.class, BigDecimalConverter::new);
+		addConverter(Character.class, CharacterConverter::new);
+		addConverter(String.class, StringConverter::new);
+		addConverter(Date.class, DateConverter::new);
+		addConverter(LocalDate.class, LocalDateConverter::new);
+		addConverter(LocalTime.class, LocalTimeConverter::new);
+		addConverter(LocalDateTime.class, LocalDateTimeConverter::new);
+		addConverter(OffsetTime.class, OffsetTimeConverter::new);
+		addConverter(OffsetDateTime.class, OffsetDateTimeConverter::new);
+		addConverter(ZonedDateTime.class, ZonedDateTimeConverter::new);
+	}
+
+	/**
+	 * Creates a new instance of the given converter type.
+	 * 
+	 * @param <C> The type of the returned {@link FieldConverter}.
+	 * @param converterType The Java type of the returned {@link FieldConverter}.
+	 * @return An instance of a {@link FieldConverter}.
+	 * @throws IllegalArgumentException if an error occurs during creation.
+	 */
+	private <C extends FieldConverter<?>> C newInstance(final Class<C> converterType) {
+		try {
+			return converterType.getConstructor().newInstance();
+		} catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+			throw new IllegalArgumentException(e);
+		}
+	}
+
+	/**
+	 * Add the supplied converter to the field converter collection if not present.
+	 * 
+	 * @param <T> The type of the field to convert.
+	 * @param type The class instance of the field Java type.
+	 * @param converterSupplier The supplier that return the field converter to add.
+	 * @return The supplier field converter if not present in collection. Otherwise the existing
+	 * 		converter for the field Java type.
+	 */
+	@SuppressWarnings("unchecked")
+	private <T> FieldConverter<T> addConverter(final Class<T> type, final Supplier<FieldConverter<T>> converterSupplier) {
+		return (FieldConverter<T>) converters.computeIfAbsent(type, cls -> converterSupplier.get());
+	}
+
+	/**
+	 * Add the supplied converter to the field converter collection if not present.
+	 * 
+	 * @param <T> The type of the field to convert.
+	 * @param type The class instance of the field Java type.
+	 * @param converterFunction The function that return the field converter to add.
+	 * @return The function field converter if not present in collection. Otherwise the existing
+	 * 		converter for the field Java type.
+	 */
+	@SuppressWarnings("unchecked")
+	private <T> FieldConverter<T> addConverter(final Class<T> type, final Function<Class<?>, FieldConverter<?>> converterFunction) {
+		return (FieldConverter<T>) converters.computeIfAbsent(type, converterFunction);
+	}
+
+	/**
+	 * Creates a field converter for the given enum class.
+	 * 
+	 * @param <E> The type of the enum class.
+	 * @param enumType The class instance of the field enum type.
+	 * @return The field converter instance.
+	 */
+	@SuppressWarnings("unchecked")
+	private <E extends Enum<E>> FieldConverter<E> getEnumConverter(final Class<?> enumType) {
+		return EnumConverter.of((Class<E>) enumType);
+	}
+
+	<T> FieldConverter<T> getConverter(Class<T> fieldType, Class<? extends FieldConverter<T>> converterType)
+			throws FieldConverterNotFoundException {
+		return addConverter(fieldType, () -> newInstance(converterType));
+	}
+
+	@SuppressWarnings("unchecked")
+	<T> FieldConverter<T> getConverter(Class<T> fieldType) throws FieldConverterNotFoundException {
+		if (fieldType.isEnum()) {
+			return addConverter(fieldType, FieldConverters::getEnumConverter);
+		}
+
+		return (FieldConverter<T>) converters.get(fieldType);
+	}
+
+	<T> FieldConverter<T> getConverter(Formatter<T> formatter) throws FieldConverterNotFoundException {
+		return FormatConverter.of(formatter);
+	}
+
+	<T> String throwFormatFieldConversionException(
+			final FormatFieldDescriptor descriptor, final T value, Exception cause) {
+		if (cause instanceof FieldConversionException) {
+			throw (FieldConversionException) cause;
+		}
+
+		throw new FieldConversionException(
+				String.format("Unable to format value [%s] for field '%s'", value, descriptor.name()),
+				cause);
+	}
+
+	<T> T throwParseFieldConversionException(
+			final FormatFieldDescriptor descriptor, final String source, Exception cause) {
+		if (cause instanceof FieldConversionException) {
+			throw (FieldConversionException) cause;
+		}
+
+		throw new FieldConversionException(
+				String.format("Unable to parse text [%s] for field '%s'", source, descriptor.name()),
+				cause);
+	}
+
+}

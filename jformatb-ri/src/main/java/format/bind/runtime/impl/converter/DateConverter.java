@@ -35,7 +35,7 @@ final class DateConverter implements FieldConverter<Date> {
 					.orElseGet(descriptor::placeholder);
 			return StringUtils.leftPad(str, descriptor.length(), "0");
 		} catch (Exception e) {
-			return FieldConverterUtil.throwFormatFieldConversionException(descriptor, value, e);
+			return FieldConverters.throwFormatFieldConversionException(descriptor, value, e);
 		}
 	}
 
@@ -48,7 +48,7 @@ final class DateConverter implements FieldConverter<Date> {
 
 			return new SimpleDateFormat(fieldSpec.format()).parse(source);
 		} catch (Exception e) {
-			return FieldConverterUtil.throwParseFieldConversionException(fieldSpec, source, e);
+			return FieldConverters.throwParseFieldConversionException(fieldSpec, source, e);
 		}
 	}
 

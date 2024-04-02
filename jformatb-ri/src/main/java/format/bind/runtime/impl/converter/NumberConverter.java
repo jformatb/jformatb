@@ -31,7 +31,7 @@ abstract class NumberConverter<N extends Number> implements FieldConverter<N> {
 			long longValue = valueOf(number).setScale(descriptor.scale()).unscaledValue().longValueExact();
 			return StringUtils.leftPad(String.valueOf(longValue), descriptor.length(), "0");
 		} catch (Exception e) {
-			return FieldConverterUtil.throwFormatFieldConversionException(descriptor, number, e);
+			return FieldConverters.throwFormatFieldConversionException(descriptor, number, e);
 		}
 	}
 
@@ -40,7 +40,7 @@ abstract class NumberConverter<N extends Number> implements FieldConverter<N> {
 		try {
 			return toValue(BigDecimal.valueOf(Long.valueOf(source), descriptor.scale()));
 		} catch (Exception e) {
-			return FieldConverterUtil.throwParseFieldConversionException(descriptor, source, e);
+			return FieldConverters.throwParseFieldConversionException(descriptor, source, e);
 		}
 	}
 
