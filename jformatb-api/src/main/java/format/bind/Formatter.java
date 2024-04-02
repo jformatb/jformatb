@@ -75,7 +75,7 @@ public class Formatter<T> {
 
 	@Data
 	@Accessors(fluent = true)
-	private static final class FormatFieldSpecImpl implements FormatFieldSpec {
+	private static final class FormatFieldDescriptorImpl implements FormatFieldDescriptor {
 
 		private String name;
 
@@ -89,9 +89,9 @@ public class Formatter<T> {
 
 		private String placeholder;
 
-		public static final FormatFieldSpecImpl from(FormatField field) {
+		public static final FormatFieldDescriptorImpl from(FormatField field) {
 			Objects.requireNonNull(field);
-			return new FormatFieldSpecImpl()
+			return new FormatFieldDescriptorImpl()
 					.name(field.name())
 					.type(field.type())
 					.length(field.length())
@@ -100,7 +100,7 @@ public class Formatter<T> {
 					.placeholder(field.placeholder());
 		}
 
-		public static final FormatFieldSpecImpl from(FormatField field, FormatFieldOverride override) {
+		public static final FormatFieldDescriptorImpl from(FormatField field, FormatFieldOverride override) {
 			if (override == null) {
 				return from(field);
 			}
@@ -109,7 +109,7 @@ public class Formatter<T> {
 				FormatField field1 = field;
 				FormatField field2 = override.field();
 				Class<FormatField> type = FormatField.class;
-				return new FormatFieldSpecImpl()
+				return new FormatFieldDescriptorImpl()
 						.name(!type.getDeclaredMethod("name").getDefaultValue().equals(field2.name()) ? field2.name() : field1.name())
 						.type(!type.getDeclaredMethod("type").getDefaultValue().equals(field2.type()) ? field2.type() : field1.type())
 						.length(!type.getDeclaredMethod("length").getDefaultValue().equals(field2.length()) ? field2.length() : field1.length())
@@ -130,7 +130,7 @@ public class Formatter<T> {
 
 		private Class<?> type;
 
-		private FormatFieldSpec annotation;
+		private FormatFieldDescriptor annotation;
 
 		private FormatTypeInfo typeInfo;
 
@@ -320,7 +320,7 @@ public class Formatter<T> {
 			}
 		}
 
-		public Object getFieldValue(final List<Object> values, final boolean array) {
+		private Object getFieldValue(final List<Object> values, final boolean array) {
 			Object value = null;
 
 			// Remove null values
@@ -340,7 +340,7 @@ public class Formatter<T> {
 			FieldUtils.getFieldsListWithAnnotation(type, FormatField.class).forEach(field -> {
 				String propertyName = getFieldPropertyName(field, context);
 				Class<?> fieldType = getFieldPropertyType(field);
-				FormatFieldSpec annotation = FormatFieldSpecImpl.from(
+				FormatFieldDescriptor annotation = FormatFieldDescriptorImpl.from(
 						field.getAnnotation(FormatField.class),
 						overrides.get(propertyName));
 				FormatTypeInfo typeInfo = field.getAnnotation(FormatTypeInfo.class);
@@ -412,7 +412,7 @@ public class Formatter<T> {
 		}
 
 		@SuppressWarnings("unchecked")
-		public <T, C extends FieldConverter<T>> String formatFieldValue(final Object value, final FormatFieldSpec annotation, final FieldConverter<?> converter, final Matcher matcher, final boolean array) {
+		public <T, C extends FieldConverter<T>> String formatFieldValue(final Object value, final FormatFieldDescriptor annotation, final FieldConverter<?> converter, final Matcher matcher, final boolean array) {
 			StringBuilder output = new StringBuilder();
 			int size = array ? Integer.parseInt(matcher.group(SIZE_GROUP)) : 1;
 			int index = 0;
@@ -434,7 +434,7 @@ public class Formatter<T> {
 			return output.toString();
 		}
 
-		public Object parseFieldValue(final String text, final FormatFieldSpec annotation, final FieldConverter<?> converter, final Matcher matcher, final AtomicInteger matcherEnd, final AtomicInteger lastIndex) {
+		public Object parseFieldValue(final String text, final FormatFieldDescriptor annotation, final FieldConverter<?> converter, final Matcher matcher, final AtomicInteger matcherEnd, final AtomicInteger lastIndex) {
 			List<Object> values = new ArrayList<>();
 			boolean array = StringUtils.isNotBlank(matcher.group(ARRAY_GROUP));
 			int size = array ? Integer.parseInt(matcher.group(SIZE_GROUP)) : 1;
@@ -618,7 +618,7 @@ public class Formatter<T> {
 				Object value = getValue(obj, propertyName);
 
 				FieldConverter<?> converter = fieldProperty.getConverter();
-				FormatFieldSpecImpl annotation = (FormatFieldSpecImpl) fieldProperty.getAnnotation();
+				FormatFieldDescriptorImpl annotation = (FormatFieldDescriptorImpl) fieldProperty.getAnnotation();
 
 				if (parts.length > 1) {
 					// Override annotation field length
@@ -698,7 +698,7 @@ public class Formatter<T> {
 
 				FieldProperty fieldProperty = properties.get(name);
 				FieldConverter<?> converter = fieldProperty.getConverter();
-				FormatFieldSpecImpl annotation = (FormatFieldSpecImpl) fieldProperty.getAnnotation();
+				FormatFieldDescriptorImpl annotation = (FormatFieldDescriptorImpl) fieldProperty.getAnnotation();
 
 				if (parts.length > 1) {
 					// Override annotation field length

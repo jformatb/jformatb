@@ -9,30 +9,30 @@ import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 
-import format.bind.FormatFieldSpec;
-import format.bind.FormatFieldSpec.Type;
+import format.bind.FormatFieldDescriptor;
+import format.bind.FormatFieldDescriptor.Type;
 import format.bind.converter.FieldConversionException;
 import format.bind.converter.FieldConverter;
 
 final class StringConverter implements FieldConverter<String> {
 
 	@Override
-	public String format(final FormatFieldSpec fieldSpec, final String value) throws FieldConversionException {
+	public String format(final FormatFieldDescriptor descriptor, final String value) throws FieldConversionException {
 		try {
-			if (fieldSpec.type() == Type.NUMERIC) {
+			if (descriptor.type() == Type.NUMERIC) {
 				String str = Optional.ofNullable(value)
-						.orElse(StringUtils.defaultIfBlank(fieldSpec.placeholder(), "0"));
-				return StringUtils.leftPad(String.valueOf(Long.parseLong(str)), fieldSpec.length(), "0");
+						.orElse(StringUtils.defaultIfBlank(descriptor.placeholder(), "0"));
+				return StringUtils.leftPad(String.valueOf(Long.parseLong(str)), descriptor.length(), "0");
 			} else {
-				return StringUtils.rightPad(StringUtils.defaultString(value, fieldSpec.placeholder()), fieldSpec.length());
+				return StringUtils.rightPad(StringUtils.defaultString(value, descriptor.placeholder()), descriptor.length());
 			}
 		} catch (Exception e) {
-			return FieldConverterUtil.throwFieldConversionFormatException(fieldSpec, value, e);
+			return FieldConverterUtil.throwFieldConversionFormatException(descriptor, value, e);
 		}
 	}
 
 	@Override
-	public String parse(final FormatFieldSpec fieldSpec, final String source) throws FieldConversionException {
+	public String parse(final FormatFieldDescriptor fieldSpec, final String source) throws FieldConversionException {
 		try {
 			if (fieldSpec.type() == Type.NUMERIC) {
 				long value = Long.parseLong(source);

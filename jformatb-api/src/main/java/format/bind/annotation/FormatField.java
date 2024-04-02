@@ -12,7 +12,7 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import format.bind.FormatFieldSpec.Type;
+import format.bind.FormatFieldDescriptor.Type;
 
 /**
  * Maps a JavaBean property to a text format field.

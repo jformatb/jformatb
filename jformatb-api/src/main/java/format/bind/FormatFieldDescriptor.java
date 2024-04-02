@@ -22,7 +22,7 @@ import format.bind.annotation.FormatField;
  * 
  * @author Yannick Ebongue
  */
-public interface FormatFieldSpec {
+public interface FormatFieldDescriptor {
 
 	/**
 	 * The name of the text format field.

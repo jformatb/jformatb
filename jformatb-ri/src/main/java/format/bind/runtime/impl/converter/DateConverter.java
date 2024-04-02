@@ -10,26 +10,26 @@ import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 
-import format.bind.FormatFieldSpec;
+import format.bind.FormatFieldDescriptor;
 import format.bind.converter.FieldConversionException;
 import format.bind.converter.FieldConverter;
 
 final class DateConverter implements FieldConverter<Date> {
 
 	@Override
-	public String format(final FormatFieldSpec fieldSpec, final Date value) throws FieldConversionException {
+	public String format(final FormatFieldDescriptor descriptor, final Date value) throws FieldConversionException {
 		try {
 			String str = Optional.ofNullable(value)
-					.map(new SimpleDateFormat(fieldSpec.format())::format)
-					.orElseGet(fieldSpec::placeholder);
-			return StringUtils.leftPad(str, fieldSpec.length(), "0");
+					.map(new SimpleDateFormat(descriptor.format())::format)
+					.orElseGet(descriptor::placeholder);
+			return StringUtils.leftPad(str, descriptor.length(), "0");
 		} catch (Exception e) {
-			return FieldConverterUtil.throwFieldConversionFormatException(fieldSpec, value, e);
+			return FieldConverterUtil.throwFieldConversionFormatException(descriptor, value, e);
 		}
 	}
 
 	@Override
-	public Date parse(final FormatFieldSpec fieldSpec, final String source) throws FieldConversionException {
+	public Date parse(final FormatFieldDescriptor fieldSpec, final String source) throws FieldConversionException {
 		try {
 			if (source.equals(fieldSpec.placeholder())) {
 				return null;

@@ -6,8 +6,8 @@ package format.bind.runtime.impl.converter;
 
 import org.apache.commons.lang3.StringUtils;
 
-import format.bind.FormatFieldSpec;
-import format.bind.FormatFieldSpec.Type;
+import format.bind.FormatFieldDescriptor;
+import format.bind.FormatFieldDescriptor.Type;
 import format.bind.converter.FieldConversionException;
 import format.bind.converter.FieldConverter;
 
@@ -24,20 +24,20 @@ final class EnumConverter<E extends Enum<E>> implements FieldConverter<E> {
 	}
 
 	@Override
-	public String format(final FormatFieldSpec fieldSpec, final E value) throws FieldConversionException {
+	public String format(final FormatFieldDescriptor descriptor, final E value) throws FieldConversionException {
 		try {
-			if (fieldSpec.type() == Type.ALPHANUMERIC) {
-				return StringUtils.rightPad(value.name(), fieldSpec.length());
+			if (descriptor.type() == Type.ALPHANUMERIC) {
+				return StringUtils.rightPad(value.name(), descriptor.length());
 			} else {
-				return StringUtils.leftPad(String.valueOf(value.ordinal()), fieldSpec.length(), "0");
+				return StringUtils.leftPad(String.valueOf(value.ordinal()), descriptor.length(), "0");
 			}
 		} catch (Exception e) {
-			return FieldConverterUtil.throwFieldConversionFormatException(fieldSpec, value, e);
+			return FieldConverterUtil.throwFieldConversionFormatException(descriptor, value, e);
 		}
 	}
 
 	@Override
-	public E parse(final FormatFieldSpec fieldSpec, final String source) throws FieldConversionException {
+	public E parse(final FormatFieldDescriptor fieldSpec, final String source) throws FieldConversionException {
 		try {
 			if (fieldSpec.type() == Type.ALPHANUMERIC) {
 				return Enum.valueOf(enumType, StringUtils.trim(source));

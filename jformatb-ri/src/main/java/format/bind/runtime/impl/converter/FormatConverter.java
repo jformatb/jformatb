@@ -6,7 +6,7 @@ package format.bind.runtime.impl.converter;
 
 import java.util.Optional;
 
-import format.bind.FormatFieldSpec;
+import format.bind.FormatFieldDescriptor;
 import format.bind.Formatter;
 import format.bind.converter.FieldConversionException;
 import format.bind.converter.FieldConverter;
@@ -18,15 +18,15 @@ class FormatConverter<T> implements FieldConverter<T> {
 	private Formatter<T> formatter;
 
 	@Override
-	public String format(FormatFieldSpec fieldSpec, T value) throws FieldConversionException {
+	public String format(FormatFieldDescriptor descriptor, T value) throws FieldConversionException {
 		return Optional.ofNullable(value)
 				.map(formatter::format)
-				.orElseGet(fieldSpec::placeholder);
+				.orElseGet(descriptor::placeholder);
 	}
 
 	@Override
-	public T parse(FormatFieldSpec fieldSpec, String source) throws FieldConversionException {
-		return source.equals(fieldSpec.placeholder()) ? null : formatter.parse(source);
+	public T parse(FormatFieldDescriptor descriptor, String source) throws FieldConversionException {
+		return source.equals(descriptor.placeholder()) ? null : formatter.parse(source);
 	}
 
 }

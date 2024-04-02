@@ -15,7 +15,7 @@
  */
 package format.bind.runtime.impl.converter;
 
-import format.bind.FormatFieldSpec;
+import format.bind.FormatFieldDescriptor;
 import format.bind.converter.FieldConversionException;
 import lombok.experimental.UtilityClass;
 
@@ -23,24 +23,24 @@ import lombok.experimental.UtilityClass;
 class FieldConverterUtil {
 
 	<T> String throwFieldConversionFormatException(
-			final FormatFieldSpec fieldSpec, final T value, Exception cause) {
+			final FormatFieldDescriptor descriptor, final T value, Exception cause) {
 		if (cause instanceof FieldConversionException) {
 			throw (FieldConversionException) cause;
 		}
 
 		throw new FieldConversionException(
-				String.format("Unable to format value [%s] for field '%s'", value, fieldSpec.name()),
+				String.format("Unable to format value [%s] for field '%s'", value, descriptor.name()),
 				cause);
 	}
 
 	<T> T throwFieldConversionParseException(
-			final FormatFieldSpec fieldSpec, final String source, Exception cause) {
+			final FormatFieldDescriptor descriptor, final String source, Exception cause) {
 		if (cause instanceof FieldConversionException) {
 			throw (FieldConversionException) cause;
 		}
 
 		throw new FieldConversionException(
-				String.format("Unable to parse text [%s] for field '%s'", source, fieldSpec.name()),
+				String.format("Unable to parse text [%s] for field '%s'", source, descriptor.name()),
 				cause);
 	}
 
