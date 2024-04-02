@@ -21,7 +21,7 @@ import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 
 import format.bind.FormatFieldDescriptor;
-import format.bind.FormatFieldDescriptor.Type;
+import format.bind.annotation.FormatField.Type;
 import format.bind.converter.FieldConversionException;
 import format.bind.converter.FieldConverter;
 

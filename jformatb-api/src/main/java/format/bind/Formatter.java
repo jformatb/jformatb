@@ -90,7 +90,7 @@ public class Formatter<T> {
 
 		private String name;
 
-		private Type type;
+		private FormatField.Type type;
 
 		private int length;
 

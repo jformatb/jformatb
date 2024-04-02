@@ -15,7 +15,7 @@
  */
 package format.bind;
 
-import format.bind.annotation.FormatField;
+import format.bind.annotation.FormatField.Type;
 
 /**
  * Represents the computed configuration of a text format field.
@@ -70,21 +70,5 @@ public interface FormatFieldDescriptor {
 	 * @return The placeholder of the text format field.
 	 */
 	String placeholder();
-
-	/**
-	 * Used in {@link FormatField#type()} to specify the type of the
-	 * text format field.
-	 */
-	public enum Type {
-
-		/** Inferred from property signature. */
-		DEFAULT,
-
-		/** Alphanumeric text format field. */
-		ALPHANUMERIC,
-
-		/** Numeric text format field. */
-		NUMERIC
-	}
 
 }
