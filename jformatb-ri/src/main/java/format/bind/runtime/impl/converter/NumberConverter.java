@@ -1,7 +1,18 @@
 /*
-* Copyright (c) 2019 by Diebold Nixdorf
-* This software is the confidential and proprietary information of Diebold Nixdorf.
-*/
+ * Copyright 2024 jFormat-B
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package format.bind.runtime.impl.converter;
 
 import java.math.BigDecimal;
@@ -20,7 +31,7 @@ abstract class NumberConverter<N extends Number> implements FieldConverter<N> {
 			long longValue = valueOf(number).setScale(descriptor.scale()).unscaledValue().longValueExact();
 			return StringUtils.leftPad(String.valueOf(longValue), descriptor.length(), "0");
 		} catch (Exception e) {
-			return FieldConverterUtil.throwFieldConversionFormatException(descriptor, number, e);
+			return FieldConverterUtil.throwFormatFieldConversionException(descriptor, number, e);
 		}
 	}
 
@@ -29,7 +40,7 @@ abstract class NumberConverter<N extends Number> implements FieldConverter<N> {
 		try {
 			return toValue(BigDecimal.valueOf(Long.valueOf(source), descriptor.scale()));
 		} catch (Exception e) {
-			return FieldConverterUtil.throwFieldConversionParseException(descriptor, source, e);
+			return FieldConverterUtil.throwParseFieldConversionException(descriptor, source, e);
 		}
 	}
 
