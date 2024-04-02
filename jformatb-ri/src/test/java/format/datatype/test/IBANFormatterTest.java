@@ -19,7 +19,7 @@ import format.datatype.GBBBAN;
 import format.datatype.IBAN;
 import format.datatype.ITBBAN;
 
-class IBANAdapterTest {
+class IBANFormatterTest {
 
 	private Condition<IBAN> valid;
 
