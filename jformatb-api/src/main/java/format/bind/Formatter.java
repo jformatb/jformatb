@@ -40,6 +40,7 @@ import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.NestedNullException;
 import org.apache.commons.beanutils.PropertyUtilsBean;
 import org.apache.commons.beanutils.expression.DefaultResolver;
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 
@@ -306,6 +307,10 @@ public class Formatter<T> {
 
 		public Class<?> getFieldPropertyType(final Field field) {
 			Class<?> fieldType = field.getType();
+
+			if (fieldType.isPrimitive()) {
+				return ClassUtils.primitiveToWrapper(fieldType);
+			}
 
 			if (List.class.isAssignableFrom(fieldType)) {
 				Type valueType = ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0];
@@ -695,11 +700,10 @@ public class Formatter<T> {
 				if (resultType.isAnnotationPresent(FormatTypeInfo.class)) {
 					FormatTypeInfo typeInfo = resultType.getAnnotation(FormatTypeInfo.class);
 					if (typeInfo.fieldName().equals(name) && !properties.containsKey(name)) {
-						// Skip type info property
-						String value = resultType.getAnnotation(FormatTypeValue.class).value();
 						int start = matcher.start() - matcherEnd.get() + lastIndex.get();
 						matcherEnd.set(matcher.end());
 						lastIndex.set(start + typeInfo.length());
+						String value = StringUtils.substring(text, start, lastIndex.get());
 
 						resolvedFields.put(parts[0], value);
 
@@ -719,7 +723,9 @@ public class Formatter<T> {
 				if (converter == null) {
 					Class<?> type = fieldProperty.getType();
 					FormatTypeInfo typeInfo = fieldProperty.getTypeInfo();
-					String typeValue = StringUtils.substring(text, typeInfo.start(), typeInfo.start() + typeInfo.length());
+					int startIndex = typeInfo.start();
+					int endIndex = startIndex + typeInfo.length();
+					String typeValue = StringUtils.substring(text, startIndex, endIndex);
 					Class<?> subType = Util.getFormatSubType(type, typeValue);
 					converter = converterProvider().getConverter(Formatter.of(subType));
 				}
