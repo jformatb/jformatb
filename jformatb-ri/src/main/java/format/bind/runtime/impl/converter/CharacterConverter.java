@@ -20,15 +20,13 @@ import java.util.Optional;
 import format.bind.FormatFieldDescriptor;
 import format.bind.converter.FieldConversionException;
 import format.bind.converter.FieldConverter;
-import format.bind.converter.spi.FieldConverterProvider;
 
 class CharacterConverter implements FieldConverter<Character> {
 
 	@Override
 	public String format(FormatFieldDescriptor descriptor, Character value) throws FieldConversionException {
 		try {
-			return FieldConverterProvider.provider()
-					.getConverter(String.class)
+			return FieldConverters.getConverter(String.class)
 					.format(descriptor, String.valueOf(value.charValue()));
 		} catch (Exception e) {
 			return FieldConverters.throwFormatFieldConversionException(descriptor, value, e);
@@ -38,8 +36,7 @@ class CharacterConverter implements FieldConverter<Character> {
 	@Override
 	public Character parse(FormatFieldDescriptor descriptor, String source) throws FieldConversionException {
 		try {
-			String value = FieldConverterProvider.provider()
-					.getConverter(String.class)
+			String value = FieldConverters.getConverter(String.class)
 					.parse(descriptor, source);
 			return Optional.ofNullable(value)
 					.map(str -> str.charAt(0))

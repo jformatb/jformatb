@@ -15,9 +15,6 @@
  */
 package format.bind.converter.spi;
 
-import java.util.Iterator;
-import java.util.ServiceLoader;
-
 import format.bind.Formatter;
 import format.bind.converter.FieldConverter;
 import format.bind.converter.FieldConverterNotFoundException;
@@ -29,36 +26,6 @@ import format.bind.converter.FieldConverterNotFoundException;
  * 
  */
 public interface FieldConverterProvider {
-
-	/**
-	 * Obtain the default {@link FieldConverter} service provider.
-	 * 
-	 * @return The {@link FieldConverter} service provider instance.
-	 */
-	static FieldConverterProvider provider() {
-		return provider("format.bind.runtime.impl.converter.DefaultFieldConverterProvider");
-	}
-
-	/**
-	 * Obtain the {@link FieldConverter} service provider of the specified class name.
-	 * 
-	 * @param className The full qualified name of the class to lookup.
-	 * @return The {@link FieldConverter} service provider instance.
-	 */
-	static FieldConverterProvider provider(String className) {
-		ServiceLoader<FieldConverterProvider> loader = ServiceLoader.load(FieldConverterProvider.class);
-		Iterator<FieldConverterProvider> it = loader.iterator();
-
-		while (it.hasNext()) {
-			FieldConverterProvider next = it.next();
-
-			if (next.getClass().getName().equals(className)) {
-				return next;
-			}
-		}
-
-		return null;
-	}
 
 	/**
 	 * Obtain the {@link FieldConverter} of the specified field type and converter type.

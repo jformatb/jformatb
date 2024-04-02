@@ -789,7 +789,7 @@ public class Formatter<T> {
 	 */
 	private static synchronized FieldConverterProvider converterProvider() {
 		if (converterProvider == null) {
-			converterProvider = FieldConverterProvider.provider();
+			converterProvider = FieldConverter.provider();
 		}
 
 		return converterProvider;
