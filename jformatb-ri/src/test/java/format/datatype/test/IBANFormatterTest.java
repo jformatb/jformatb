@@ -46,7 +46,7 @@ class IBANFormatterTest {
 	}
 
 	@ParameterizedTest
-	@CsvFileSource(resources = "/iban.csv", delimiter = ';', numLinesToSkip = 1)
+	@CsvFileSource(resources = "/iban.csv", numLinesToSkip = 1)
 	void formatIBAN(String countryCode, String checkDigits, String bankCode, String branchCode,
 			String accountNumber, String nationalCheckDigits, String iban) {
 		String expected = iban;
@@ -64,7 +64,7 @@ class IBANFormatterTest {
 	}
 
 	@ParameterizedTest
-	@CsvFileSource(resources = "/iban.csv", delimiter = ';', numLinesToSkip = 1)
+	@CsvFileSource(resources = "/iban.csv", numLinesToSkip = 1)
 	void parseIBAN(String countryCode, String checkDigits, String bankCode, String branchCode,
 			String accountNumber, String nationalCheckDigits, String iban) {
 		IBAN actual = Formatter.of(IBAN.class).parse(iban);

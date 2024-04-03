@@ -17,9 +17,13 @@ package format.datatype;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.util.Currency;
 import java.util.Locale;
+
+import org.apache.commons.lang3.StringUtils;
 
 import format.bind.annotation.FormatField;
 import lombok.AllArgsConstructor;
@@ -41,20 +45,21 @@ public class Amount implements Serializable {
 	@FormatField
 	private long value;
 
-	@Builder.Default
-	private Locale locale = Locale.ROOT;
-
-	public static Amount of(final Locale locale, final long value) {
-		return Amount.builder()
-				.currency(Currency.getInstance(locale))
-				.value(value)
-				.locale(locale)
-				.build();
+	public static Amount of(final String language, final String country, final long value) {
+		return Amount.of(Locale.forLanguageTag(String.join("-", language, country)), value);
 	}
 
 	public static Amount of(final String currencyCode, final long value) {
+		return Amount.of(Currency.getInstance(currencyCode), value);
+	}
+
+	public static Amount of(final Locale locale, final long value) {
+		return Amount.of(Currency.getInstance(locale), value);
+	}
+
+	public static Amount of(final Currency currency, final long value) {
 		return Amount.builder()
-				.currency(Currency.getInstance(currencyCode))
+				.currency(currency)
 				.value(value)
 				.build();
 	}
@@ -65,6 +70,18 @@ public class Amount implements Serializable {
 
 	@Override
 	public String toString() {
+		return toFormattedString();
+	}
+
+	public String toFormattedString() {
+		int fractionDigits = currency.getDefaultFractionDigits();
+		String pattern = "¤¤ #,##0" + (fractionDigits > 0 ? ("." + StringUtils.rightPad("", fractionDigits, "0")) : "");
+		DecimalFormat format = new DecimalFormat(pattern, DecimalFormatSymbols.getInstance(Locale.ROOT));
+		format.setCurrency(currency);
+		return format.format(toBigDecimal());
+	}
+
+	public String toLocaleString(Locale locale) {
 		NumberFormat format = NumberFormat.getCurrencyInstance(locale);
 		format.setCurrency(currency);
 		return format.format(toBigDecimal());

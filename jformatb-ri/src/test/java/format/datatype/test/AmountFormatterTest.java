@@ -29,7 +29,7 @@ import format.datatype.Amount;
 public class AmountFormatterTest {
 
 	@ParameterizedTest
-	@CsvFileSource(resources = "/amounts.csv", delimiter = ';', numLinesToSkip = 1)
+	@CsvFileSource(resources = "/amounts.csv", numLinesToSkip = 1)
 	void formatAmount(String languageTag, String source, String text) {
 		String expected = text;
 		String actual = Formatter.of(Amount.class)
@@ -39,17 +39,17 @@ public class AmountFormatterTest {
 	}
 
 	@ParameterizedTest
-	@CsvFileSource(resources = "/amounts.csv", delimiter = ';', numLinesToSkip = 1)
-	void parseAmount(String languageTag, String source, String text) {
+	@CsvFileSource(resources = "/amounts.csv", numLinesToSkip = 1)
+	void parseAmount(String languageTag, String source, String text, String value) {
 		Locale locale = Locale.forLanguageTag(languageTag);
 		Amount expected = Amount.of(locale, Long.parseLong(source));
 		Amount actual = Formatter.of(Amount.class)
 				.withPattern("${currency:3}${value:12}")
-				.setListener((amount, fields) -> amount.setLocale(locale))
 				.parse(text);
 		assertThat(actual)
 				.isEqualTo(expected)
-				.returns(BigDecimal.valueOf(actual.getValue(), actual.getCurrency().getDefaultFractionDigits()), Amount::toBigDecimal);
+				.hasToString(value)
+				.returns(new BigDecimal(value.substring(4).replaceAll(",", "")), Amount::toBigDecimal);
 	}
 
 }
