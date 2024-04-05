@@ -15,34 +15,35 @@
  */
 package format.bind;
 
+import format.bind.spi.FormatProcessorFactory;
+
 /**
- * Thrown by the {@link FormatProcessor} when an error occurs during formatting Java object
- * or parsing text format.
+ * Thrown when the {@link FormatProcessorFactory} was not found.
  * 
  * @author Yannick Ebongue
  */
-public class FormatProcessingException extends FormatException {
+public class FormatProcessorFactoryNotFoundException extends FormatException {
 
-	private static final long serialVersionUID = 7275383063852148739L;
+	private static final long serialVersionUID = -3933113850626979805L;
 
 	/**
-	 * Creates a new {@code FormatProcessingException} with the specified
-	 * detail message.
+	 * Creates a new {@code FormatProcessorFactoryNotFoundException} with the
+	 * specified detail message.
 	 * 
 	 * @param message The detail message.
 	 */
-	public FormatProcessingException(String message) {
+	public FormatProcessorFactoryNotFoundException(String message) {
 		super(message);
 	}
 
 	/**
-	 * Creates a new {@code FormatProcessingException} with the specified
-	 * detail message and cause.
+	 * Creates a new {@code FormatProcessorFactoryNotFoundException} with the
+	 * specified detail message and cause.
 	 * 
 	 * @param message The detail message.
 	 * @param cause The cause.
 	 */
-	public FormatProcessingException(String message, Throwable cause) {
+	public FormatProcessorFactoryNotFoundException(String message, Throwable cause) {
 		super(message, cause);
 	}
 

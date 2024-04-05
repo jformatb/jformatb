@@ -7,6 +7,7 @@ package format.datatype.test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
@@ -29,6 +30,8 @@ class IBANFormatterTest {
 
 	private static Map<String, BBANBuilder<?, ?>> builders = new HashMap<>();
 
+	private Map<String, Object> resolvedValues = new LinkedHashMap<>();
+
 	private Condition<IBAN> valid;
 
 	@BeforeAll
@@ -42,6 +45,7 @@ class IBANFormatterTest {
 
 	@BeforeEach
 	void init() {
+		resolvedValues.clear();
 		valid = new Condition<>(IBAN::isValid, "valid");
 	}
 
@@ -51,7 +55,9 @@ class IBANFormatterTest {
 			String accountNumber, String nationalCheckDigits, String iban) {
 		String expected = iban;
 		String actual = Formatter.of(IBAN.class)
-				.format(IBAN.builder()
+				.createWriter()
+				.setListener((obj, values) -> resolvedValues.putAll(values))
+				.write(IBAN.builder()
 						.countryCode(countryCode)
 						.checkDigits(checkDigits)
 						.BBAN(builders.get(countryCode)
@@ -62,6 +68,7 @@ class IBANFormatterTest {
 								.build())
 						.build());
 		assertThat(actual).isEqualTo(expected);
+		assertThat(resolvedValues).containsOnlyKeys("countryCode", "checkDigits", "BBAN");
 	}
 
 	@ParameterizedTest
@@ -69,7 +76,9 @@ class IBANFormatterTest {
 	void parseIBAN(String countryCode, String checkDigits, String bankCode, String branchCode,
 			String accountNumber, String nationalCheckDigits, String iban) {
 		IBAN actual = Formatter.of(IBAN.class)
-				.parse(iban);
+				.createReader()
+				.setListener((obj, values) -> resolvedValues.putAll(values))
+				.read(iban);
 		IBAN expected = IBAN.builder()
 				.countryCode(countryCode)
 				.checkDigits(checkDigits)
@@ -84,6 +93,7 @@ class IBANFormatterTest {
 				.is(valid)
 				.isEqualTo(expected)
 				.hasToString(iban);
+		assertThat(resolvedValues).containsEntry("BBAN", actual.getBBAN());
 	}
 
 }

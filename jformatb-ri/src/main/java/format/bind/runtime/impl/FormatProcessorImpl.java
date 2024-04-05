@@ -33,7 +33,6 @@ import org.apache.commons.beanutils.PropertyUtilsBean;
 import org.apache.commons.beanutils.expression.DefaultResolver;
 
 import format.bind.FormatProcessor;
-import format.bind.Formatter.Listener;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -72,12 +71,12 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 
 	@SuppressWarnings("unchecked")
 	public F setListener(final Listener<T> listener) {
-		this.listener.set(listener);
+		if (listener == null) {
+			this.listener.remove();
+		} else {
+			this.listener.set(listener);
+		}
 		return (F) this;
-	}
-
-	public void removeListener() {
-		this.listener.remove();
 	}
 
 	<U extends T> Object getValue(final U target, final String expression) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {

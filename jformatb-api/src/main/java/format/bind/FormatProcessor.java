@@ -15,7 +15,7 @@
  */
 package format.bind;
 
-import format.bind.Formatter.Listener;
+import java.util.Map;
 
 /**
  * The common interface of text format processors.
@@ -31,6 +31,26 @@ import format.bind.Formatter.Listener;
 public interface FormatProcessor<T, F extends FormatProcessor<T, F>> {
 
 	/**
+	 * A functional interface to be registered with {@link FormatProcessor} to listen
+	 * for post parsing or formatting event.
+	 * 
+	 * @param <T> The type of the result object after parsing or formatting text.
+	 */
+	@FunctionalInterface
+	public interface Listener<T> {
+
+		/**
+		 * Callback method invoked after reading to (parse) or writing from (format)
+		 * the {@code target} parameter.
+		 * 
+		 * @param target The processed target object.
+		 * @param fields The map of the text format fields.
+		 */
+		void postProcessing(final T target, final Map<String, Object> fields);
+
+	}
+
+	/**
 	 * Register a post processing event callback {@link Listener} with this {@link FormatProcessor}.
 	 * 
 	 * <p>
@@ -40,6 +60,6 @@ public interface FormatProcessor<T, F extends FormatProcessor<T, F>> {
 	 * @param listener The post processing event callback for this {@link FormatProcessor}.
 	 * @return This {@code FormatProcessor}.
 	 */
-	F setListener(Listener<T> listener);
+	F setListener(final Listener<T> listener);
 
 }

@@ -16,8 +16,6 @@
 package format.bind;
 
 import java.util.Iterator;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.ServiceLoader;
 
@@ -53,25 +51,6 @@ import lombok.With;
 @Getter(AccessLevel.NONE)
 public class Formatter<T> {
 
-	/**
-	 * A functional interface to be registered with {@link Formatter} to listen
-	 * for post parsing or formatting event.
-	 * 
-	 * @param <T> The type of the result object after parsing or formatting text.
-	 */
-	@FunctionalInterface
-	public interface Listener<T> {
-
-		/**
-		 * Callback method invoked after reading to (parse) or writing from (format)
-		 * the {@code target} parameter.
-		 * @param target The processed target object.
-		 * @param fields The map of the text format fields.
-		 */
-		void postProcessing(T target, Map<String, Object> fields);
-
-	}
-
 	/** The base type of this {@code Formatter}. */
 	private Class<T> type;
 
@@ -83,22 +62,43 @@ public class Formatter<T> {
 	@With
 	private String pattern;
 
-	/** The post processing event callback {@link Listener} for this {@code Formatter}. */
+	/** The {@link FormatProcessorFactory} instance. */
 	@EqualsAndHashCode.Exclude
 	@ToString.Exclude
-	private ThreadLocal<Listener<T>> listener = ThreadLocal.withInitial(() -> (target, fields) -> {});
+	private FormatProcessorFactory processorFactory = getProcessorFactory();
+
+	/**
+	 * Creates a new instance of {@link FormatReader}.
+	 * 
+	 * @param <F> The instance type of the {@link FormatReader}.
+	 * @return The {@link FormatReader} instance.
+	 * @see FormatProcessorFactory#createReader(Class, String)
+	 */
+	public final <F extends FormatReader<T, F>> FormatReader<T, F> createReader() {
+		return processorFactory.createReader(type, pattern);
+	}
+
+	/**
+	 * Creates a new instance of {@link FormatWriter}.
+	 * 
+	 * @param <F> The instance type of the {@link FormatWriter}.
+	 * @return The {@link FormatWriter} instance.
+	 * @see FormatProcessorFactory#createWriter(Class, String)
+	 */
+	public final <F extends FormatWriter<T, F>> FormatWriter<T, F> createWriter() {
+		return processorFactory.createWriter(type, pattern);
+	}
 
 	/**
 	 * Formats the given object to produce the corresponding text format.
+	 * 
 	 * @param obj The object instance to format.
 	 * @return The formatted text.
 	 * @throws FormatProcessingException if an error occurs during {@code obj} formatting.
 	 */
 	public final String format(final T obj) throws FormatProcessingException {
 		try {
-			return getProcessorFactory().createWriter(type, pattern)
-					.setListener(listener.get())
-					.write(obj);
+			return createWriter().write(obj);
 		} catch (FormatProcessingException e) {
 			throw e;
 		} catch (Exception e) {
@@ -108,15 +108,14 @@ public class Formatter<T> {
 
 	/**
 	 * Parses the given text format from the beginning to produce an object.
+	 * 
 	 * @param text The text format to parse.
 	 * @return The parsed object.
 	 * @throws FormatProcessingException if an error occurs during {@code text} parsing.
 	 */
 	public final T parse(final String text) throws FormatProcessingException {
 		try {
-			return getProcessorFactory().createReader(type, pattern)
-					.setListener(listener.get())
-					.read(text);
+			return createReader().read(text);
 		} catch (FormatProcessingException e) {
 			throw e;
 		} catch (Exception e) {
@@ -125,37 +124,13 @@ public class Formatter<T> {
 	}
 
 	/**
-	 * Register a post processing event callback {@link Listener} with this {@link Formatter}.
-	 * 
-	 * <p>
-	 * There is only one {@code Listener} per {@code Formatter}. Setting a {@code Listener}
-	 * replaces the previous registered. One can unregister the current listener by calling method
-	 * {@link #removeListener()}
-	 * 
-	 * @param listener The post processing event callback for this {@link Formatter}.
-	 * @return This {@code Formatter}.
-	 * @throws NullPointerException if {@code listener} is null.
-	 */
-	public Formatter<T> setListener(Listener<T> listener) {
-		Objects.requireNonNull(listener);
-		this.listener.set(listener);
-		return this;
-	}
-
-	/**
-	 * Unregister the current post processing event callback {@link Listener} for this {@link Formatter}.
-	 */
-	public void removeListener() {
-		this.listener.remove();
-	}
-
-	/**
 	 * Create a new instance of {@code Formatter}.
+	 * 
 	 * @param <T> The type parameter of the base type.
 	 * @param type The base type instance to process.
 	 * @return A new instance of {@code Formatter}.
 	 */
-	public static <T> Formatter<T> of(Class<T> type) {
+	public static final <T> Formatter<T> of(Class<T> type) {
 		String pattern = Optional.ofNullable(type.getAnnotation(Format.class))
 				.map(Format::pattern)
 				.orElse(null);
@@ -166,7 +141,9 @@ public class Formatter<T> {
 		ServiceLoader<FormatProcessorFactory> loader = ServiceLoader.load(FormatProcessorFactory.class);
 		Iterator<FormatProcessorFactory> it = loader.iterator();
 
-		String className = System.getProperty(FormatProcessorFactory.class.getName(), "format.bind.runtime.impl.FormatProcessorFactoryImpl");
+		String className = System.getProperty(
+				FormatProcessorFactory.class.getName(),
+				"format.bind.runtime.impl.FormatProcessorFactoryImpl");
 
 		while (it.hasNext()) {
 			FormatProcessorFactory next = it.next();
@@ -176,7 +153,8 @@ public class Formatter<T> {
 			}
 		}
 
-		throw new FormatProcessingException(String.format("No implementation %s found in classpath.", FormatProcessorFactory.class));
+		throw new FormatProcessorFactoryNotFoundException(String.format(
+				"No implementation %s found in classpath.", FormatProcessorFactory.class));
 	}
 
 }
