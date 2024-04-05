@@ -95,15 +95,10 @@ public class Formatter<T> {
 	 * @param obj The object instance to format.
 	 * @return The formatted text.
 	 * @throws FormatProcessingException if an error occurs during {@code obj} formatting.
+	 * @see FormatWriter#write(Object)
 	 */
 	public final String format(final T obj) throws FormatProcessingException {
-		try {
-			return createWriter().write(obj);
-		} catch (FormatProcessingException e) {
-			throw e;
-		} catch (Exception e) {
-			throw new FormatProcessingException(String.format("Unable to format object [%s]", obj), e);
-		}
+		return createWriter().write(obj);
 	}
 
 	/**
@@ -112,15 +107,10 @@ public class Formatter<T> {
 	 * @param text The text format to parse.
 	 * @return The parsed object.
 	 * @throws FormatProcessingException if an error occurs during {@code text} parsing.
+	 * @see FormatReader#read(String)
 	 */
 	public final T parse(final String text) throws FormatProcessingException {
-		try {
-			return createReader().read(text);
-		} catch (FormatProcessingException e) {
-			throw e;
-		} catch (Exception e) {
-			throw new FormatProcessingException(String.format("Unable to parse text [%s]", text), e);
-		}
+		return createReader().read(text);
 	}
 
 	/**
@@ -137,6 +127,13 @@ public class Formatter<T> {
 		return new Formatter<>(type, pattern);
 	}
 
+	/**
+	 * Obtain the {@link FormatProcessorFactory} SPI implementation instance.
+	 * 
+	 * @return The {@link FormatProcessorFactory} instance.
+	 * @throws FormatProcessorFactoryNotFoundException if no {@link FormatProcessorFactory}
+	 * 		implementation was found.
+	 */
 	private static FormatProcessorFactory getProcessorFactory() {
 		ServiceLoader<FormatProcessorFactory> loader = ServiceLoader.load(FormatProcessorFactory.class);
 		Iterator<FormatProcessorFactory> it = loader.iterator();

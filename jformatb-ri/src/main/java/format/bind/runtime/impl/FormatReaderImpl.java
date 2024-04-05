@@ -143,8 +143,10 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 			listener.get().postProcessing(obj, resolvedValues);
 
 			return obj;
-		} catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-			throw new IllegalArgumentException(e);
+		} catch (FormatProcessingException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new FormatProcessingException(String.format("Unable to parse text [%s]", text), e);
 		}
 	}
 
