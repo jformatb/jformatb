@@ -5,6 +5,8 @@
 package format.datatype;
 
 import format.bind.annotation.Format;
+import format.bind.annotation.FormatField;
+import format.bind.annotation.FormatFieldOverride;
 import format.bind.annotation.FormatTypeValue;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -15,8 +17,11 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-@Format(pattern = "${checkDigits:1}${bankCode:5}${branchCode:5}${accountNumber:12}")
+@Format(pattern = "${cin:1}${abi:5}${cab:5}${accountNumber:12}")
 @FormatTypeValue("IT")
+@FormatFieldOverride(property = "bankCode", field = @FormatField(name = "abi"))
+@FormatFieldOverride(property = "branchCode", field = @FormatField(name = "cab"))
+@FormatFieldOverride(property = "checkDigits", field = @FormatField(name = "cin"))
 public class ITBBAN extends BBAN {
 
 	private static final long serialVersionUID = 1074556192726878231L;

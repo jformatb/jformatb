@@ -15,6 +15,7 @@
  */
 package format.bind.runtime.impl;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -28,16 +29,21 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.stream.IntStream;
 
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.reflect.FieldUtils;
 
 import format.bind.FormatFieldDescriptor;
 import format.bind.Formatter;
 import format.bind.annotation.Format;
+import format.bind.annotation.FormatField;
+import format.bind.annotation.FormatFieldContainer;
 import format.bind.annotation.FormatFieldConverter;
+import format.bind.annotation.FormatFieldOverride;
 import format.bind.annotation.FormatSubTypes;
 import format.bind.annotation.FormatTypeInfo;
 import format.bind.annotation.FormatTypeValue;
@@ -70,6 +76,30 @@ class FormatUtil {
 						.anyMatch(annotation -> annotation.value().equals(typeValue)))
 				.findFirst()
 				.orElse(type);
+	}
+
+	private <A extends Annotation> Field getField(final Class<?> beanType, final String name, Class<A> annotationType, Function<A, String> annotationName) {
+		return FieldUtils.getFieldsListWithAnnotation(beanType, annotationType).stream()
+				.filter(field -> annotationName.apply(field.getAnnotation(annotationType)).equals(name) ||
+						field.getName().equals(name))
+				.findFirst()
+				.orElseGet(() -> getFieldOverride(beanType, name));
+	}
+
+	Field getField(final Class<?> beanClass, final String name) {
+		return getField(beanClass, name, FormatField.class, FormatField::name);
+	}
+
+	Field getFieldContainer(final Class<?> beanClass, final String name) {
+		return getField(beanClass, name, FormatFieldContainer.class, FormatFieldContainer::name);
+	}
+
+	Field getFieldOverride(final Class<?> beanClass, final String name) {
+		return Arrays.stream(beanClass.getDeclaredAnnotationsByType(FormatFieldOverride.class))
+				.filter(override -> override.field().name().equals(name))
+				.map(override -> FieldUtils.getField(beanClass, override.property(), true))
+				.findFirst()
+				.orElse(null);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -185,6 +215,43 @@ class FormatUtil {
 		}
 
 		return getFieldValue(values, array);
+	}
+
+	void applyOverrides(final FormatFieldDescriptorImpl descriptor, final Field accessor, final Class<?> propertyType) {
+		List<Class<?>> superclasses = ClassUtils.getAllSuperclasses(propertyType);
+
+		superclasses.add(0, propertyType);
+
+		Collections.reverse(superclasses);
+
+		superclasses.forEach(cls -> {
+			applyOverrides(descriptor, accessor, cls.getDeclaredAnnotationsByType(FormatFieldOverride.class));
+		});
+
+		applyOverrides(descriptor, accessor, accessor.getDeclaredAnnotationsByType(FormatFieldOverride.class));
+	}
+
+	void applyOverrides(final FormatFieldDescriptorImpl descriptor, final Field accessor, final FormatFieldOverride[] overrides) {
+		Arrays.stream(overrides)
+				.filter(annotation -> annotation.property().equals(accessor.getName()))
+				.findFirst()
+				.ifPresent(override -> applyOverride(descriptor, override));
+	}
+
+	void applyOverride(final FormatFieldDescriptorImpl descriptor, final FormatFieldOverride override) {
+		try {
+			FormatField field = override.field();
+			Class<FormatField> type = FormatField.class;
+			descriptor
+					.name(!type.getDeclaredMethod("name").getDefaultValue().equals(field.name()) ? field.name() : descriptor.name())
+					.type(!type.getDeclaredMethod("type").getDefaultValue().equals(field.type()) ? field.type() : descriptor.type())
+					.length(!type.getDeclaredMethod("length").getDefaultValue().equals(field.length()) ? field.length() : descriptor.length())
+					.scale(!type.getDeclaredMethod("scale").getDefaultValue().equals(field.scale()) ? field.scale() : descriptor.scale())
+					.format(!type.getDeclaredMethod("format").getDefaultValue().equals(field.format()) ? field.format() : descriptor.format())
+					.placeholder(!type.getDeclaredMethod("placeHolder").getDefaultValue().equals(field.placeholder()) ? field.placeholder() : descriptor.placeholder());
+		} catch (NoSuchMethodException | SecurityException e) {
+			throw new IllegalArgumentException(e);
+		}
 	}
 
 }

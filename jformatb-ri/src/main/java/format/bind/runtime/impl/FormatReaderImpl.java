@@ -15,6 +15,8 @@
  */
 package format.bind.runtime.impl;
 
+import static format.bind.runtime.impl.FormatUtil.*;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -28,14 +30,11 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.beanutils.expression.Resolver;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.reflect.FieldUtils;
-
 import format.bind.FormatProcessingException;
 import format.bind.FormatReader;
 import format.bind.Formatter;
 import format.bind.annotation.Format;
 import format.bind.annotation.FormatField;
-import format.bind.annotation.FormatFieldContainer;
 import format.bind.annotation.FormatTypeInfo;
 import format.bind.converter.FieldConverter;
 import lombok.EqualsAndHashCode;
@@ -111,9 +110,11 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 				}
 
 				Field accessor = resolvedProperties.get(property);
-				Class<?> propertyType = FormatUtil.getFieldPropertyType(accessor, text);
-				FieldConverter<?> converter = FormatUtil.getFieldConverter(accessor, propertyType);
+				Class<?> propertyType = getFieldPropertyType(accessor, text);
+				FieldConverter<?> converter = getFieldConverter(accessor, propertyType);
 				FormatFieldDescriptorImpl descriptor = FormatFieldDescriptorImpl.from(accessor.getAnnotation(FormatField.class));
+
+				applyOverrides(descriptor, accessor, propertyType);
 
 				if (parts.length > 1) {
 					// Override annotation field length
@@ -130,7 +131,7 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 					converter = FieldConverter.provider().getConverter(Formatter.of(propertyType));
 				}
 
-				Object value = FormatUtil.parseFieldValue(text, descriptor, converter, matcher, matcherEnd, lastIndex);
+				Object value = parseFieldValue(text, descriptor, converter, matcher, matcherEnd, lastIndex);
 
 				// Set field value if not null
 				if (value != null) {
@@ -154,7 +155,7 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 		if (type.isAnnotationPresent(FormatTypeInfo.class)) {
 			FormatTypeInfo typeInfo = type.getAnnotation(FormatTypeInfo.class);
 			String typeValue = StringUtils.substring(text, typeInfo.start(), typeInfo.start() + typeInfo.length());
-			Class<? extends T> subType = FormatUtil.getFormatSubType(type, typeValue);
+			Class<? extends T> subType = getFormatSubType(type, typeValue);
 			return subType.getConstructor().newInstance();
 		}
 
@@ -163,6 +164,8 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 
 	private String resolveProperty(final Object bean, final String expression, final String text, final String parent) {
 		try {
+			Class<?> beanClass = bean.getClass();
+
 			Resolver resolver = propertyUtils.getResolver();
 
 			if (resolver.hasNested(expression)) {
@@ -170,11 +173,7 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 				String containerName = resolver.getProperty(expression);
 
 				// Find the field with FormatFieldContainer annotation that match the field name.
-				Field accessor = FieldUtils.getFieldsListWithAnnotation(bean.getClass(), FormatFieldContainer.class).stream()
-						.filter(field -> field.getAnnotation(FormatFieldContainer.class).name().equals(containerName) ||
-								field.getName().equals(containerName))
-						.findFirst()
-						.orElse(null);
+				Field accessor = getFieldContainer(beanClass, containerName);
 
 				if (accessor != null) {
 					String property = new StringBuilder(accessor.getName())
@@ -183,7 +182,7 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 
 					checkProperty(bean, property);
 
-					Class<?> propertyType = FormatUtil.getFieldPropertyType(accessor, text);
+					Class<?> propertyType = getFieldPropertyType(accessor, text);
 					Object nested = createNested(bean, propertyType, property);
 					property = parent == null ? property : String.join(".", parent, property);
 
@@ -193,11 +192,7 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 				String fieldName = resolver.getProperty(expression);
 
 				// Find the field with FormatField annotation that match the field name.
-				Field accessor = FieldUtils.getFieldsListWithAnnotation(bean.getClass(), FormatField.class).stream()
-						.filter(field -> field.getAnnotation(FormatField.class).name().equals(fieldName) ||
-								field.getName().equals(fieldName))
-						.findFirst()
-						.orElse(null);
+				Field accessor = getField(beanClass, fieldName);
 
 				// If the field was found then build the final property name.
 				if (accessor != null) {
