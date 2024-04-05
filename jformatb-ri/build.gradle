@@ -6,6 +6,7 @@ plugins {
 dependencies {
     api project(':jformatb-api')
 
+    implementation 'commons-beanutils:commons-beanutils:1.9.4'
     implementation 'org.apache.commons:commons-lang3:3.12.0'
 
     testImplementation 'org.assertj:assertj-core:3.25.1'

@@ -50,16 +50,17 @@ class IBANFormatterTest {
 	void formatIBAN(String countryCode, String checkDigits, String bankCode, String branchCode,
 			String accountNumber, String nationalCheckDigits, String iban) {
 		String expected = iban;
-		String actual = Formatter.of(IBAN.class).format(IBAN.builder()
-				.countryCode(countryCode)
-				.checkDigits(checkDigits)
-				.BBAN(builders.get(countryCode)
-						.bankCode(StringUtils.trimToNull(bankCode))
-						.branchCode(StringUtils.trimToNull(branchCode))
-						.accountNumber(StringUtils.trimToNull(accountNumber))
-						.checkDigits(StringUtils.trimToNull(nationalCheckDigits))
-						.build())
-				.build());
+		String actual = Formatter.of(IBAN.class)
+				.format(IBAN.builder()
+						.countryCode(countryCode)
+						.checkDigits(checkDigits)
+						.BBAN(builders.get(countryCode)
+								.bankCode(StringUtils.trimToNull(bankCode))
+								.branchCode(StringUtils.trimToNull(branchCode))
+								.accountNumber(StringUtils.trimToNull(accountNumber))
+								.checkDigits(StringUtils.trimToNull(nationalCheckDigits))
+								.build())
+						.build());
 		assertThat(actual).isEqualTo(expected);
 	}
 
@@ -67,7 +68,8 @@ class IBANFormatterTest {
 	@CsvFileSource(resources = "/iban.csv", numLinesToSkip = 1)
 	void parseIBAN(String countryCode, String checkDigits, String bankCode, String branchCode,
 			String accountNumber, String nationalCheckDigits, String iban) {
-		IBAN actual = Formatter.of(IBAN.class).parse(iban);
+		IBAN actual = Formatter.of(IBAN.class)
+				.parse(iban);
 		IBAN expected = IBAN.builder()
 				.countryCode(countryCode)
 				.checkDigits(checkDigits)

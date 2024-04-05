@@ -15,44 +15,45 @@
  */
 package format.bind.annotation;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Documented;
+import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * Indicates that the JavaBean property contains nested text format fields.
- * 
- * <p><b>Usage</b></p>
- * <p>
- * The {@code FormatFieldContainer} annotation can be used with the following program elements:
- * </p>
- * <ul>
- * <li>a JavaBean property</li>
- * <li>non static and non transient field</li>
- * </ul>
+ * Used to specify how to access text format fields.
  * 
  * @author Yannick Ebongue
- * 
  */
 @Documented
+@Inherited
 @Retention(RUNTIME)
-@Target({ FIELD, METHOD })
-public @interface FormatFieldContainer {
+@Target(TYPE)
+public @interface FormatAccess {
 
 	/**
-	 * (Optional) The name of the text format field container.
+	 * (Required) Specification of field- or property-based access.
 	 * 
-	 * <p>
-	 * If the value is empty (the default value), the text format field container name is derived
-	 * from the JavaBean property name.
-	 * </p>
-	 * 
-	 * @return The name of the text format field container.
+	 * @return The access type value.
 	 */
-	String name() default "";
+	Type value();
+
+	/**
+	 * Used with the {@link FormatAccess} annotation to specify an access type to be applied.
+	 * 
+	 * @author Yannick Ebongue
+	 */
+	enum Type {
+
+		/** Field-based access is used. */
+		FIELD,
+
+		/** Property-based access is used. */
+		PROPERTY
+
+	}
 
 }
