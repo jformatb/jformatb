@@ -25,8 +25,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
@@ -157,7 +157,15 @@ class FormatUtil {
 		Object value = null;
 
 		// Remove null values
-		values.removeIf(Objects::isNull);
+		ListIterator<Object> it = values.listIterator(values.size());
+		while (it.hasPrevious()) {
+			Object val = it.previous();
+			if (val == null) {
+				it.remove();
+			} else {
+				break;
+			}
+		}
 
 		if (!values.isEmpty()) {
 			value = array ? values : values.get(0);

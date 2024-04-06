@@ -49,7 +49,7 @@ class IBANFormatterTest {
 		valid = new Condition<>(IBAN::isValid, "valid");
 	}
 
-	@ParameterizedTest
+	@ParameterizedTest(name = "format{0}IBAN")
 	@CsvFileSource(resources = "/iban.csv", numLinesToSkip = 1)
 	void formatIBAN(String countryCode, String checkDigits, String bankCode, String branchCode,
 			String accountNumber, String nationalCheckDigits, String iban) {
@@ -71,7 +71,7 @@ class IBANFormatterTest {
 		assertThat(resolvedValues).containsOnlyKeys("countryCode", "checkDigits", "BBAN");
 	}
 
-	@ParameterizedTest
+	@ParameterizedTest(name = "parse{0}IBAN")
 	@CsvFileSource(resources = "/iban.csv", numLinesToSkip = 1)
 	void parseIBAN(String countryCode, String checkDigits, String bankCode, String branchCode,
 			String accountNumber, String nationalCheckDigits, String iban) {

@@ -28,28 +28,28 @@ import format.datatype.Amount;
 
 public class AmountFormatterTest {
 
-	@ParameterizedTest
+	@ParameterizedTest(name = "formatAmountOf({0})")
 	@CsvFileSource(resources = "/amounts.csv", numLinesToSkip = 1)
-	void formatAmount(String languageTag, String source, String text) {
+	void formatAmount(String languageTag, String value, String text) {
 		String expected = text;
 		String actual = Formatter.of(Amount.class)
 				.withPattern("${currency:3}${value:12}")
-				.format(Amount.of(Locale.forLanguageTag(languageTag), Long.parseLong(source)));
+				.format(Amount.of(Locale.forLanguageTag(languageTag), Long.parseLong(value)));
 		assertThat(actual).isEqualTo(expected);
 	}
 
-	@ParameterizedTest
+	@ParameterizedTest(name = "parseAmountOf({0})")
 	@CsvFileSource(resources = "/amounts.csv", numLinesToSkip = 1)
-	void parseAmount(String languageTag, String source, String text, String value) {
+	void parseAmount(String languageTag, String value, String text, String str) {
 		Locale locale = Locale.forLanguageTag(languageTag);
-		Amount expected = Amount.of(locale, Long.parseLong(source));
+		Amount expected = Amount.of(locale, Long.parseLong(value));
 		Amount actual = Formatter.of(Amount.class)
 				.withPattern("${currency:3}${value:12}")
 				.parse(text);
 		assertThat(actual)
 				.isEqualTo(expected)
-				.hasToString(value)
-				.returns(new BigDecimal(value.substring(4).replaceAll(",", "")), Amount::toBigDecimal);
+				.hasToString(str)
+				.returns(new BigDecimal(str.substring(4).replaceAll(",", "")), Amount::toBigDecimal);
 	}
 
 }

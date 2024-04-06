@@ -15,12 +15,16 @@
  */
 package format.bind.runtime.impl;
 
-import static format.bind.runtime.impl.FormatUtil.*;
+import static format.bind.runtime.impl.FormatUtil.applyOverrides;
+import static format.bind.runtime.impl.FormatUtil.getField;
+import static format.bind.runtime.impl.FormatUtil.getFieldContainer;
+import static format.bind.runtime.impl.FormatUtil.getFieldConverter;
+import static format.bind.runtime.impl.FormatUtil.getFieldPropertyType;
+import static format.bind.runtime.impl.FormatUtil.getFormatSubType;
+import static format.bind.runtime.impl.FormatUtil.parseFieldValue;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -30,6 +34,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.beanutils.expression.Resolver;
 import org.apache.commons.lang3.StringUtils;
+
 import format.bind.FormatProcessingException;
 import format.bind.FormatReader;
 import format.bind.Formatter;
@@ -97,7 +102,7 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 				String name = parts[0];
 
 				// Resolve bean property name
-				String property = resolveProperty(obj, name, text, null);
+				String property = resolveProperty(resultType, name, text, null);
 
 				if (typeInfo != null && typeInfo.fieldName().equals(name) && property == null) {
 					int start = matcher.start() - matcherEnd.get() + lastIndex.get();
@@ -163,10 +168,8 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 		return type.getConstructor().newInstance();
 	}
 
-	private String resolveProperty(final Object bean, final String expression, final String text, final String parent) {
+	private String resolveProperty(final Class<?> beanType, final String expression, final String text, final String parent) {
 		try {
-			Class<?> beanClass = bean.getClass();
-
 			Resolver resolver = propertyUtils.getResolver();
 
 			if (resolver.hasNested(expression)) {
@@ -174,34 +177,29 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 				String containerName = resolver.getProperty(expression);
 
 				// Find the field with FormatFieldContainer annotation that match the field name.
-				Field accessor = getFieldContainer(beanClass, containerName);
+				Field accessor = getFieldContainer(beanType, containerName);
 
 				if (accessor != null) {
 					String property = new StringBuilder(accessor.getName())
 							.append(next.substring(containerName.length()))
 							.toString();
 
-					checkProperty(bean, property);
-
 					Class<?> propertyType = getFieldPropertyType(accessor, text);
-					Object nested = createNested(bean, propertyType, property);
 					property = parent == null ? property : String.join(".", parent, property);
 
-					return resolveProperty(nested, expression.substring(next.length()), text, property);
+					return resolveProperty(propertyType, expression.substring(next.length() + 1), text, property);
 				}
 			} else {
 				String fieldName = resolver.getProperty(expression);
 
 				// Find the field with FormatField annotation that match the field name.
-				Field accessor = getField(beanClass, fieldName);
+				Field accessor = getField(beanType, fieldName);
 
 				// If the field was found then build the final property name.
 				if (accessor != null) {
 					String property = new StringBuilder(accessor.getName())
 							.append(expression.substring(fieldName.length()))
 							.toString();
-
-					checkProperty(bean, property);
 
 					property = parent == null ? property : String.join(".", parent, property);
 					resolvedProperties.put(property, accessor);
@@ -211,48 +209,9 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 			}
 
 			return null;
-		} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | InstantiationException
-				| IllegalArgumentException | SecurityException e) {
-			throw new FormatProcessingException(String.format("Unable to resolve field expression ${%s} on object class [%s]", expression, bean.getClass()), e);
+		} catch (Exception e) {
+			throw new FormatProcessingException(String.format("Unable to resolve field expression ${%s} on object class [%s]", expression, beanType), e);
 		}
-	}
-
-	/*
-	 * Initialize bean property list or map if indexed or mapped.
-	 */
-	private void checkProperty(final Object bean, final String property) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-		Resolver resolver = propertyUtils.getResolver();
-		String name = resolver.getProperty(property);
-		Object value = propertyUtils.getProperty(bean, name);
-
-		if (value == null) {
-			if (resolver.isIndexed(property)) {
-				propertyUtils.setProperty(bean, name, new ArrayList<>());
-			} else if (resolver.isMapped(property)) {
-				propertyUtils.setProperty(bean, name, new HashMap<>());
-			}
-		}
-	}
-
-	private Object createNested(final Object bean, Class<?> propertyType, final String expression) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalArgumentException, SecurityException {
-		Resolver resolver = propertyUtils.getResolver();
-		String name = resolver.getProperty(expression);
-		Object nested = propertyUtils.getProperty(bean, name);
-
-		if (nested != null && !name.equals(expression)) {
-			nested = propertyUtils.getProperty(bean, expression);
-		}
-
-		if (nested != null) {
-			// Nested already exists
-			return nested;
-		}
-
-		// Create new nested instance
-		nested = propertyType.getConstructor().newInstance();
-		propertyUtils.setProperty(bean, expression, nested);
-
-		return nested;
 	}
 
 }

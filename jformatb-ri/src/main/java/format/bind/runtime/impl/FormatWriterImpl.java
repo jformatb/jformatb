@@ -15,10 +15,12 @@
  */
 package format.bind.runtime.impl;
 
-import static format.bind.runtime.impl.FormatUtil.*;
+import static format.bind.runtime.impl.FormatUtil.applyOverrides;
+import static format.bind.runtime.impl.FormatUtil.getField;
+import static format.bind.runtime.impl.FormatUtil.getFieldContainer;
+import static format.bind.runtime.impl.FormatUtil.getFieldPropertyType;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -27,6 +29,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.beanutils.expression.Resolver;
 import org.apache.commons.lang3.StringUtils;
+
 import format.bind.FormatException;
 import format.bind.FormatProcessingException;
 import format.bind.FormatWriter;
@@ -79,7 +82,7 @@ final class FormatWriterImpl<T> extends FormatProcessorImpl<T, FormatWriterImpl<
 				String name = parts[0];
 
 				// Resolve bean property name
-				String property = resolveProperty(obj, name, null);
+				String property = resolveProperty(resultType, name, null);
 
 				if (typeInfo != null && typeInfo.fieldName().equals(name) && property == null) {
 					String value = resultType.getAnnotation(FormatTypeValue.class).value();
@@ -136,10 +139,8 @@ final class FormatWriterImpl<T> extends FormatProcessorImpl<T, FormatWriterImpl<
 		}
 	}
 
-	private String resolveProperty(final Object bean, final String expression, final String parent) {
+	private String resolveProperty(final Class<?> beanType, final String expression, final String parent) {
 		try {
-			Class<?> beanClass = bean.getClass();
-
 			Resolver resolver = propertyUtils.getResolver();
 
 			if (resolver.hasNested(expression)) {
@@ -147,23 +148,23 @@ final class FormatWriterImpl<T> extends FormatProcessorImpl<T, FormatWriterImpl<
 				String containerName = resolver.getProperty(expression);
 
 				// Find the field with FormatFieldContainer annotation that match the field name.
-				Field accessor = getFieldContainer(beanClass, containerName);
+				Field accessor = getFieldContainer(beanType, containerName);
 
 				if (accessor != null) {
 					String property = new StringBuilder(accessor.getName())
 							.append(next.substring(containerName.length()))
 							.toString();
 
-					Object container = propertyUtils.getProperty(bean, property);
+					Class<?> containerType = getFieldPropertyType(accessor);
 					property = parent == null ? property : String.join(".", parent, property);
 
-					return resolveProperty(container, expression.substring(next.length()), property);
+					return resolveProperty(containerType, expression.substring(next.length() + 1), property);
 				}
 			} else {
 				String fieldName = resolver.getProperty(expression);
 
 				// Find the field with FormatField annotation that match the field name.
-				Field accessor = getField(beanClass, fieldName);
+				Field accessor = getField(beanType, fieldName);
 
 				// If the field was found then build the final property name.
 				if (accessor != null) {
@@ -179,8 +180,8 @@ final class FormatWriterImpl<T> extends FormatProcessorImpl<T, FormatWriterImpl<
 			}
 
 			return null;
-		} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | IllegalArgumentException | SecurityException e) {
-			throw new FormatProcessingException(String.format("Unable to resolve field expression ${%s} on object class [%s]", expression, bean.getClass()), e);
+		} catch (Exception e) {
+			throw new FormatProcessingException(String.format("Unable to resolve field expression ${%s} on object class [%s]", expression, beanType), e);
 		}
 	}
 
