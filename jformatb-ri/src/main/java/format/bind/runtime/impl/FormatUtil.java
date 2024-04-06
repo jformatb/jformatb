@@ -99,15 +99,17 @@ class FormatUtil {
 				.filter(override -> override.field().name().equals(name))
 				.map(override -> FieldUtils.getField(beanClass, override.property(), true))
 				.findFirst()
-				.orElse(null);
+				.orElse(Optional.ofNullable(beanClass.getSuperclass())
+						.map(superclass -> getFieldOverride(superclass, name))
+						.orElse(null));
 	}
 
 	@SuppressWarnings("unchecked")
-	<T> FieldConverter<T> getFieldConverter(final AccessibleObject access, final Class<T> type) {
-		if (access.isAnnotationPresent(FormatFieldConverter.class)) {
-			return FieldConverters.getConverter(type, (Class<? extends FieldConverter<T>>) access.getAnnotation(FormatFieldConverter.class).value());
-		} else if (access.isAnnotationPresent(Format.class)) {
-			return FieldConverters.getConverter(Formatter.of(type).withPattern(access.getAnnotation(Format.class).pattern()));
+	<T> FieldConverter<T> getFieldConverter(final AccessibleObject accessor, final Class<T> type) {
+		if (accessor.isAnnotationPresent(FormatFieldConverter.class)) {
+			return FieldConverters.getConverter(type, (Class<? extends FieldConverter<T>>) accessor.getAnnotation(FormatFieldConverter.class).value());
+		} else if (accessor.isAnnotationPresent(Format.class)) {
+			return FieldConverters.getConverter(Formatter.of(type).withPattern(accessor.getAnnotation(Format.class).pattern()));
 		} else {
 			return FieldConverters.getConverter(type);
 		}
