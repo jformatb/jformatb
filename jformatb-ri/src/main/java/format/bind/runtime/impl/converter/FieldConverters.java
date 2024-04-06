@@ -35,11 +35,15 @@ import format.bind.FormatFieldDescriptor;
 import format.bind.Formatter;
 import format.bind.converter.FieldConversionException;
 import format.bind.converter.FieldConverter;
-import format.bind.converter.FieldConverterNotFoundException;
 import lombok.experimental.UtilityClass;
 
+/**
+ * The utility class used to obtain field converters.
+ * 
+ * @author Yannick Ebongue
+ */
 @UtilityClass
-class FieldConverters {
+public class FieldConverters {
 
 	/** The collection of all resolved field converters. */
 	private static final ConcurrentMap<Class<?>, FieldConverter<?>> converters = new ConcurrentHashMap<>();
@@ -122,13 +126,25 @@ class FieldConverters {
 		return EnumConverter.of((Class<E>) enumType);
 	}
 
-	<T> FieldConverter<T> getConverter(Class<T> fieldType, Class<? extends FieldConverter<T>> converterType)
-			throws FieldConverterNotFoundException {
+	/**
+	 * Obtain the {@link FieldConverter} of the specified field type and converter type.
+	 * @param <T> The Java type of the field.
+	 * @param fieldType The class instance of the field Java type.
+	 * @param converterType The class instance of the field converter to obtain.
+	 * @return The field converter instance.
+	 */
+	public <T> FieldConverter<T> getConverter(Class<T> fieldType, Class<? extends FieldConverter<T>> converterType) {
 		return addConverter(fieldType, () -> newInstance(converterType));
 	}
 
+	/**
+	 * Obtain the {@link FieldConverter} of the specified field type.
+	 * @param <T> The Java type of the field.
+	 * @param fieldType The class instance of the field Java type.
+	 * @return The field converter instance.
+	 */
 	@SuppressWarnings("unchecked")
-	<T> FieldConverter<T> getConverter(Class<T> fieldType) throws FieldConverterNotFoundException {
+	public <T> FieldConverter<T> getConverter(Class<T> fieldType) {
 		if (fieldType.isEnum()) {
 			return addConverter(fieldType, FieldConverters::getEnumConverter);
 		}
@@ -136,10 +152,24 @@ class FieldConverters {
 		return (FieldConverter<T>) converters.get(fieldType);
 	}
 
-	<T> FieldConverter<T> getConverter(Formatter<T> formatter) throws FieldConverterNotFoundException {
+	/**
+	 * Obtain the {@link FieldConverter} of the specified {@code formatter}.
+	 * @param <T> The type of the {@link Formatter} type.
+	 * @param formatter The formatter
+	 * @return The field converter instance.
+	 */
+	public <T> FieldConverter<T> getConverter(Formatter<T> formatter) {
 		return FormatConverter.of(formatter);
 	}
 
+	/**
+	 * Throws a {@link FieldConversionException} during Java object formatting.
+	 * @param <T> The type of the Java object to format.
+	 * @param descriptor The {@link FormatFieldDescriptor}.
+	 * @param value The Java object value to format.
+	 * @param cause The cause of the exception to throw.
+	 * @return The {@link FieldConversionException} to throw.
+	 */
 	<T> String throwFormatFieldConversionException(
 			final FormatFieldDescriptor descriptor, final T value, Exception cause) {
 		if (cause instanceof FieldConversionException) {
@@ -151,6 +181,14 @@ class FieldConverters {
 				cause);
 	}
 
+	/**
+	 * Throws a {@link FieldConversionException} during text format parsing.
+	 * @param <T> The type of the Java object to create.
+	 * @param descriptor The {@link FormatFieldDescriptor}.
+	 * @param source The source text to parse.
+	 * @param cause The cause of the exception to throw.
+	 * @return The {@link FieldConversionException} to throw.
+	 */
 	<T> T throwParseFieldConversionException(
 			final FormatFieldDescriptor descriptor, final String source, Exception cause) {
 		if (cause instanceof FieldConversionException) {

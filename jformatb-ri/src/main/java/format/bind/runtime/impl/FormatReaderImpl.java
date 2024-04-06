@@ -37,6 +37,7 @@ import format.bind.annotation.Format;
 import format.bind.annotation.FormatField;
 import format.bind.annotation.FormatTypeInfo;
 import format.bind.converter.FieldConverter;
+import format.bind.runtime.impl.converter.FieldConverters;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
@@ -128,7 +129,7 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 
 				if (converter == null) {
 					// Use formatter converter to parse this field
-					converter = FieldConverter.provider().getConverter(Formatter.of(propertyType));
+					converter = FieldConverters.getConverter(Formatter.of(propertyType));
 				}
 
 				Object value = parseFieldValue(text, descriptor, converter, matcher, matcherEnd, lastIndex);
