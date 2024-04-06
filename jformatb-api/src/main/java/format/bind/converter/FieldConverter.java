@@ -15,8 +15,12 @@
  */
 package format.bind.converter;
 
+import java.util.Iterator;
+import java.util.ServiceLoader;
+
 import format.bind.FormatFieldDescriptor;
 import format.bind.annotation.FormatFieldConverter;
+import format.bind.converter.spi.FieldConverterProvider;
 
 /**
  * Converts a text format field to Java type or vice versa.
@@ -50,5 +54,29 @@ public interface FieldConverter<T> {
 	 * @throws FieldConversionException if there is an error during the conversion.
 	 */
 	T parse(final FormatFieldDescriptor descriptor, final String source) throws FieldConversionException;
+
+	/**
+	 * Obtain the current {@link FieldConverter} service provider.
+	 * @return The {@link FieldConverter} service provider instance.
+	 */
+	static FieldConverterProvider provider() {
+		ServiceLoader<FieldConverterProvider> loader = ServiceLoader.load(FieldConverterProvider.class);
+		Iterator<FieldConverterProvider> it = loader.iterator();
+
+		String className = System.getProperty(
+				FieldConverterProvider.class.getName(),
+				"format.bind.runtime.impl.converter.FieldConverterProviderImpl");
+
+		while (it.hasNext()) {
+			FieldConverterProvider next = it.next();
+
+			if (next.getClass().getName().equals(className)) {
+				return next;
+			}
+		}
+
+		throw new FieldConverterProviderNotFoundException(String.format(
+				"No implementation %s found in classpath.", FieldConverterProvider.class));
+	}
 
 }
