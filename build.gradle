@@ -71,15 +71,26 @@ subprojects {
         }
 
         repositories {
-            maven {
+            /*maven {
                 def releaseRepoUrl = 'https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/'
                 def snapshotRepoUrl = 'https://s01.oss.sonatype.org/content/repositories/snapshots/'
 
+                name = 'MavenCentral'
                 url = version.endsWith('SNAPSHOT') ? snapshotRepoUrl : releaseRepoUrl
 
                 credentials {
                     username = findProperty('ossrhUsername') ?: System.getenv('OSSRH_USERNAME')
                     password = findProperty('ossrhPassword') ?: System.getenv('OSSRH_PASSWORD')
+                }
+            }*/
+
+            maven {
+                name = 'GithubPackages'
+                url = 'https://maven.pkg.github.com/jformatb/jformatb'
+
+                credentials {
+                    username = findProperty('gpr.user') ?: System.getenv('USERNAME')
+                    password = findProperty('gpr.key') ?: System.getenv('TOKEN')
                 }
             }
         }
