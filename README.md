@@ -1,5 +1,7 @@
 # Java Format Binding
 
+[![Java CI with Gradle](https://github.com/jformatb/jformatb/actions/workflows/gradle.yml/badge.svg)](https://github.com/jformatb/jformatb/actions/workflows/gradle.yml) [![Gradle Package](https://github.com/jformatb/jformatb/actions/workflows/gradle-publish.yml/badge.svg)](https://github.com/jformatb/jformatb/actions/workflows/gradle-publish.yml)
+
 The **Java Format Binding** provides an API that allows the mapping between text messages with fixed length fields and Plain Old Java Objects (POJOs).
 
 The **Java Format Binding** aims to facilitate the conversion of any type of text message with fixed length fields into a Java object or vice versa. Below in this document we will see through some examples how to carry out this type of conversion.
