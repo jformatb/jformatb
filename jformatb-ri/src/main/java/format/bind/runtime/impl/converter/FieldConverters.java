@@ -26,6 +26,7 @@ import java.time.OffsetTime;
 import java.time.ZonedDateTime;
 import java.util.Currency;
 import java.util.Date;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
@@ -68,6 +69,7 @@ public class FieldConverters {
 		addConverter(OffsetDateTime.class, OffsetDateTimeConverter::new);
 		addConverter(ZonedDateTime.class, ZonedDateTimeConverter::new);
 		addConverter(Currency.class, CurrencyConverter::new);
+		addConverter(UUID.class, UUIDConverter::new);
 	}
 
 	/**
