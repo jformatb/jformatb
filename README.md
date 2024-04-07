@@ -35,21 +35,25 @@ jformatb
 │   ├── src
 │   │   └── main
 │   │       └── java
+│   │           └── **/*.java
 │   └── build.gradle
 ├── jformatb-bom
 │   └── build.gradle
 ├── jformatb-ri
 │   ├── src
 │   │   ├── main
-│   │   │   └── java
-│   │   ├── resources
-│   │   │   └── META-INF
-│   │   │       └── services
-│   │   │           ├── format.bind.converter.spi.FieldConverterProvider
-│   │   │           └── format.bind.spi.FormatProcessorFactory
-│   │   ├── test
-│   │   │   └── java
-│   │   └── resources
+│   │   │   ├── java
+│   │   │   │   └── **/*.java
+│   │   │   └── resources
+│   │   │       └── META-INF
+│   │   │           └── services
+│   │   │               ├── format.bind.converter.spi.FieldConverterProvider
+│   │   │               └── format.bind.spi.FormatProcessorFactory
+│   │   └── test
+│   │       ├── java
+│   │       │   └── **/*.java
+│   │       └── resources
+│   │           └── **/*.*
 │   └── build.gradle
 ├── .editorconfig
 ├── .gitattributes
@@ -58,6 +62,7 @@ jformatb
 ├── gradlew
 ├── gradlew.bat
 ├── LICENSE.txt
+├── README.md
 └── settings.gradle
 ```
 
@@ -110,7 +115,7 @@ Now we are ready to use the Java Format Binding API. In this example let suppose
 ```md
 USD000000100000
 ```
-In this example the message just represents `$1,000.00` and can be converted in the following Java type:
+In this example the message just represents `$1,000.00` and can be converted to the following Java type:
 
 ```java
 @Data
