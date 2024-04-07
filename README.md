@@ -21,6 +21,7 @@ To build the **Java Format Binding** project, you need to install the following 
 
  1. Open GitBash and go to the directory where you want to clone this repository
  2. Clone this repository with the following command:
+
 ```git
 $ git clone git@github.com:jformatb/jformatb.git
 ```
@@ -55,7 +56,7 @@ jformatb
 │   │       ├── java
 │   │       │   └── **/*.java
 │   │       └── resources
-│   │           └── **/*.*
+│   │           └── **/*
 │   └── build.gradle
 ├── .editorconfig
 ├── .gitattributes
@@ -137,8 +138,10 @@ One of the key feature of the **Java Format Binding** is to define the way to bi
 ```java
 "${currency:3}${value:12}"
 ```
- 
- Now we can invoke the entry point of the **Java Format Binding API** to convert the text message into a Java object of type `Amount` defined above with the following instruction:
+
+Where the **first 3 characters** represent the `currency` and the **remaining 12 digits** represent the amount `value` in the smallest currency unit.
+
+Now we can invoke the entry point of the **Java Format Binding API** to convert the text message into a Java object of type `Amount` defined above with the following instruction:
 
 ```java
     Amount amount = Formatter.of(Amount.class)

@@ -76,7 +76,7 @@ public interface FieldConverter<T> {
 		}
 
 		throw new FieldConverterProviderNotFoundException(String.format(
-				"No implementation %s found in classpath.", FieldConverterProvider.class));
+				"No implementation of %s found in classpath.", FieldConverterProvider.class));
 	}
 
 }
