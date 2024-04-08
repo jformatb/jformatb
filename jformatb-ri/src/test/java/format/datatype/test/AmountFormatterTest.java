@@ -26,7 +26,7 @@ import org.junit.jupiter.params.provider.CsvFileSource;
 import format.bind.Formatter;
 import format.datatype.Amount;
 
-public class AmountFormatterTest {
+class AmountFormatterTest {
 
 	@ParameterizedTest(name = "formatAmountOf({0})")
 	@CsvFileSource(resources = "/amounts.csv", numLinesToSkip = 1)

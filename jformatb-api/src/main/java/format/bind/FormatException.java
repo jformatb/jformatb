@@ -29,7 +29,7 @@ public abstract class FormatException extends RuntimeException {
 	 * 
 	 * @param message The detail message.
 	 */
-	public FormatException(String message) {
+	protected FormatException(String message) {
 		super(message);
 	}
 
@@ -39,7 +39,7 @@ public abstract class FormatException extends RuntimeException {
 	 * @param message The detail message.
 	 * @param cause The cause.
 	 */
-	public FormatException(String message, Throwable cause) {
+	protected FormatException(String message, Throwable cause) {
 		super(message, cause);
 	}
 

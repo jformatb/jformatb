@@ -15,7 +15,7 @@
  */
 package format.bind.converter;
 
-import format.bind.FormatProcessingException;
+import format.bind.FormatException;
 
 /**
  * Thrown by {@link FieldConverter} when an error occurs during Java field formatting
@@ -23,7 +23,7 @@ import format.bind.FormatProcessingException;
  * 
  * @author Yannick Ebongue
  */
-public class FieldConversionException extends FormatProcessingException {
+public class FieldConversionException extends FormatException {
 
     private static final long serialVersionUID = 8833936865988657943L;
 
