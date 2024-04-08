@@ -15,6 +15,8 @@
  */
 package format.bind.runtime.impl;
 
+import static format.bind.runtime.impl.FormatUtil.*;
+
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -31,15 +33,13 @@ import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.NestedNullException;
 import org.apache.commons.beanutils.PropertyUtilsBean;
 import org.apache.commons.beanutils.expression.DefaultResolver;
+import org.apache.commons.beanutils.expression.Resolver;
 
 import format.bind.FormatProcessor;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-@AllArgsConstructor(access = AccessLevel.PROTECTED)
 abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> implements FormatProcessor<T, F> {
 
 	static final String REGEX = "\\$\\{(?<property>[^\\}]+)\\}(?<array>\\[(?<size>[\\d\\.\\*]+)\\])?";
@@ -54,20 +54,33 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 	/** The pattern of the text format to process. */
 	final String pattern;
 
+	/** The post processing event callback {@link Listener} for this {@code FormatProcessorImpl}. */
+	@EqualsAndHashCode.Exclude
+	@ToString.Exclude
+	final ThreadLocal<Listener<T>> listener = ThreadLocal.withInitial(() -> (target, fields) -> {});
+
+	/** The bean property accessor utility of this {@code FormatProcessorImpl}. */
+	@EqualsAndHashCode.Exclude
+	@ToString.Exclude
+	final PropertyUtilsBean propertyUtils;
+
 	/** The map of all resolved fields of this format processor. */
 	@EqualsAndHashCode.Exclude
 	@ToString.Exclude
 	final Map<String, Field> resolvedProperties = new LinkedHashMap<>();
 
-	/** The bean property accessor utility of this {@code FormatProcessorImpl}. */
-	@EqualsAndHashCode.Exclude
-	@ToString.Exclude
-	final PropertyUtilsBean propertyUtils = BeanUtilsBean.getInstance().getPropertyUtils();
+	/**
+	 * Creates a new instance of {@code FormatProcessorImpl}.
+	 * @param type The class instance of the Java object to be processed by this processor.
+	 * @param pattern The pattern of the text format to process.
+	 */
+	protected FormatProcessorImpl(Class<T> type, String pattern) {
+		this.type = type;
+		this.pattern = pattern;
 
-	/** The post processing event callback {@link Listener} for this {@code FormatProcessorImpl}. */
-	@EqualsAndHashCode.Exclude
-	@ToString.Exclude
-	final ThreadLocal<Listener<T>> listener = ThreadLocal.withInitial(() -> (target, fields) -> {});
+		propertyUtils = BeanUtilsBean.getInstance().getPropertyUtils();
+		propertyUtils.setResolver(new PropertyResolver());
+	}
 
 	@SuppressWarnings("unchecked")
 	public F setListener(final Listener<T> listener) {
@@ -118,8 +131,67 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 		propertyUtils.setProperty(target, expression, value);
 	}
 
+	String resolveProperty(final Class<?> beanType, final String expression, final String parent) {
+		if (propertyUtils.getResolver().hasNested(expression)) {
+			return resolveNestedProperty(beanType, expression, parent);
+		} else {
+			return resolveSimpleProperty(beanType, expression, parent);
+		}
+	}
+
+	private String resolveNestedProperty(final Class<?> beanType, final String expression, final String parent) {
+		Resolver resolver = propertyUtils.getResolver();
+
+		String next = resolver.next(expression);
+		String containerName = resolver.getProperty(expression);
+
+		// Find the field with FormatFieldContainer annotation that match the field name.
+		Field accessor = getFieldContainer(beanType, containerName);
+
+		if (accessor != null) {
+			String property = new StringBuilder(accessor.getName())
+					.append(next.substring(containerName.length()))
+					.toString();
+
+			Class<?> containerType = getFieldPropertyType(accessor);
+
+			property = parent == null ? property : String.join(".", parent, property);
+
+			return resolveProperty(containerType, expression.substring(next.length() + 1), property);
+		}
+
+		return null;
+	}
+
+	private String resolveSimpleProperty(final Class<?> beanType, final String expression, final String parent) {
+		Resolver resolver = propertyUtils.getResolver();
+
+		String fieldName = resolver.getProperty(expression);
+
+		// Find the field with FormatField annotation that match the field name.
+		Field accessor = getField(beanType, fieldName);
+
+		// If the field was found then build the final property name.
+		if (accessor != null) {
+			String property = new StringBuilder(accessor.getName())
+					.append(expression.substring(fieldName.length()))
+					.toString();
+
+			property = parent == null ? property : String.join(".", parent, property);
+
+			resolvedProperties.put(property, accessor);
+
+			return property;
+		}
+
+		// No property found for the given expression in the given bean type.
+		// Maybe the expression designates the type info name on superclass.
+		// This will be evaluated later by the processor.
+		return null;
+	}
+
 	@NoArgsConstructor
-	static final class PropertyResolver extends DefaultResolver {
+	private static final class PropertyResolver extends DefaultResolver {
 
 	    static final String INDEXED_REGEX = "\\[(\\d+)\\]";
 	    static final String MAPPED_REGEX  = "\\[\\\"([^\\\"]+)\\\"\\]";

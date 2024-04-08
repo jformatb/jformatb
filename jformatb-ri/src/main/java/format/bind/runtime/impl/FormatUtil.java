@@ -115,6 +115,14 @@ class FormatUtil {
 		}
 	}
 
+	Class<? extends Object> getFieldPropertyType(final Field accessor, final Object value) {
+		if (value != null) {
+			return getFieldPropertyType(value.getClass(), accessor.getGenericType());
+		} else {
+			return getFieldPropertyType(accessor);
+		}
+	}
+
 	Class<?> getFieldPropertyType(final Field accessor, final String text) {
 		Class<?> propertyType = getFieldPropertyType(accessor);
 

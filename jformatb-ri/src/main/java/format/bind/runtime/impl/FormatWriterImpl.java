@@ -24,7 +24,6 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.beanutils.expression.Resolver;
 import org.apache.commons.lang3.StringUtils;
 
 import format.bind.FormatException;
@@ -40,15 +39,34 @@ import format.bind.runtime.impl.converter.FieldConverters;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+/**
+ * A runtime implementation of {@link FormatWriter}.
+ * 
+ * @param <T> The Java type of the object to format.
+ * 
+ * @author Yannick Ebongue
+ */
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 final class FormatWriterImpl<T> extends FormatProcessorImpl<T, FormatWriterImpl<T>>
 		implements FormatWriter<T, FormatWriterImpl<T>> {
 
+	/**
+	 * Creates a new instance of {@code FormatWriterImpl}.
+	 * @param type The class instance of the Java object to format.
+	 * @param pattern The pattern of the text format to write.
+	 */
 	private FormatWriterImpl(Class<T> type, String pattern) {
 		super(type, pattern);
 	}
 
+	/**
+	 * Obtain a new instance of {@code FormatWriterImpl}.
+	 * @param <T> The base type of the object to format.
+	 * @param type The base type instance of the object to process.
+	 * @param pattern The pattern of the text format to write.
+	 * @return A new instance of {@code FormatWriterImpl}.
+	 */
 	public static <T> FormatWriterImpl<T> of(Class<T> type, String pattern) {
 		return new FormatWriterImpl<>(type, pattern);
 	}
@@ -66,8 +84,6 @@ final class FormatWriterImpl<T> extends FormatProcessorImpl<T, FormatWriterImpl<
 					.matcher(input);
 
 			Map<String, Object> resolvedValues = new LinkedHashMap<>();
-
-			propertyUtils.setResolver(new PropertyResolver());
 
 			FormatTypeInfo typeInfo = resultType.getAnnotation(FormatTypeInfo.class);
 
@@ -96,8 +112,8 @@ final class FormatWriterImpl<T> extends FormatProcessorImpl<T, FormatWriterImpl<
 				Object value = getValue(obj, property);
 
 				Field accessor = resolvedProperties.get(property);
-				Class<?> propertyType = FormatUtil.getFieldPropertyType(accessor);
-				FieldConverter<?> converter = FormatUtil.getFieldConverter(accessor, propertyType);
+				Class<?> propertyType = getFieldPropertyType(accessor, value);
+				FieldConverter<?> converter = getFieldConverter(accessor, propertyType);
 				FormatFieldDescriptorImpl descriptor = FormatFieldDescriptorImpl.from(accessor.getAnnotation(FormatField.class));
 
 				applyOverrides(descriptor, accessor, propertyType);
@@ -117,7 +133,7 @@ final class FormatWriterImpl<T> extends FormatProcessorImpl<T, FormatWriterImpl<
 				}
 
 				output.append(input, lastIndex, matcher.start());
-				output.append(FormatUtil.formatFieldValue(value, descriptor, converter, matcher, array));
+				output.append(formatFieldValue(value, descriptor, converter, matcher, array));
 				resolvedValues.put(name, value);
 				lastIndex = matcher.end();
 			}
@@ -133,52 +149,6 @@ final class FormatWriterImpl<T> extends FormatProcessorImpl<T, FormatWriterImpl<
 			throw e;
 		} catch (Exception e) {
 			throw new FormatProcessingException(String.format("Unable to format object [%s]", obj), e);
-		}
-	}
-
-	private String resolveProperty(final Class<?> beanType, final String expression, final String parent) {
-		try {
-			Resolver resolver = propertyUtils.getResolver();
-
-			if (resolver.hasNested(expression)) {
-				String next = resolver.next(expression);
-				String containerName = resolver.getProperty(expression);
-
-				// Find the field with FormatFieldContainer annotation that match the field name.
-				Field accessor = getFieldContainer(beanType, containerName);
-
-				if (accessor != null) {
-					String property = new StringBuilder(accessor.getName())
-							.append(next.substring(containerName.length()))
-							.toString();
-
-					Class<?> containerType = getFieldPropertyType(accessor);
-					property = parent == null ? property : String.join(".", parent, property);
-
-					return resolveProperty(containerType, expression.substring(next.length() + 1), property);
-				}
-			} else {
-				String fieldName = resolver.getProperty(expression);
-
-				// Find the field with FormatField annotation that match the field name.
-				Field accessor = getField(beanType, fieldName);
-
-				// If the field was found then build the final property name.
-				if (accessor != null) {
-					String property = new StringBuilder(accessor.getName())
-							.append(expression.substring(fieldName.length()))
-							.toString();
-
-					property = parent == null ? property : String.join(".", parent, property);
-					resolvedProperties.put(property, accessor);
-
-					return property;
-				}
-			}
-
-			return null;
-		} catch (Exception e) {
-			throw new FormatProcessingException(String.format("Unable to resolve field expression ${%s} on object class [%s]", expression, beanType), e);
 		}
 	}
 

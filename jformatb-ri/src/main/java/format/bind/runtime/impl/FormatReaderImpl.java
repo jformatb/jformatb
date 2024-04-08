@@ -26,7 +26,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.beanutils.expression.Resolver;
 import org.apache.commons.lang3.StringUtils;
 
 import format.bind.FormatProcessingException;
@@ -44,13 +43,16 @@ import lombok.ToString;
  * A runtime implementation of {@link FormatReader}.
  * 
  * @param <T> The Java type of the object to create.
+ * 
+ * @author Yannick Ebongue
  */
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<T>> implements FormatReader<T, FormatReaderImpl<T>> {
+final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<T>>
+		implements FormatReader<T, FormatReaderImpl<T>> {
 
 	/**
-	 * Creates a new instance of {@link FormatReaderImpl}.
+	 * Creates a new instance of {@code FormatReaderImpl}.
 	 * @param type The class instance of the Java object to create.
 	 * @param pattern The pattern of the text format to read.
 	 */
@@ -59,9 +61,9 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 	}
 
 	/**
-	 * Creates a new instance of {@code FormatReaderImpl}.
-	 * @param <T> The type parameter of the base type.
-	 * @param type The base type instance to process.
+	 * Obtain a new instance of {@code FormatReaderImpl}.
+	 * @param <T> The base type of the object to create.
+	 * @param type The base type instance of the object to process.
 	 * @param pattern The pattern of the text format to read.
 	 * @return A new instance of {@code FormatReaderImpl}.
 	 */
@@ -83,8 +85,6 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 
 			Map<String, Object> resolvedValues = new LinkedHashMap<>();
 
-			propertyUtils.setResolver(new PropertyResolver());
-
 			AtomicInteger lastIndex = new AtomicInteger(0);
 			AtomicInteger matcherEnd = new AtomicInteger(0);
 
@@ -96,7 +96,7 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 				String name = parts[0];
 
 				// Resolve bean property name
-				String property = resolveProperty(resultType, name, text, null);
+				String property = resolveProperty(resultType, name, null);
 
 				if (typeInfo != null && typeInfo.fieldName().equals(name) && property == null) {
 					int start = matcher.start() - matcherEnd.get() + lastIndex.get();
@@ -160,52 +160,6 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 		}
 
 		return type.getConstructor().newInstance();
-	}
-
-	private String resolveProperty(final Class<?> beanType, final String expression, final String text, final String parent) {
-		try {
-			Resolver resolver = propertyUtils.getResolver();
-
-			if (resolver.hasNested(expression)) {
-				String next = resolver.next(expression);
-				String containerName = resolver.getProperty(expression);
-
-				// Find the field with FormatFieldContainer annotation that match the field name.
-				Field accessor = getFieldContainer(beanType, containerName);
-
-				if (accessor != null) {
-					String property = new StringBuilder(accessor.getName())
-							.append(next.substring(containerName.length()))
-							.toString();
-
-					Class<?> propertyType = getFieldPropertyType(accessor, text);
-					property = parent == null ? property : String.join(".", parent, property);
-
-					return resolveProperty(propertyType, expression.substring(next.length() + 1), text, property);
-				}
-			} else {
-				String fieldName = resolver.getProperty(expression);
-
-				// Find the field with FormatField annotation that match the field name.
-				Field accessor = getField(beanType, fieldName);
-
-				// If the field was found then build the final property name.
-				if (accessor != null) {
-					String property = new StringBuilder(accessor.getName())
-							.append(expression.substring(fieldName.length()))
-							.toString();
-
-					property = parent == null ? property : String.join(".", parent, property);
-					resolvedProperties.put(property, accessor);
-
-					return property;
-				}
-			}
-
-			return null;
-		} catch (Exception e) {
-			throw new FormatProcessingException(String.format("Unable to resolve field expression ${%s} on object class [%s]", expression, beanType), e);
-		}
 	}
 
 }
