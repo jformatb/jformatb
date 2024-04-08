@@ -1,6 +1,6 @@
 # Java Format Binding
 
-[![Java CI with Gradle](https://github.com/jformatb/jformatb/actions/workflows/gradle.yml/badge.svg)](https://github.com/jformatb/jformatb/actions/workflows/gradle.yml) [![Gradle Package](https://github.com/jformatb/jformatb/actions/workflows/gradle-publish.yml/badge.svg)](https://github.com/jformatb/jformatb/actions/workflows/gradle-publish.yml)
+[![Java CI with Gradle](https://github.com/jformatb/jformatb/actions/workflows/gradle.yml/badge.svg)](https://github.com/jformatb/jformatb/actions/workflows/gradle.yml) [![Gradle Package](https://github.com/jformatb/jformatb/actions/workflows/gradle-publish.yml/badge.svg)](https://github.com/jformatb/jformatb/actions/workflows/gradle-publish.yml) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=jformatb_jformatb&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=jformatb_jformatb)
 
 The **Java Format Binding** provides an API that allows the mapping between text messages with fixed length fields and Plain Old Java Objects (POJOs).
 
@@ -152,7 +152,7 @@ Now we can invoke the entry point of the **Java Format Binding API** to convert 
 Et voilà ! We have made our first ever conversion of a simple text message into a Plain Old Java Object (POJO).
 
 The official documentation will be available asap to explain in more details the API. In the mean time just browse the repository content and have a look to our JUnit tests.
- 
+
 ## License
 
 This code is licensed under the [Apache-2.0 license](https://www.apache.org/licenses/LICENSE-2.0). See `LICENSE.txt` for more information.

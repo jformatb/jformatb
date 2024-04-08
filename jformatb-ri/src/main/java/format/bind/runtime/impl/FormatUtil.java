@@ -233,9 +233,8 @@ class FormatUtil {
 
 		Collections.reverse(superclasses);
 
-		superclasses.forEach(cls -> {
-			applyOverrides(descriptor, accessor, cls.getDeclaredAnnotationsByType(FormatFieldOverride.class));
-		});
+		superclasses.forEach(
+				cls -> applyOverrides(descriptor, accessor, cls.getDeclaredAnnotationsByType(FormatFieldOverride.class)));
 
 		applyOverrides(descriptor, accessor, accessor.getDeclaredAnnotationsByType(FormatFieldOverride.class));
 	}
