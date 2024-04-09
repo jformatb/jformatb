@@ -1,5 +1,6 @@
 plugins {
     id 'java-library'
+    id 'jacoco'
     id 'io.freefair.lombok'
 }
 
@@ -34,6 +35,11 @@ tasks.named('jar') {
 
 tasks.named('test') {
     useJUnitPlatform()
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    dependsOn test
 }
 
 publishing {
