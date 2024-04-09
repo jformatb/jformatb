@@ -36,8 +36,6 @@ import format.bind.annotation.FormatField;
 import format.bind.annotation.FormatTypeInfo;
 import format.bind.converter.FieldConverter;
 import format.bind.runtime.impl.converter.FieldConverters;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
 
 /**
  * A runtime implementation of {@link FormatReader}.
@@ -46,8 +44,6 @@ import lombok.ToString;
  * 
  * @author Yannick Ebongue
  */
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
 final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<T>>
 		implements FormatReader<T, FormatReaderImpl<T>> {
 

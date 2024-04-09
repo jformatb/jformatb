@@ -21,7 +21,7 @@ import format.bind.FormatFieldDescriptor;
 import format.bind.converter.FieldConversionException;
 import format.bind.converter.FieldConverter;
 
-class UUIDConverter implements FieldConverter<UUID> {
+final class UUIDConverter implements FieldConverter<UUID> {
 
 	@Override
 	public String format(FormatFieldDescriptor descriptor, UUID value) throws FieldConversionException {

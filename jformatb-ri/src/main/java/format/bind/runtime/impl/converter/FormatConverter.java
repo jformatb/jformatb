@@ -21,22 +21,28 @@ import format.bind.FormatFieldDescriptor;
 import format.bind.Formatter;
 import format.bind.converter.FieldConversionException;
 import format.bind.converter.FieldConverter;
-import lombok.Value;
 
-@Value(staticConstructor = "of")
-class FormatConverter<T> implements FieldConverter<T> {
+final class FormatConverter<T> implements FieldConverter<T> {
 
-	private Formatter<T> formatter;
+	private final Formatter<T> formatter;
+
+	private FormatConverter(final Formatter<T> formatter) {
+		this.formatter = formatter;
+	}
+
+	public static <T> FormatConverter<T> of(final Formatter<T> formatter) {
+		return new FormatConverter<>(formatter);
+	}
 
 	@Override
-	public String format(FormatFieldDescriptor descriptor, T value) throws FieldConversionException {
+	public String format(final FormatFieldDescriptor descriptor, final T value) throws FieldConversionException {
 		return Optional.ofNullable(value)
 				.map(formatter::format)
 				.orElseGet(descriptor::placeholder);
 	}
 
 	@Override
-	public T parse(FormatFieldDescriptor descriptor, String source) throws FieldConversionException {
+	public T parse(final FormatFieldDescriptor descriptor, final String source) throws FieldConversionException {
 		return source.equals(descriptor.placeholder()) ? null : formatter.parse(source);
 	}
 

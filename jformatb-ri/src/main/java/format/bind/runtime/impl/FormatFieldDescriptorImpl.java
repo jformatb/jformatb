@@ -21,7 +21,6 @@ import java.util.Objects;
 import format.bind.FormatFieldDescriptor;
 import format.bind.annotation.FormatField;
 import format.bind.annotation.FormatField.Type;
-import format.bind.annotation.FormatFieldOverride;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -52,27 +51,6 @@ class FormatFieldDescriptorImpl implements FormatFieldDescriptor, Serializable {
 				.scale(field.scale())
 				.format(field.format())
 				.placeholder(field.placeholder());
-	}
-
-	public static final FormatFieldDescriptorImpl from(FormatField field, FormatFieldOverride override) {
-		if (override == null) {
-			return from(field);
-		}
-
-		try {
-			FormatField field1 = field;
-			FormatField field2 = override.field();
-			Class<FormatField> type = FormatField.class;
-			return new FormatFieldDescriptorImpl()
-					.name(!type.getDeclaredMethod("name").getDefaultValue().equals(field2.name()) ? field2.name() : field1.name())
-					.type(!type.getDeclaredMethod("type").getDefaultValue().equals(field2.type()) ? field2.type() : field1.type())
-					.length(!type.getDeclaredMethod("length").getDefaultValue().equals(field2.length()) ? field2.length() : field1.length())
-					.scale(!type.getDeclaredMethod("scale").getDefaultValue().equals(field2.scale()) ? field2.scale() : field1.scale())
-					.format(!type.getDeclaredMethod("format").getDefaultValue().equals(field2.format()) ? field2.format() : field1.format())
-					.placeholder(!type.getDeclaredMethod("placeHolder").getDefaultValue().equals(field2.placeholder()) ? field2.placeholder() : field1.placeholder());
-		} catch (NoSuchMethodException | SecurityException e) {
-			throw new IllegalArgumentException(e);
-		}
 	}
 
 }
