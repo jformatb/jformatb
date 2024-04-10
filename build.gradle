@@ -34,6 +34,10 @@ subprojects {
         systemProperty 'file.encoding', 'UTF-8'
     }
 
+    tasks.withType(Sign) {
+        onlyIf { !version.endsWith('SNAPSHOT') }
+    }
+
     publishing {
         publications {
             maven(MavenPublication) {
@@ -91,6 +95,9 @@ subprojects {
     }
 
     signing {
+        def signingKey = findProperty("signingKey")
+        def signingPassword = findProperty("signingPassword")
+        useInMemoryPgpKeys(signingKey, signingPassword)
         sign publishing.publications.maven
     }
 }
