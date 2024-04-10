@@ -67,6 +67,7 @@ public @interface FormatFieldConverter {
 	 * 
 	 * @return The class that converts a text format field.
 	 */
-	Class<? extends FieldConverter<?>> value();
+	@SuppressWarnings("rawtypes")
+	Class<? extends FieldConverter> value();
 
 }
