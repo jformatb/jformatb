@@ -35,7 +35,6 @@ import format.bind.annotation.FormatField;
 import format.bind.annotation.FormatTypeInfo;
 import format.bind.annotation.FormatTypeValue;
 import format.bind.converter.FieldConverter;
-import format.bind.runtime.impl.converter.FieldConverters;
 
 /**
  * A runtime implementation of {@link FormatWriter}.
@@ -125,7 +124,7 @@ final class FormatWriterImpl<T> extends FormatProcessorImpl<T, FormatWriterImpl<
 				}
 
 				if (converter == null) {
-					converter = FieldConverters.getConverter(Formatter.of(value.getClass()));
+					converter = FieldConverter.provider().getConverter(Formatter.of(value.getClass()));
 				}
 
 				output.append(input, lastIndex, matcher.start());

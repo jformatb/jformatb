@@ -48,7 +48,6 @@ import format.bind.annotation.FormatSubTypes;
 import format.bind.annotation.FormatTypeInfo;
 import format.bind.annotation.FormatTypeValue;
 import format.bind.converter.FieldConverter;
-import format.bind.runtime.impl.converter.FieldConverters;
 import lombok.experimental.UtilityClass;
 
 @UtilityClass
@@ -107,11 +106,11 @@ class FormatUtil {
 	@SuppressWarnings("unchecked")
 	<T> FieldConverter<T> getFieldConverter(final AccessibleObject accessor, final Class<T> type) {
 		if (accessor.isAnnotationPresent(FormatFieldConverter.class)) {
-			return FieldConverters.getConverter(type, (Class<? extends FieldConverter<T>>) accessor.getAnnotation(FormatFieldConverter.class).value());
+			return FieldConverter.provider().getConverter(type, (Class<? extends FieldConverter<T>>) accessor.getAnnotation(FormatFieldConverter.class).value());
 		} else if (accessor.isAnnotationPresent(Format.class)) {
-			return FieldConverters.getConverter(Formatter.of(type).withPattern(accessor.getAnnotation(Format.class).pattern()));
+			return FieldConverter.provider().getConverter(Formatter.of(type).withPattern(accessor.getAnnotation(Format.class).pattern()));
 		} else {
-			return FieldConverters.getConverter(type);
+			return FieldConverter.provider().getConverter(type);
 		}
 	}
 

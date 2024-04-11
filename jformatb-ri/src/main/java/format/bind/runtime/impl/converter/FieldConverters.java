@@ -44,7 +44,7 @@ import lombok.experimental.UtilityClass;
  * @author Yannick Ebongue
  */
 @UtilityClass
-public class FieldConverters {
+class FieldConverters {
 
 	/** The collection of all resolved field converters. */
 	private static final ConcurrentMap<Class<?>, FieldConverter<?>> converters = new ConcurrentHashMap<>();
@@ -135,7 +135,7 @@ public class FieldConverters {
 	 * @param converterType The class instance of the field converter to obtain.
 	 * @return The field converter instance.
 	 */
-	public <T> FieldConverter<T> getConverter(Class<T> fieldType, Class<? extends FieldConverter<T>> converterType) {
+	<T> FieldConverter<T> getConverter(Class<T> fieldType, Class<? extends FieldConverter<T>> converterType) {
 		return addConverter(fieldType, () -> newInstance(converterType));
 	}
 
@@ -146,7 +146,7 @@ public class FieldConverters {
 	 * @return The field converter instance.
 	 */
 	@SuppressWarnings("unchecked")
-	public <T> FieldConverter<T> getConverter(Class<T> fieldType) {
+	<T> FieldConverter<T> getConverter(Class<T> fieldType) {
 		if (fieldType.isEnum()) {
 			return addConverter(fieldType, FieldConverters::getEnumConverter);
 		}
@@ -160,7 +160,7 @@ public class FieldConverters {
 	 * @param formatter The formatter
 	 * @return The field converter instance.
 	 */
-	public <T> FieldConverter<T> getConverter(Formatter<T> formatter) {
+	<T> FieldConverter<T> getConverter(Formatter<T> formatter) {
 		return FormatConverter.of(formatter);
 	}
 
