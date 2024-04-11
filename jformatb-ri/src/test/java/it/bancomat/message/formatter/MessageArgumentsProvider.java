@@ -38,6 +38,9 @@ import it.bancomat.message.CashLoadingRequestMessage.Type;
 public class MessageArgumentsProvider implements ArgumentsProvider {
 
 	private static final String WORKSTATION_ID = "0199";
+	private static final String PAN = "31047XXXXXXXXX428";
+	private static final String TARGET_ACCOUNT = "XXXXXXXXX453";
+	private static final String TRANSACTION_REFERENCE = "20062609540300124";
 
 	static Date dateFrom(LocalDate localDate) {
 		return dateFrom(localDate.atStartOfDay());
@@ -97,6 +100,54 @@ public class MessageArgumentsProvider implements ArgumentsProvider {
 						.workstationId(WORKSTATION_ID)
 						.transactionNumber(117)
 						.dateTime(dateFrom(LocalDateTime.of(2021, 1, 28, 13, 23)))
+						.build()),
+				arguments("CashDepositRequestMessage", "W780199001262606200957100031047XXXXXXXXX42820153000000001100E0002000000000100000000000000000000                                 E000000000260620XXXXXXXXX453        20062609540300124000000010100", DepositRequestMessage.builder()
+						.workstationId(WORKSTATION_ID)
+						.transactionNumber(126)
+						.dateTime(dateFrom(LocalDateTime.of(2020, 6, 26, 9, 57)))
+						.pan(PAN)
+						.startPeriod(dateFrom(LocalDate.ofYearDay(2020, 153)))
+						.remainingPeriod(0L)
+						.remainingSubPeriod(0L)
+						.lastTransactionDate(dateFrom(LocalDate.of(2020, 6, 26)))
+						.depositType(DepositRequestMessage.Type.CASH)
+						.targetAccount(TARGET_ACCOUNT)
+						.transactionReferenceNumber(TRANSACTION_REFERENCE)
+						.cash(DepositRequestMessage.Cash.builder()
+								.totalAmount(200000L)
+								.noteCount(100)
+								.items(DepositRequestMessage.CashItems.builder()
+										.put(Denomination.EURO_20, 100)
+										.build())
+								.build())
+						.build()),
+				arguments("CheckDepositRequestMessage", "W780199001252606200954100031047XXXXXXXXX42820153000000002000E00000000000000000000000000000000005500679535885576540              E000061244260620XXXXXXXXX453        20062609540300124001000260620", DepositRequestMessage.builder()
+						.workstationId(WORKSTATION_ID)
+						.transactionNumber(125)
+						.dateTime(dateFrom(LocalDateTime.of(2020, 6, 26, 9, 54)))
+						.pan(PAN)
+						.startPeriod(dateFrom(LocalDate.ofYearDay(2020, 153)))
+						.lastTransactionDate(dateFrom(LocalDate.of(2020, 6, 26)))
+						.depositType(DepositRequestMessage.Type.CHECK)
+						.targetAccount(TARGET_ACCOUNT)
+						.transactionReferenceNumber(TRANSACTION_REFERENCE)
+						.check(DepositRequestMessage.Check.builder()
+								.documentNumber(1)
+								.codeLine("5500679535885576540")
+								.userAmount(61244L)
+								.issueDate(dateFrom(LocalDate.of(2020, 6, 26)))
+								.build())
+						.build()),
+				arguments("EndDepositRequestMessage", "W780199001272606200957100031047XXXXXXXXX42820153000000003000E0000000000000000000000000000000000                                 E000000000260620XXXXXXXXX453        20062609540300124000000010100", DepositRequestMessage.builder()
+						.workstationId(WORKSTATION_ID)
+						.transactionNumber(127)
+						.dateTime(dateFrom(LocalDateTime.of(2020, 6, 26, 9, 57)))
+						.pan(PAN)
+						.startPeriod(dateFrom(LocalDate.ofYearDay(2020, 153)))
+						.lastTransactionDate(dateFrom(LocalDate.of(2020, 6, 26)))
+						.depositType(DepositRequestMessage.Type.END)
+						.targetAccount(TARGET_ACCOUNT)
+						.transactionReferenceNumber(TRANSACTION_REFERENCE)
 						.build()));
 	}
 

@@ -17,7 +17,6 @@ package format.bind.runtime.impl;
 
 import static format.bind.runtime.impl.FormatUtil.*;
 
-import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -34,6 +33,7 @@ import org.apache.commons.beanutils.NestedNullException;
 import org.apache.commons.beanutils.PropertyUtilsBean;
 import org.apache.commons.beanutils.expression.DefaultResolver;
 import org.apache.commons.beanutils.expression.Resolver;
+import org.apache.commons.lang3.reflect.FieldUtils;
 
 import format.bind.FormatProcessor;
 import lombok.EqualsAndHashCode;
@@ -100,32 +100,32 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 		}
 	}
 
-	<U extends T> void setValue(final U target, final String expression, final Object value) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, InstantiationException {
+	<U extends T> void setValue(final U target, final String expression, final Object value, final String text) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, InstantiationException {
 		// Create nested beans
-		String[] names = expression.split("\\.");
+		Resolver resolver = propertyUtils.getResolver();
 		Object bean = target;
+		String expr = expression;
 
-		for (int i = 0; i < names.length - 1; i++) {
-			String name = names[i];
-			Object val = propertyUtils.getProperty(bean, name);
+		do {
+			String next = resolver.next(expr);
+			Object val = propertyUtils.getProperty(bean, resolver.getProperty(next));
 
-			if (val == null) {
-				PropertyDescriptor propertyDescriptor = propertyUtils.getPropertyDescriptor(bean, name);
-				Class<?> propertyType = propertyDescriptor.getPropertyType();
+			prepareProperty(bean, next, val);
 
-				if (propertyType == List.class) {
-					val = new ArrayList<Object>();
-				} else if (propertyType == Map.class) {
-					val = new HashMap<String, Object>();
+			if (resolver.hasNested(expr)) {
+				if (val == null) {
+					// Initialize nested value
+					val = setNested(bean, next, text);
 				} else {
-					val = propertyType.getConstructor().newInstance();
+					// Get nested value
+					val = propertyUtils.getProperty(bean, next);
 				}
 
-				propertyUtils.setProperty(bean, name, val);
+				bean = val;
 			}
 
-			bean = val;
-		}
+			expr = resolver.remove(expr);
+		} while (expr != null);
 
 		// Set property value
 		propertyUtils.setProperty(target, expression, value);
@@ -188,6 +188,42 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 		// Maybe the expression designates the type info name on superclass.
 		// This will be evaluated later by the processor.
 		return null;
+	}
+
+	@SuppressWarnings("unchecked")
+	private void prepareProperty(final Object bean, final String expression, final Object value) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+		Resolver resolver = propertyUtils.getResolver();
+		String name = resolver.getProperty(expression);
+
+		boolean indexed = resolver.isIndexed(expression);
+		boolean mapped = resolver.isMapped(expression);
+
+		if (value == null) {
+			if (indexed) {
+				// Initialize list
+				propertyUtils.setProperty(bean, name, new ArrayList<>());
+			} else if (mapped) {
+				// Initialize map
+				propertyUtils.setProperty(bean, name, new HashMap<>());
+			}
+		}
+
+		if (indexed) {
+			List<Object> list = (List<Object>) propertyUtils.getProperty(bean, name);
+			int index = resolver.getIndex(expression);
+			if (index == list.size()) {
+				list.add(index, null);
+			}
+		}
+	}
+
+	private Object setNested(final Object bean, final String expression, final String text) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalArgumentException, SecurityException {
+		Resolver resolver = propertyUtils.getResolver();
+		Field field = FieldUtils.getField(bean.getClass(), resolver.getProperty(expression), true);
+		Class<?> propertyType = getFieldPropertyType(field, text);
+		Object value = propertyType.getConstructor().newInstance();
+		propertyUtils.setProperty(bean, expression, value);
+		return value;
 	}
 
 	@NoArgsConstructor

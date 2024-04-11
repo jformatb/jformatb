@@ -131,7 +131,7 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 				// Set field value if not null
 				if (value != null) {
 					resolvedValues.put(name, value);
-					setValue(obj, property, value);
+					setValue(obj, property, value, text);
 				}
 
 			}
