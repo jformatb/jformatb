@@ -18,6 +18,7 @@ package format.bind.converter;
 import java.util.Iterator;
 import java.util.ServiceLoader;
 
+import format.bind.FormatException;
 import format.bind.FormatFieldDescriptor;
 import format.bind.annotation.FormatFieldConverter;
 import format.bind.converter.spi.FieldConverterProvider;
@@ -75,8 +76,7 @@ public interface FieldConverter<T> {
 			}
 		}
 
-		throw new FieldConverterProviderNotFoundException(String.format(
-				"No implementation of %s found in classpath.", FieldConverterProvider.class));
+		throw new FormatException("No Field Converter Provider implementation found.");
 	}
 
 }

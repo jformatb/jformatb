@@ -150,8 +150,7 @@ public class Formatter<T> {
 			}
 		}
 
-		throw new FormatProcessorFactoryNotFoundException(String.format(
-				"No implementation of %s found in classpath.", FormatProcessorFactory.class));
+		throw new FormatException("No FormatProcessorFactory implementation found.");
 	}
 
 }

@@ -20,7 +20,7 @@ package format.bind;
  * 
  * @author Yannick Ebongue
  */
-public abstract class FormatException extends RuntimeException {
+public class FormatException extends RuntimeException {
 
 	private static final long serialVersionUID = 6931624954691907185L;
 
@@ -29,7 +29,7 @@ public abstract class FormatException extends RuntimeException {
 	 * 
 	 * @param message The detail message.
 	 */
-	protected FormatException(String message) {
+	public FormatException(String message) {
 		super(message);
 	}
 
@@ -39,7 +39,7 @@ public abstract class FormatException extends RuntimeException {
 	 * @param message The detail message.
 	 * @param cause The cause.
 	 */
-	protected FormatException(String message, Throwable cause) {
+	public FormatException(String message, Throwable cause) {
 		super(message, cause);
 	}
 
