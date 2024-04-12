@@ -22,9 +22,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
-import org.apache.commons.lang3.StringUtils;
-
-import format.bind.FormatException;
 import format.bind.FormatProcessingException;
 import format.bind.FormatWriter;
 import format.bind.annotation.FormatTypeInfo;
@@ -85,7 +82,7 @@ final class FormatWriterImpl<T> extends FormatProcessorImpl<T, FormatWriterImpl<
 				List<String> properties = resolveProperty(resultType, name, null);
 				int counter = 0;
 
-				if (typeInfo != null && typeInfo.fieldName().equals(name) && properties.isEmpty()) {
+				if (isTypeInfoFieldAbsent(typeInfo, name, properties)) {
 					String value = resultType.getAnnotation(FormatTypeValue.class).value();
 					output.append(pattern, lastIndex, matcher.start());
 					output.append(value);
@@ -97,7 +94,6 @@ final class FormatWriterImpl<T> extends FormatProcessorImpl<T, FormatWriterImpl<
 				}
 
 				for (String property : properties) {
-					boolean array = StringUtils.isNotBlank(matcher.group(ARRAY_GROUP));
 					Object value = getValue(obj, property);
 
 					Field accessor = resolvedProperties.get(property);
@@ -106,7 +102,7 @@ final class FormatWriterImpl<T> extends FormatProcessorImpl<T, FormatWriterImpl<
 					FieldConverter<?> converter = getFieldConverter(accessor, propertyType);
 
 					output.append(pattern, lastIndex, matcher.start());
-					output.append(formatFieldValue(value, descriptor, converter, matcher, array));
+					output.append(formatFieldValue(value, descriptor, converter));
 					resolvedValues.put(name, value);
 					lastIndex = ++counter < properties.size() ? matcher.start() : matcher.end();
 				}
@@ -119,11 +115,17 @@ final class FormatWriterImpl<T> extends FormatProcessorImpl<T, FormatWriterImpl<
 			listener.get().postProcessing(obj, resolvedValues);
 
 			return output.toString();
-		} catch (FormatException e) {
-			throw e;
 		} catch (Exception e) {
-			throw new FormatProcessingException(String.format("Unable to format object [%s]", obj), e);
+			throw handleException(obj, e);
 		}
+	}
+
+	private FormatProcessingException handleException(final Object obj, final Exception exception) {
+		if (exception instanceof FormatProcessingException) {
+			return (FormatProcessingException) exception;
+		}
+
+		return new FormatProcessingException(String.format("Unable to format object [%s]", obj), exception);
 	}
 
 }

@@ -22,7 +22,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import org.apache.commons.lang3.StringUtils;
 
@@ -72,8 +71,8 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 
 			Map<String, Object> resolvedValues = new LinkedHashMap<>();
 
-			AtomicInteger lastIndex = new AtomicInteger(0);
-			AtomicInteger matcherEnd = new AtomicInteger(0);
+			int lastIndex = 0;
+			int matcherEnd = 0;
 
 			FormatTypeInfo typeInfo = resultType.getAnnotation(FormatTypeInfo.class);
 
@@ -86,11 +85,11 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 				List<String> properties = resolveProperty(resultType, name, null);
 				int counter = 0;
 
-				if (typeInfo != null && typeInfo.fieldName().equals(name) && properties.isEmpty()) {
-					int start = matcher.start() - matcherEnd.get() + lastIndex.get();
-					matcherEnd.set(matcher.end());
-					lastIndex.set(start + typeInfo.length());
-					String value = StringUtils.substring(text, start, lastIndex.get());
+				if (isTypeInfoFieldAbsent(typeInfo, name, properties)) {
+					int start = matcher.start() - matcherEnd + lastIndex;
+					matcherEnd = matcher.end();
+					lastIndex = start + typeInfo.length();
+					String value = StringUtils.substring(text, start, lastIndex);
 
 					resolvedValues.put(name, value);
 
@@ -103,7 +102,16 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 					FormatFieldDescriptorImpl descriptor = buildFieldDescriptor(accessor, propertyType, parts);
 					FieldConverter<?> converter = getFieldConverter(accessor, propertyType);
 
-					Object value = parseFieldValue(text, descriptor, converter, matcher, matcherEnd, lastIndex);
+					int start = matcher.start() - matcherEnd + lastIndex;
+
+					int length = descriptor.length() == 0 ? text.length() : descriptor.length();
+
+					lastIndex = Math.min((start + length), text.length());
+					matcherEnd = matcher.end();
+
+					String source = text.substring(start, lastIndex);
+
+					Object value = parseFieldValue(source, descriptor, converter);
 
 					// Set field value if not null
 					if (value != null) {
@@ -112,7 +120,7 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 					}
 
 					if (++counter < properties.size()) {
-						matcherEnd.set(matcher.start());
+						matcherEnd = matcher.start();
 					}
 				}
 
@@ -121,10 +129,8 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 			listener.get().postProcessing(obj, resolvedValues);
 
 			return obj;
-		} catch (FormatProcessingException e) {
-			throw e;
 		} catch (Exception e) {
-			throw new FormatProcessingException(String.format("Unable to parse text [%s]", text), e);
+			throw handleException(text, e);
 		}
 	}
 
@@ -137,6 +143,14 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 		}
 
 		return type.getConstructor().newInstance();
+	}
+
+	private FormatProcessingException handleException(final String text, final Exception eexception) {
+		if (eexception instanceof FormatProcessingException) {
+			return (FormatProcessingException) eexception;
+		}
+
+		return new FormatProcessingException(String.format("Unable to parse text [%s]", text), eexception);
 	}
 
 }

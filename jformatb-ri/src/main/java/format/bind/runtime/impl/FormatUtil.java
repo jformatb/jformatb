@@ -25,16 +25,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.stream.IntStream;
-
 import org.apache.commons.lang3.ClassUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 
 import format.bind.FormatFieldDescriptor;
@@ -171,77 +165,13 @@ class FormatUtil {
 		return type;
 	}
 
-	private Object getFieldValue(final List<Object> values, final boolean array) {
-		Object value = null;
-
-		// Remove null values
-		ListIterator<Object> it = values.listIterator(values.size());
-		while (it.hasPrevious()) {
-			Object val = it.previous();
-			if (val == null) {
-				it.remove();
-			} else {
-				break;
-			}
-		}
-
-		if (!values.isEmpty()) {
-			value = array ? values : values.get(0);
-		}
-
-		return value;
-	}
-
 	@SuppressWarnings("unchecked")
-	<T, C extends FieldConverter<T>> String formatFieldValue(final Object value, final FormatFieldDescriptor descriptor, final FieldConverter<?> converter, final Matcher matcher, final boolean array) {
-		StringBuilder output = new StringBuilder();
-		int size = array ? Integer.parseInt(matcher.group(FormatProcessorImpl.SIZE_GROUP)) : 1;
-		int index = 0;
-		List<Object> values = new ArrayList<>(Collections.nCopies(size, null));
-
-		if (value instanceof List) {
-			List<?> list = (List<?>) value;
-			IntStream.range(0, Math.min(size, list.size())).forEach(i -> values.set(i, list.get(i)));
-		} else {
-			values.set(0, value);
-		}
-
-		do {
-			T val = (T) values.get(index);
-			output.append(((C) converter).format(descriptor, val));
-			index++;
-		} while (index < size);
-
-		return output.toString();
+	<T, C extends FieldConverter<T>> String formatFieldValue(final Object value, final FormatFieldDescriptor descriptor, final FieldConverter<?> converter) {
+		return ((C) converter).format(descriptor, (T) value);
 	}
 
-	Object parseFieldValue(final String text, final FormatFieldDescriptor descriptor, final FieldConverter<?> converter, final Matcher matcher, final AtomicInteger matcherEnd, final AtomicInteger lastIndex) {
-		List<Object> values = new ArrayList<>();
-		boolean array = StringUtils.isNotBlank(matcher.group(FormatProcessorImpl.ARRAY_GROUP));
-		int size = array ? Integer.parseInt(matcher.group(FormatProcessorImpl.SIZE_GROUP)) : 1;
-		int length = descriptor.length();
-		int index = 0;
-
-		int start = matcher.start() - matcherEnd.get() + lastIndex.get();
-		matcherEnd.set(matcher.end());
-		length = length == 0 ? text.length() : length;
-
-		if (start < text.length()) {
-			do {
-				int gap = index * length;
-				int nextStart = start + gap;
-				int nextEnd = Math.min((nextStart + length), text.length());
-				lastIndex.set(nextEnd);
-
-				String source = text.substring(nextStart, nextEnd);
-
-				values.add(converter.parse(descriptor, source));
-
-				index++;
-			} while (index < size);
-		}
-
-		return getFieldValue(values, array);
+	Object parseFieldValue(final String source, final FormatFieldDescriptor descriptor, final FieldConverter<?> converter) {
+		return converter.parse(descriptor, source);
 	}
 
 	FormatFieldDescriptorImpl buildFieldDescriptor(final Field accessor, final Class<?> propertyType, final String[] options) {

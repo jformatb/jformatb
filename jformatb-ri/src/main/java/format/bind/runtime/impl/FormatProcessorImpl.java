@@ -42,17 +42,16 @@ import org.apache.commons.lang3.reflect.FieldUtils;
 
 import format.bind.FormatProcessor;
 import format.bind.annotation.Format;
+import format.bind.annotation.FormatTypeInfo;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> implements FormatProcessor<T, F> {
 
-	static final String REGEX = "\\$\\{(?<property>[^\\}]+)\\}(?<array>\\[(?<size>[\\d\\.\\*]+)\\])?";
+	static final String REGEX = "\\$\\{(?<property>[^\\}]+)\\}";
 
 	static final String PROPERTY_GROUP = "property";
-	static final String ARRAY_GROUP = "array";
-	static final String SIZE_GROUP = "size";
 
 	static final String INDEXED_PROP_FORMAT = "%s[%d]";
 	static final String MAPPED_PROP_FORMAT = "%s[\"%s\"]";
@@ -99,6 +98,10 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 			this.listener.set(listener);
 		}
 		return (F) this;
+	}
+
+	boolean isTypeInfoFieldAbsent(final FormatTypeInfo typeInfo, final String name, final List<String> properties) {
+		return typeInfo != null && typeInfo.fieldName().equals(name) && properties.isEmpty();
 	}
 
 	String getPattern(Class<?> resultType) {
