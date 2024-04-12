@@ -20,19 +20,14 @@ import static format.bind.runtime.impl.FormatUtil.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.apache.commons.lang3.StringUtils;
 
 import format.bind.FormatProcessingException;
 import format.bind.FormatReader;
-import format.bind.Formatter;
-import format.bind.annotation.Format;
-import format.bind.annotation.FormatField;
 import format.bind.annotation.FormatTypeInfo;
 import format.bind.converter.FieldConverter;
 
@@ -72,11 +67,8 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 			T obj = createObject(text);
 			Class<?> resultType = obj.getClass();
 
-			String input = pattern != null ? pattern : Optional.ofNullable(resultType.getAnnotation(Format.class))
-					.map(Format::pattern)
-					.orElse(null);
-			Matcher matcher = Pattern.compile(REGEX)
-					.matcher(input);
+			String pattern = getPattern(resultType);
+			Matcher matcher = compile(pattern);
 
 			Map<String, Object> resolvedValues = new LinkedHashMap<>();
 
@@ -88,12 +80,13 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 			while (matcher.find()) {
 				String expression = matcher.group(PROPERTY_GROUP);
 				String[] parts = expression.split(":");
-				String name = parts[0];
+				String name = parts[0].replace("..", "::");
 
 				// Resolve bean property name
-				String property = resolveProperty(resultType, name, null);
+				List<String> properties = resolveProperty(resultType, name, null);
+				int counter = 0;
 
-				if (typeInfo != null && typeInfo.fieldName().equals(name) && property == null) {
+				if (typeInfo != null && typeInfo.fieldName().equals(name) && properties.isEmpty()) {
 					int start = matcher.start() - matcherEnd.get() + lastIndex.get();
 					matcherEnd.set(matcher.end());
 					lastIndex.set(start + typeInfo.length());
@@ -104,34 +97,23 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 					continue;
 				}
 
-				Field accessor = resolvedProperties.get(property);
-				Class<?> propertyType = getFieldPropertyType(accessor, text);
-				FieldConverter<?> converter = getFieldConverter(accessor, propertyType);
-				FormatFieldDescriptorImpl descriptor = FormatFieldDescriptorImpl.from(accessor.getAnnotation(FormatField.class));
+				for (String property : properties) {
+					Field accessor = resolvedProperties.get(property);
+					Class<?> propertyType = getFieldPropertyType(accessor, text);
+					FormatFieldDescriptorImpl descriptor = buildFieldDescriptor(accessor, propertyType, parts);
+					FieldConverter<?> converter = getFieldConverter(accessor, propertyType);
 
-				applyOverrides(descriptor, accessor, propertyType);
+					Object value = parseFieldValue(text, descriptor, converter, matcher, matcherEnd, lastIndex);
 
-				if (parts.length > 1) {
-					// Override annotation field length
-					descriptor = descriptor.length(Integer.parseInt(parts[1]));
-				}
+					// Set field value if not null
+					if (value != null) {
+						resolvedValues.put(name, value);
+						setValue(obj, property, value, text);
+					}
 
-				if (parts.length > 2) {
-					// Override annotation field placeholder
-					descriptor = descriptor.placeholder(parts[2]);
-				}
-
-				if (converter == null) {
-					// Use formatter converter to parse this field
-					converter = FieldConverter.provider().getConverter(Formatter.of(propertyType));
-				}
-
-				Object value = parseFieldValue(text, descriptor, converter, matcher, matcherEnd, lastIndex);
-
-				// Set field value if not null
-				if (value != null) {
-					resolvedValues.put(name, value);
-					setValue(obj, property, value, text);
+					if (++counter < properties.size()) {
+						matcherEnd.set(matcher.start());
+					}
 				}
 
 			}

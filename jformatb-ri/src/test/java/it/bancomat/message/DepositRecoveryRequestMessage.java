@@ -27,7 +27,7 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @JsonTypeName("depositRecovery")
-@Format(pattern = "${requestType:3}${workstationId:4}${transactionNumber:5}${dateTime:10}1${anomalyCode:2:00}${transmissionFlag:1:0}${totalCount:5}${cash.count:5:00000}${check.count:5:00000}E${totalAmount:11}E${cash.amount:11}E${check.amount:11}${cash.items:9:000000000}[7]${cash.level2Count:9:000000000}${cash.level3Count:9:000000000}")
+@Format(pattern = "${requestType:3}${workstationId:4}${transactionNumber:5}${dateTime:10}1${anomalyCode:2:00}${transmissionFlag:1:0}${totalCount:5}${cash.count:5:00000}${check.count:5:00000}E${totalAmount:11}E${cash.amount:11}E${check.amount:11}${cash.items[0..6]:9:000000000}${cash.level2Count:9:000000000}${cash.level3Count:9:000000000}")
 @FormatTypeValue("A16")
 public class DepositRecoveryRequestMessage extends OperatorRequestMessage {
 

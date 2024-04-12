@@ -19,19 +19,14 @@ import static format.bind.runtime.impl.FormatUtil.*;
 
 import java.lang.reflect.Field;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.apache.commons.lang3.StringUtils;
 
 import format.bind.FormatException;
 import format.bind.FormatProcessingException;
 import format.bind.FormatWriter;
-import format.bind.Formatter;
-import format.bind.annotation.Format;
-import format.bind.annotation.FormatField;
 import format.bind.annotation.FormatTypeInfo;
 import format.bind.annotation.FormatTypeValue;
 import format.bind.converter.FieldConverter;
@@ -72,11 +67,8 @@ final class FormatWriterImpl<T> extends FormatProcessorImpl<T, FormatWriterImpl<
 			StringBuilder output = new StringBuilder();
 			Class<?> resultType = obj.getClass();
 
-			String input = pattern != null ? pattern : Optional.ofNullable(resultType.getAnnotation(Format.class))
-					.map(Format::pattern)
-					.orElse(null);
-			Matcher matcher = Pattern.compile(REGEX)
-					.matcher(input);
+			String pattern = getPattern(resultType);
+			Matcher matcher = compile(pattern);
 
 			Map<String, Object> resolvedValues = new LinkedHashMap<>();
 
@@ -87,14 +79,15 @@ final class FormatWriterImpl<T> extends FormatProcessorImpl<T, FormatWriterImpl<
 			while (matcher.find()) {
 				String expression = matcher.group(PROPERTY_GROUP);
 				String[] parts = expression.split(":");
-				String name = parts[0];
+				String name = parts[0].replace("..", "::");
 
 				// Resolve bean property name
-				String property = resolveProperty(resultType, name, null);
+				List<String> properties = resolveProperty(resultType, name, null);
+				int counter = 0;
 
-				if (typeInfo != null && typeInfo.fieldName().equals(name) && property == null) {
+				if (typeInfo != null && typeInfo.fieldName().equals(name) && properties.isEmpty()) {
 					String value = resultType.getAnnotation(FormatTypeValue.class).value();
-					output.append(input, lastIndex, matcher.start());
+					output.append(pattern, lastIndex, matcher.start());
 					output.append(value);
 					lastIndex = matcher.end();
 
@@ -103,38 +96,24 @@ final class FormatWriterImpl<T> extends FormatProcessorImpl<T, FormatWriterImpl<
 					continue;
 				}
 
-				boolean array = StringUtils.isNotBlank(matcher.group(ARRAY_GROUP));
-				Object value = getValue(obj, property);
+				for (String property : properties) {
+					boolean array = StringUtils.isNotBlank(matcher.group(ARRAY_GROUP));
+					Object value = getValue(obj, property);
 
-				Field accessor = resolvedProperties.get(property);
-				Class<?> propertyType = getFieldPropertyType(accessor, value);
-				FieldConverter<?> converter = getFieldConverter(accessor, propertyType);
-				FormatFieldDescriptorImpl descriptor = FormatFieldDescriptorImpl.from(accessor.getAnnotation(FormatField.class));
+					Field accessor = resolvedProperties.get(property);
+					Class<?> propertyType = getFieldPropertyType(accessor, value);
+					FormatFieldDescriptorImpl descriptor = buildFieldDescriptor(accessor, propertyType, parts);
+					FieldConverter<?> converter = getFieldConverter(accessor, propertyType);
 
-				applyOverrides(descriptor, accessor, propertyType);
-
-				if (parts.length > 1) {
-					// Override annotation field length
-					descriptor = descriptor.length(Integer.parseInt(parts[1]));
+					output.append(pattern, lastIndex, matcher.start());
+					output.append(formatFieldValue(value, descriptor, converter, matcher, array));
+					resolvedValues.put(name, value);
+					lastIndex = ++counter < properties.size() ? matcher.start() : matcher.end();
 				}
-
-				if (parts.length > 2) {
-					// Override annotation field placeholder
-					descriptor = descriptor.placeholder(parts[2]);
-				}
-
-				if (converter == null) {
-					converter = FieldConverter.provider().getConverter(Formatter.of(value.getClass()));
-				}
-
-				output.append(input, lastIndex, matcher.start());
-				output.append(formatFieldValue(value, descriptor, converter, matcher, array));
-				resolvedValues.put(name, value);
-				lastIndex = matcher.end();
 			}
 
-			if (lastIndex < input.length()) {
-				output.append(input, lastIndex, input.length());
+			if (lastIndex < pattern.length()) {
+				output.append(pattern, lastIndex, pattern.length());
 			}
 
 			listener.get().postProcessing(obj, resolvedValues);

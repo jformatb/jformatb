@@ -30,7 +30,7 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @JsonTypeName("cashLoading")
-@Format(pattern = "${requestType:3}${workstationId:4}${transactionNumber:5}${dateTime:10}0${anomalyCode:2:00}${transmissionFlag:1:0}${cassettes[0]:7:0000000}${cassettes[1]:7:0000000}${cassettes[2]:7:0000000}${type:1}${cassettes[0].currency:3:000}${cassettes[1].currency:3:000}${cassettes[2].currency:3:000}")
+@Format(pattern = "${requestType:3}${workstationId:4}${transactionNumber:5}${dateTime:10}0${anomalyCode:2:00}${transmissionFlag:1:0}${cassettes[0..2]:7:0000000}${type:1}${cassettes[0..2].currency:3:000}")
 @FormatTypeValue("A04")
 public class CashLoadingRequestMessage extends OperatorRequestMessage {
 

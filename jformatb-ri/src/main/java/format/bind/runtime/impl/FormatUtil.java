@@ -48,6 +48,7 @@ import format.bind.annotation.FormatSubTypes;
 import format.bind.annotation.FormatTypeInfo;
 import format.bind.annotation.FormatTypeValue;
 import format.bind.converter.FieldConverter;
+import format.bind.converter.spi.FieldConverterProvider;
 import lombok.experimental.UtilityClass;
 
 @UtilityClass
@@ -105,13 +106,23 @@ class FormatUtil {
 
 	@SuppressWarnings("unchecked")
 	<T> FieldConverter<T> getFieldConverter(final AccessibleObject accessor, final Class<T> type) {
+		FieldConverterProvider provider = FieldConverter.provider();
+		FieldConverter<T> converter = null;
+
 		if (accessor.isAnnotationPresent(FormatFieldConverter.class)) {
-			return FieldConverter.provider().getConverter(type, (Class<? extends FieldConverter<T>>) accessor.getAnnotation(FormatFieldConverter.class).value());
+			converter = provider.getConverter(type, (Class<? extends FieldConverter<T>>) accessor.getAnnotation(FormatFieldConverter.class).value());
 		} else if (accessor.isAnnotationPresent(Format.class)) {
-			return FieldConverter.provider().getConverter(Formatter.of(type).withPattern(accessor.getAnnotation(Format.class).pattern()));
+			converter = provider.getConverter(Formatter.of(type).withPattern(accessor.getAnnotation(Format.class).pattern()));
 		} else {
-			return FieldConverter.provider().getConverter(type);
+			converter = provider.getConverter(type);
 		}
+
+		if (converter == null) {
+			// Use formatter converter to parse this field
+			converter = provider.getConverter(Formatter.of(type));
+		}
+
+		return converter;
 	}
 
 	Class<? extends Object> getFieldPropertyType(final Field accessor, final Object value) {
@@ -231,6 +242,24 @@ class FormatUtil {
 		}
 
 		return getFieldValue(values, array);
+	}
+
+	FormatFieldDescriptorImpl buildFieldDescriptor(final Field accessor, final Class<?> propertyType, final String[] options) {
+		FormatFieldDescriptorImpl descriptor = FormatFieldDescriptorImpl.from(accessor.getAnnotation(FormatField.class));
+
+		applyOverrides(descriptor, accessor, propertyType);
+
+		if (options.length > 1) {
+			// Override annotation field length
+			descriptor = descriptor.length(Integer.parseInt(options[1]));
+		}
+
+		if (options.length > 2) {
+			// Override annotation field placeholder
+			descriptor = descriptor.placeholder(options[2]);
+		}
+
+		return descriptor;
 	}
 
 	void applyOverrides(final FormatFieldDescriptorImpl descriptor, final Field accessor, final Class<?> propertyType) {

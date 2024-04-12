@@ -44,7 +44,7 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @JsonTypeName("deposit")
-@Format(pattern = "${requestType:3}${workstationId:4}${transactionNumber:5}${dateTime:10}1${transmissionFlag:1:0}${anomalyCode:2:00}${pan:17}${startPeriod:5}${remainingPeriod:4}${remainingSubPeriod:4}${depositType:1}${cash.noteCount:3:000}E${cash.totalAmount:7}${cash.items[\"500\"]:3:000}${cash.items[\"1000\"]:3:000}${cash.items[\"2000\"]:3:000}${cash.items[\"5000\"]:3:000}${cash.items[\"10000\"]:3:000}${cash.items[\"20000\"]:3:000}${cash.items[\"50000\"]:3:000}${cash.level2Count:3:000}${cash.level3Count:3:000}${check.codeLine:33}E${check.userAmount:9}${lastTransactionDate:6}${targetAccount:20}${transactionReferenceNumber:17}${check.documentNumber:3:000}000${check.issueDate:6:010100}")
+@Format(pattern = "${requestType:3}${workstationId:4}${transactionNumber:5}${dateTime:10}1${transmissionFlag:1:0}${anomalyCode:2:00}${pan:17}${startPeriod:5}${remainingPeriod:4}${remainingSubPeriod:4}${depositType:1}${cash.noteCount:3:000}E${cash.totalAmount:7}${cash.items[\"500,1000,2000,5000,10000,20000,50000\"]:3:000}${cash.level2Count:3:000}${cash.level3Count:3:000}${check.codeLine:33}E${check.userAmount:9}${lastTransactionDate:6}${targetAccount:20}${transactionReferenceNumber:17}${check.documentNumber:3:000}000${check.issueDate:6:010100}")
 @FormatTypeValue("W78")
 public class DepositRequestMessage extends CustomerRequestMessage {
 
