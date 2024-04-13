@@ -136,7 +136,7 @@ class FieldConverters {
 	 * @return The field converter instance.
 	 */
 	<T> FieldConverter<T> getConverter(Class<T> fieldType, Class<? extends FieldConverter<T>> converterType) {
-		return addConverter(fieldType, () -> newInstance(converterType));
+		return newInstance(converterType);
 	}
 
 	/**

@@ -179,14 +179,19 @@ class FormatUtil {
 
 		applyOverrides(descriptor, accessor, propertyType);
 
+		if (descriptor.name().isEmpty()) {
+			// Use class field name
+			descriptor.name(accessor.getName());
+		}
+
 		if (options.length > 1) {
 			// Override annotation field length
-			descriptor = descriptor.length(Integer.parseInt(options[1]));
+			descriptor.length(Integer.parseInt(options[1]));
 		}
 
 		if (options.length > 2) {
 			// Override annotation field placeholder
-			descriptor = descriptor.placeholder(options[2]);
+			descriptor.placeholder(options[2]);
 		}
 
 		return descriptor;
