@@ -21,7 +21,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import org.apache.commons.lang3.StringUtils;
 
@@ -83,7 +85,6 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 
 				// Resolve bean property name
 				List<String> properties = resolveProperty(resultType, name, null);
-				int counter = 0;
 
 				if (isTypeInfoFieldAbsent(typeInfo, name, properties)) {
 					int start = matcher.start() - matcherEnd + lastIndex;
@@ -96,7 +97,11 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 					continue;
 				}
 
-				for (String property : properties) {
+				ListIterator<String> iterator = properties.listIterator();
+				int counter = 0;
+				while (iterator.hasNext()) {
+					String property = nextProperty(iterator, counter);
+
 					Field accessor = resolvedProperties.get(property);
 					Class<?> propertyType = getFieldPropertyType(accessor, text);
 					FormatFieldDescriptorImpl descriptor = buildFieldDescriptor(accessor, propertyType, parts);
@@ -104,7 +109,13 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 
 					int start = matcher.start() - matcherEnd + lastIndex;
 
-					int length = descriptor.length() == 0 ? text.length() : descriptor.length();
+					if (start == text.length()) {
+						break;
+					}
+
+					int length = Optional.of(descriptor.length())
+							.filter(value -> value > 0)
+							.orElseGet(text::length);
 
 					lastIndex = Math.min((start + length), text.length());
 					matcherEnd = matcher.end();

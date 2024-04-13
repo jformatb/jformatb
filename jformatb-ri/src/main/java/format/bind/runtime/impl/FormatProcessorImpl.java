@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -32,6 +33,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.NestedNullException;
@@ -53,7 +55,7 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 
 	static final String PROPERTY_GROUP = "property";
 
-	static final String INDEXED_PROP_FORMAT = "%s[%d]";
+	static final String INDEXED_PROP_FORMAT = "%s[%s]";
 	static final String MAPPED_PROP_FORMAT = "%s[\"%s\"]";
 
 	/** The class instance representing the Java type of the object to process. */
@@ -104,6 +106,22 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 		return typeInfo != null && typeInfo.fieldName().equals(name) && properties.isEmpty();
 	}
 
+	String nextProperty(final ListIterator<String> iterator, final int next) {
+		String property = iterator.next();
+		Matcher matcher = Pattern.compile("(?<start>\\d+) \\+ \\*").matcher(property);
+
+		if (matcher.find()) {
+			Field accessor = resolvedProperties.get(property);
+			int index = Integer.parseInt(matcher.group("start")) + next;
+			property = matcher.replaceAll(String.valueOf(index));
+			iterator.previous();
+			iterator.add(property);
+			resolvedProperties.put(property, accessor);
+		}
+
+		return property;
+	}
+
 	String getPattern(Class<?> resultType) {
 		return pattern != null ? pattern : Optional.ofNullable(resultType.getAnnotation(Format.class))
 				.map(Format::pattern)
@@ -125,7 +143,7 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 
 	<U extends T> void setValue(final U target, final String expression, final Object value, final String text) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, InstantiationException {
 		// Create nested beans
-		Resolver resolver = propertyUtils.getResolver();
+		Resolver resolver = getResolver();
 		Object bean = target;
 		String expr = expression;
 
@@ -155,7 +173,7 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 	}
 
 	List<String> resolveProperty(final Class<?> beanType, final String expression, final String parent) {
-		if (propertyUtils.getResolver().hasNested(expression)) {
+		if (getResolver().hasNested(expression)) {
 			return resolveNestedProperty(beanType, expression, parent);
 		} else {
 			return resolveSimpleProperty(beanType, expression, parent);
@@ -163,7 +181,7 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 	}
 
 	private List<String> resolveNestedProperty(final Class<?> beanType, final String expression, final String parent) {
-		Resolver resolver = propertyUtils.getResolver();
+		Resolver resolver = getResolver();
 
 		String containerName = resolver.getProperty(expression);
 
@@ -191,18 +209,25 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 	}
 
 	private List<String> resolveIndexedNestedProperty(final Class<?> containerType, final String property, final String expression) {
-		PropertyResolver resolver = (PropertyResolver) propertyUtils.getResolver();
+		PropertyResolver resolver = getResolver();
 		int index = resolver.getIndex(expression);
 
 		if (index == -1) {
-			Integer[] boundaries = resolver.getBoundaries(expression);
+			int[] boundaries = resolver.getBoundaries(expression);
 			if (boundaries.length > 0) {
-				int startInclusive = Optional.ofNullable(boundaries[0]).orElse(0);
-				int endExclusive = Optional.ofNullable(boundaries[1]).orElse(startInclusive + 1);
-				return IntStream.range(startInclusive, endExclusive)
-						.mapToObj(i -> String.format(INDEXED_PROP_FORMAT, property, i))
-						.flatMap(prop -> resolveProperty(containerType, resolver.remove(expression), prop).stream())
-						.collect(Collectors.toList());
+				int startInclusive = boundaries[0];
+				int endInclusive = boundaries[1];
+
+				if (endInclusive == -1) {
+					return Stream.of(String.format(INDEXED_PROP_FORMAT, property, startInclusive + " + *"))
+							.flatMap(prop -> resolveProperty(containerType, resolver.remove(expression), prop).stream())
+							.collect(Collectors.toList());
+				} else {
+					return IntStream.rangeClosed(startInclusive, Math.max(startInclusive, endInclusive))
+							.mapToObj(i -> String.format(INDEXED_PROP_FORMAT, property, i))
+							.flatMap(prop -> resolveProperty(containerType, resolver.remove(expression), prop).stream())
+							.collect(Collectors.toList());
+				}
 			}
 		} else {
 			return resolveProperty(containerType, resolver.remove(expression), String.format(INDEXED_PROP_FORMAT, property, index));
@@ -212,7 +237,7 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 	}
 
 	private List<String> resolveMappedNestedProperty(final Class<?> containerType, final String property, final String expression) {
-		Resolver resolver = propertyUtils.getResolver();
+		Resolver resolver = getResolver();
 		return Arrays.stream(resolver.getKey(expression).split(","))
 				.map(String::trim)
 				.map(key -> String.format(MAPPED_PROP_FORMAT, property, key))
@@ -221,7 +246,7 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 	}
 
 	private List<String> resolveSimpleProperty(final Class<?> beanType, final String expression, final String parent) {
-		Resolver resolver = propertyUtils.getResolver();
+		Resolver resolver = getResolver();
 
 		String fieldName = resolver.getProperty(expression);
 
@@ -253,21 +278,32 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 	}
 
 	private List<String> resolveIndexedSimpleProperty(final Field accessor, final String property, final String expression) {
-		PropertyResolver resolver = (PropertyResolver) propertyUtils.getResolver();
+		PropertyResolver resolver = getResolver();
 		int index = resolver.getIndex(expression);
 
 		if (index == -1) {
-			Integer[] boundaries = resolver.getBoundaries(expression);
+			int[] boundaries = resolver.getBoundaries(expression);
+
 			if (boundaries.length > 0) {
-				int startInclusive = Optional.ofNullable(boundaries[0]).orElse(0);
-				int endExclusive = Optional.ofNullable(boundaries[1]).orElse(startInclusive + 1);
-				List<String> properties = IntStream.range(startInclusive, endExclusive)
-						.mapToObj(i -> String.format(INDEXED_PROP_FORMAT, property, i))
-						.collect(Collectors.toList());
-	
-				properties.forEach(prop -> resolvedProperties.put(prop, accessor));
-	
-				return Collections.unmodifiableList(properties);
+				int startInclusive = boundaries[0];
+				int endInclusive = boundaries[1];
+
+				if (endInclusive == -1) {
+					List<String> properties = Stream.of(String.format(INDEXED_PROP_FORMAT, property, startInclusive + " + *"))
+							.collect(Collectors.toList());
+
+					properties.forEach(prop -> resolvedProperties.put(prop, accessor));
+
+					return properties;
+				} else {
+					List<String> properties = IntStream.rangeClosed(startInclusive, Math.max(startInclusive, endInclusive))
+							.mapToObj(i -> String.format(INDEXED_PROP_FORMAT, property, i))
+							.collect(Collectors.toList());
+
+					properties.forEach(prop -> resolvedProperties.put(prop, accessor));
+
+					return Collections.unmodifiableList(properties);
+				}
 			}
 		} else {
 			String prop = String.format(INDEXED_PROP_FORMAT, property, index);
@@ -279,7 +315,7 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 	}
 
 	private List<String> resolveMappedSimpleProperty(final Field accessor, final String property, final String expression) {
-		Resolver resolver = propertyUtils.getResolver();
+		Resolver resolver = getResolver();
 		List<String> properties = Arrays.stream(resolver.getKey(expression).split(","))
 				.map(String::trim)
 				.map(key -> String.format(MAPPED_PROP_FORMAT, property, key))
@@ -292,7 +328,7 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 
 	@SuppressWarnings("unchecked")
 	private void prepareProperty(final Object bean, final String expression, final Object value) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-		Resolver resolver = propertyUtils.getResolver();
+		Resolver resolver = getResolver();
 		String name = resolver.getProperty(expression);
 
 		boolean indexed = resolver.isIndexed(expression);
@@ -318,12 +354,16 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 	}
 
 	private Object setNested(final Object bean, final String expression, final String text) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalArgumentException, SecurityException {
-		Resolver resolver = propertyUtils.getResolver();
+		Resolver resolver = getResolver();
 		Field field = FieldUtils.getField(bean.getClass(), resolver.getProperty(expression), true);
 		Class<?> propertyType = getFieldPropertyType(field, text);
 		Object value = propertyType.getConstructor().newInstance();
 		propertyUtils.setProperty(bean, expression, value);
 		return value;
+	}
+
+	private PropertyResolver getResolver() {
+		return (PropertyResolver) propertyUtils.getResolver();
 	}
 
 	@NoArgsConstructor
@@ -333,9 +373,9 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 	    static final String MAPPED_REGEX  = "\\[\\\"([^\\\"]+)\\\"\\]";
 	    static final String NESTED_REGEX  = "\\.";
 
-	    public Integer[] getBoundaries(final String expression) {
+	    public int[] getBoundaries(final String expression) {
 	        if (expression == null || expression.length() == 0) {
-	            return new Integer[0];
+	            return new int[0];
 	        }
 
 	        String next = next(expression.split(NESTED_REGEX)[0], MAPPED_REGEX);
@@ -346,18 +386,16 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 			if (matcher.find()) {
 				String[] boundaries = matcher.group(1).split("::");
 				if (boundaries.length == 1) {
-					return new Integer[] { 0, null };
+					return new int[] { 0, -1 };
 				} else {
-					return new Integer[] {
+					return new int[] {
 							Integer.parseInt(boundaries[0]),
-							Optional.ofNullable(parseBoundary(boundaries[1]))
-									.map(value -> value + 1)
-									.orElse(null)
+							parseBoundary(boundaries[1])
 					};
 				}
 			}
 
-			return new Integer[0];
+			return new int[0];
 	    }
 
 		@Override
@@ -466,8 +504,8 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 			return next;
 		}
 
-		private Integer parseBoundary(String bound) {
-			return ("*".equals(bound) ? null : Integer.parseInt(bound));
+		private int parseBoundary(String bound) {
+			return ("*".equals(bound) ? -1 : Integer.parseInt(bound));
 		}
 
 	}

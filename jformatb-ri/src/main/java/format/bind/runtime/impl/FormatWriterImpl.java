@@ -20,8 +20,11 @@ import static format.bind.runtime.impl.FormatUtil.*;
 import java.lang.reflect.Field;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import format.bind.FormatProcessingException;
 import format.bind.FormatWriter;
 import format.bind.annotation.FormatTypeInfo;
@@ -80,7 +83,6 @@ final class FormatWriterImpl<T> extends FormatProcessorImpl<T, FormatWriterImpl<
 
 				// Resolve bean property name
 				List<String> properties = resolveProperty(resultType, name, null);
-				int counter = 0;
 
 				if (isTypeInfoFieldAbsent(typeInfo, name, properties)) {
 					String value = resultType.getAnnotation(FormatTypeValue.class).value();
@@ -93,8 +95,16 @@ final class FormatWriterImpl<T> extends FormatProcessorImpl<T, FormatWriterImpl<
 					continue;
 				}
 
-				for (String property : properties) {
+				ListIterator<String> iterator = properties.listIterator();
+				int counter = 0;
+				while (iterator.hasNext()) {
+					String property = nextProperty(iterator, counter);
 					Object value = getValue(obj, property);
+
+					if (value == null && Pattern.compile("\\[(\\d+::)?\\*\\]").matcher(name).find()) {
+						lastIndex = matcher.end();
+						break;
+					}
 
 					Field accessor = resolvedProperties.get(property);
 					Class<?> propertyType = getFieldPropertyType(accessor, value);
