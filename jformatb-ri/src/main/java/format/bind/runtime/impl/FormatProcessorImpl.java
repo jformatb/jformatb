@@ -108,12 +108,12 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 
 	String nextProperty(final ListIterator<String> iterator, final int next) {
 		String property = iterator.next();
-		Matcher matcher = Pattern.compile("(?<start>\\d+) \\+ \\*").matcher(property);
+		Matcher matcher = Pattern.compile("\\[(?<start>\\d+)\\+\\]").matcher(property);
 
 		if (matcher.find()) {
 			Field accessor = resolvedProperties.get(property);
 			int index = Integer.parseInt(matcher.group("start")) + next;
-			property = matcher.replaceAll(String.valueOf(index));
+			property = matcher.replaceAll(String.format("[%d]", index));
 			iterator.previous();
 			iterator.add(property);
 			resolvedProperties.put(property, accessor);
@@ -219,7 +219,7 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 				int endInclusive = boundaries[1];
 
 				if (endInclusive == -1) {
-					return Stream.of(String.format(INDEXED_PROP_FORMAT, property, startInclusive + " + *"))
+					return Stream.of(String.format(INDEXED_PROP_FORMAT, property, startInclusive + "+"))
 							.flatMap(prop -> resolveProperty(containerType, resolver.remove(expression), prop).stream())
 							.collect(Collectors.toList());
 				} else {
@@ -289,7 +289,7 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 				int endInclusive = boundaries[1];
 
 				if (endInclusive == -1) {
-					List<String> properties = Stream.of(String.format(INDEXED_PROP_FORMAT, property, startInclusive + " + *"))
+					List<String> properties = Stream.of(String.format(INDEXED_PROP_FORMAT, property, startInclusive + "+"))
 							.collect(Collectors.toList());
 
 					properties.forEach(prop -> resolvedProperties.put(prop, accessor));
