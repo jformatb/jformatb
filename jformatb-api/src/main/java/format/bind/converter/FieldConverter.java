@@ -15,11 +15,9 @@
  */
 package format.bind.converter;
 
-import java.util.Iterator;
-import java.util.ServiceLoader;
-
 import format.bind.FormatException;
 import format.bind.FormatFieldDescriptor;
+import format.bind.Providers;
 import format.bind.annotation.FormatFieldConverter;
 import format.bind.converter.spi.FieldConverterProvider;
 
@@ -59,24 +57,11 @@ public interface FieldConverter<T> {
 	/**
 	 * Obtain the current {@link FieldConverter} service provider.
 	 * @return The {@link FieldConverter} service provider instance.
+	 * @throws FormatException if no {@link FieldConverterProvider}
+	 * 		implementation was found.
 	 */
 	static FieldConverterProvider provider() {
-		ServiceLoader<FieldConverterProvider> loader = ServiceLoader.load(FieldConverterProvider.class);
-		Iterator<FieldConverterProvider> it = loader.iterator();
-
-		String className = System.getProperty(
-				FieldConverterProvider.class.getName(),
-				"format.bind.runtime.impl.converter.FieldConverterProviderImpl");
-
-		while (it.hasNext()) {
-			FieldConverterProvider next = it.next();
-
-			if (next.getClass().getName().equals(className)) {
-				return next;
-			}
-		}
-
-		throw new FormatException("No Field Converter Provider implementation found.");
+		return Providers.getFieldConverterProvider();
 	}
 
 }

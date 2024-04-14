@@ -15,9 +15,7 @@
  */
 package format.bind;
 
-import java.util.Iterator;
 import java.util.Optional;
-import java.util.ServiceLoader;
 
 import format.bind.annotation.Format;
 import format.bind.annotation.FormatField;
@@ -131,26 +129,11 @@ public class Formatter<T> {
 	 * Obtain the {@link FormatProcessorFactory} SPI implementation instance.
 	 * 
 	 * @return The {@link FormatProcessorFactory} instance.
-	 * @throws FormatProcessorFactoryNotFoundException if no {@link FormatProcessorFactory}
+	 * @throws FormatException if no {@link FormatProcessorFactory}
 	 * 		implementation was found.
 	 */
 	private static FormatProcessorFactory getProcessorFactory() {
-		ServiceLoader<FormatProcessorFactory> loader = ServiceLoader.load(FormatProcessorFactory.class);
-		Iterator<FormatProcessorFactory> it = loader.iterator();
-
-		String className = System.getProperty(
-				FormatProcessorFactory.class.getName(),
-				"format.bind.runtime.impl.FormatProcessorFactoryImpl");
-
-		while (it.hasNext()) {
-			FormatProcessorFactory next = it.next();
-
-			if (next.getClass().getName().equals(className)) {
-				return next;
-			}
-		}
-
-		throw new FormatException("No FormatProcessorFactory implementation found.");
+		return Providers.getProcessorFactory();
 	}
 
 }
