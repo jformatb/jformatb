@@ -20,7 +20,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
+import com.opencsv.bean.CsvBindByName;
+import com.opencsv.bean.CsvDate;
 
 import format.bind.FormatFieldDescriptor;
 import format.bind.annotation.Format;
@@ -57,37 +58,70 @@ public class BankStatement implements Serializable {
 		private static final long serialVersionUID = -2157455392448467482L;
 
 		@FormatField(format = "ddMMyy")
+		@CsvBindByName(column = "entry_date", required = true)
+		@CsvDate("dd/MM/yyyy")
 		private LocalDate entryDate;
 
 		@FormatField(format = "ddMMyy")
+		@CsvBindByName(column = "value_date", required = true)
+		@CsvDate("dd/MM/yyyy")
 		private LocalDate valueDate;
 
 		@FormatField
+		@CsvBindByName(required = true)
 		private String description;
 
-		@FormatField
+		@FormatField(scale = 2)
 		@FormatFieldConverter(AmountConverter.class)
-		private Long amount;
+		@CsvBindByName(required = true)
+		private BigDecimal amount;
 
 	}
 
-	public static class AmountConverter implements FieldConverter<Long> {
+	public static class AmountConverter implements FieldConverter<BigDecimal> {
 
 		private static final int LENGTH = 12;
 
+		private final FieldConverter<BigDecimal> converter;
+
+		public AmountConverter() {
+			converter = FieldConverter.provider().getConverter(BigDecimal.class);
+		}
+
 		@Override
-		public String format(FormatFieldDescriptor descriptor, Long value) throws FieldConversionException {
+		public String format(FormatFieldDescriptor descriptor, BigDecimal value) throws FieldConversionException {
 			return new StringBuilder()
-					.append(StringUtils.leftPad(String.valueOf(Math.abs(value)), LENGTH, "0"))
-					.append(value < 0 ? "-" : "+")
+					.append(converter.format(descriptor, value.abs()).substring(1))
+					.append(formatSign(value))
 					.toString();
 		}
 
 		@Override
-		public Long parse(FormatFieldDescriptor descriptor, String source) throws FieldConversionException {
-			return new BigDecimal(source.substring(0, LENGTH))
-					.multiply("-".equals(source.substring(LENGTH)) ? BigDecimal.ONE.negate() : BigDecimal.ONE)
-					.longValueExact();
+		public BigDecimal parse(FormatFieldDescriptor descriptor, String source) throws FieldConversionException {
+			String str = new StringBuilder().append(0).append(source.substring(0, LENGTH)).toString();
+			return converter.parse(descriptor, str)
+					.multiply(parseSign(source.substring(LENGTH)));
+		}
+
+		private String formatSign(final BigDecimal value) {
+			switch (value.signum()) {
+			case -1:
+				return "-";
+			case 1:
+				return "+";
+			default:
+				return " ";
+			}
+		}
+
+		private BigDecimal parseSign(final String source) {
+			if ("-".equals(source)) {
+				return BigDecimal.ONE.negate();
+			} else if ("+".equals(source)) {
+				return BigDecimal.ONE;
+			} else {
+				return BigDecimal.ZERO;
+			}
 		}
 
 	}
