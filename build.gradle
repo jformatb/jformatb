@@ -2,12 +2,16 @@ plugins {
     id 'eclipse'
     id 'org.sonarqube' version '5.0.0.4638'
     id 'io.freefair.lombok' version '6.6.3' apply false
+    id 'net.researchgate.release' version '3.0.2'
+}
+
+release {
+    git {
+        requireBranch.set('main')
+    }
 }
 
 allprojects {
-
-    group = 'io.github.jformatb'
-    version = '0.1-SNAPSHOT'
 
     repositories {
         mavenLocal()
