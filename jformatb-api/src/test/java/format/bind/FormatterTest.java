@@ -22,17 +22,25 @@ import org.junit.jupiter.api.Test;
 
 import format.bind.converter.FieldConverter;
 import format.bind.converter.spi.FieldConverterProvider;
-import format.bind.spi.FormatProcessorFactory;
 
-class ProviderTest {
+class FormatterTest {
 
 	@Test
-	void getFormatProcessorFactory() {
-		Throwable exception = catchThrowable(() -> Formatter.of(Object.class));
+	void formatObject() {
+		Throwable exception = catchThrowable(() -> Formatter.of(Object.class)
+				.format(new Object()));
 
 		assertThat(exception)
-				.isInstanceOf(FormatException.class)
-				.hasMessageContaining(FormatProcessorFactory.class.getName());
+				.isInstanceOf(FormatProcessingException.class);
+	}
+
+	@Test
+	void parseObject() {
+		Throwable exception = catchThrowable(() -> Formatter.of(Object.class)
+				.parse(new StringBuilder().toString()));
+
+		assertThat(exception)
+				.isInstanceOf(FormatProcessingException.class);
 	}
 
 	@Test
