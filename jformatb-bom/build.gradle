@@ -41,3 +41,9 @@ reporting {
 tasks.named('check') {
     dependsOn tasks.named('testCodeCoverageReport', JacocoReport)
 }
+
+sonar {
+    properties {
+        property 'sonar.coverage.jacoco.xmlReportPaths', 'build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml'
+    }
+}
