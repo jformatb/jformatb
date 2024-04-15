@@ -1,5 +1,10 @@
 plugins {
     id 'java-platform'
+    id 'jacoco-report-aggregation'
+}
+
+javaPlatform {
+    allowDependencies()
 }
 
 dependencies {
@@ -7,6 +12,9 @@ dependencies {
         api project(':jformatb-api')
         api project(':jformatb-ri')
     }
+
+    jacocoAggregation project(':jformatb-api')
+    jacocoAggregation project(':jformatb-ri')
 }
 
 publishing {
@@ -20,4 +28,16 @@ publishing {
             }
         }
     }
+}
+
+reporting {
+    reports {
+        testCodeCoverageReport(JacocoCoverageReport) {
+            testType = TestSuiteType.UNIT_TEST
+        }
+    }
+}
+
+tasks.named('check') {
+    dependsOn tasks.named('testCodeCoverageReport', JacocoReport)
 }
