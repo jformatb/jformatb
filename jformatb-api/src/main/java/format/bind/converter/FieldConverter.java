@@ -61,7 +61,7 @@ public interface FieldConverter<T> {
 	 * 		implementation was found.
 	 */
 	static FieldConverterProvider provider() {
-		return Providers.getFieldConverterProvider();
+		return Providers.getInstance().getFieldConverterProvider();
 	}
 
 }

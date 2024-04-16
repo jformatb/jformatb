@@ -65,7 +65,7 @@ public class Providers {
 	 * 
 	 * @return The {@link FormatProcessorFactory} SPI implementation.
 	 */
-	public static FormatProcessorFactory getProcessorFactory() {
+	public FormatProcessorFactory getProcessorFactory() {
 		return getInstance().get(FormatProcessorFactory.class);
 	}
 
@@ -74,7 +74,7 @@ public class Providers {
 	 * 
 	 * @return The {@link FieldConverterProvider} SPI implementation.
 	 */
-	public static FieldConverterProvider getFieldConverterProvider() {
+	public FieldConverterProvider getFieldConverterProvider() {
 		return getInstance().get(FieldConverterProvider.class);
 	}
 

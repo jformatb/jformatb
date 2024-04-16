@@ -133,7 +133,7 @@ public class Formatter<T> {
 	 * 		implementation was found.
 	 */
 	private static FormatProcessorFactory getProcessorFactory() {
-		return Providers.getProcessorFactory();
+		return Providers.getInstance().getProcessorFactory();
 	}
 
 }
