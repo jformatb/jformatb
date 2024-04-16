@@ -31,7 +31,7 @@ final class DateConverter implements FieldConverter<Date> {
 	public String format(final FormatFieldDescriptor descriptor, final Date value) throws FieldConversionException {
 		try {
 			String str = Optional.ofNullable(value)
-					.map(new SimpleDateFormat(descriptor.format())::format)
+					.map(new SimpleDateFormat(descriptor.format(), locale(descriptor.locale()))::format)
 					.orElseGet(descriptor::placeholder);
 			return StringUtils.leftPad(str, descriptor.length(), "0");
 		} catch (Exception e) {
@@ -40,15 +40,15 @@ final class DateConverter implements FieldConverter<Date> {
 	}
 
 	@Override
-	public Date parse(final FormatFieldDescriptor fieldSpec, final String source) throws FieldConversionException {
+	public Date parse(final FormatFieldDescriptor descriptor, final String source) throws FieldConversionException {
 		try {
-			if (source.equals(fieldSpec.placeholder())) {
+			if (source.equals(descriptor.placeholder())) {
 				return null;
 			}
 
-			return new SimpleDateFormat(fieldSpec.format()).parse(source);
+			return new SimpleDateFormat(descriptor.format(), locale(descriptor.locale())).parse(source);
 		} catch (Exception e) {
-			return FieldConverters.throwParseFieldConversionException(fieldSpec, source, e);
+			return FieldConverters.throwParseFieldConversionException(descriptor, source, e);
 		}
 	}
 

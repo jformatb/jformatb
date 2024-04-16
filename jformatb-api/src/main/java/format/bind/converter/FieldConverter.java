@@ -15,6 +15,9 @@
  */
 package format.bind.converter;
 
+import java.util.Locale;
+import java.util.Optional;
+
 import format.bind.FormatException;
 import format.bind.FormatFieldDescriptor;
 import format.bind.Providers;
@@ -53,6 +56,18 @@ public interface FieldConverter<T> {
 	 * @throws FieldConversionException if there is an error during the conversion.
 	 */
 	T parse(final FormatFieldDescriptor descriptor, final String source) throws FieldConversionException;
+
+	/**
+	 * Returns the {@link Locale} of the given language tag
+	 * @param languageTag The language tag of the {@link Locale}.
+	 * @return The {@link Locale} instance.
+	 */
+	default Locale locale(final String languageTag) {
+		return Optional.ofNullable(languageTag.trim())
+				.filter(tag -> !tag.isEmpty())
+				.map(Locale::forLanguageTag)
+				.orElseGet(Locale::getDefault);
+	}
 
 	/**
 	 * Obtain the current {@link FieldConverter} service provider.

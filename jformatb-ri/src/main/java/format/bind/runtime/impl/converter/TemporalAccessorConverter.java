@@ -32,7 +32,7 @@ abstract class TemporalAccessorConverter<T extends TemporalAccessor> implements 
 	public String format(final FormatFieldDescriptor descriptor, final T value) throws FieldConversionException {
 		try {
 			String str = Optional.ofNullable(value)
-					.map(DateTimeFormatter.ofPattern(descriptor.format())::format)
+					.map(DateTimeFormatter.ofPattern(descriptor.format(), locale(descriptor.locale()))::format)
 					.orElseGet(descriptor::placeholder);
 			return StringUtils.leftPad(str, descriptor.length(), "0");
 		} catch (Exception e) {
@@ -41,15 +41,15 @@ abstract class TemporalAccessorConverter<T extends TemporalAccessor> implements 
 	}
 
 	@Override
-	public T parse(final FormatFieldDescriptor fieldSpec, final String source) throws FieldConversionException {
+	public T parse(final FormatFieldDescriptor descriptor, final String source) throws FieldConversionException {
 		try {
-			if (source.equals(fieldSpec.placeholder())) {
+			if (source.equals(descriptor.placeholder())) {
 				return null;
 			}
 
-			return DateTimeFormatter.ofPattern(fieldSpec.format()).parse(source, query());
+			return DateTimeFormatter.ofPattern(descriptor.format(), locale(descriptor.locale())).parse(source, query());
 		} catch (Exception e) {
-			return FieldConverters.throwParseFieldConversionException(fieldSpec, source, e);
+			return FieldConverters.throwParseFieldConversionException(descriptor, source, e);
 		}
 	}
 

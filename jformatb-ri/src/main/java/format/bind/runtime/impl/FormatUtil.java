@@ -227,6 +227,7 @@ class FormatUtil {
 					.length(!type.getDeclaredMethod("length").getDefaultValue().equals(field.length()) ? field.length() : descriptor.length())
 					.scale(!type.getDeclaredMethod("scale").getDefaultValue().equals(field.scale()) ? field.scale() : descriptor.scale())
 					.format(!type.getDeclaredMethod("format").getDefaultValue().equals(field.format()) ? field.format() : descriptor.format())
+					.locale(!type.getDeclaredMethod("locale").getDefaultValue().equals(field.locale()) ? field.locale() : descriptor.locale())
 					.placeholder(!type.getDeclaredMethod("placeHolder").getDefaultValue().equals(field.placeholder()) ? field.placeholder() : descriptor.placeholder());
 		} catch (NoSuchMethodException | SecurityException e) {
 			throw new IllegalArgumentException(e);

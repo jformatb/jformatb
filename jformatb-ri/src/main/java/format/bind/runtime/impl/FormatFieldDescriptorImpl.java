@@ -40,6 +40,8 @@ class FormatFieldDescriptorImpl implements FormatFieldDescriptor, Serializable {
 
 	private String format;
 
+	private String locale;
+
 	private String placeholder;
 
 	public static final FormatFieldDescriptorImpl from(FormatField field) {
@@ -50,6 +52,7 @@ class FormatFieldDescriptorImpl implements FormatFieldDescriptor, Serializable {
 				.length(field.length())
 				.scale(field.scale())
 				.format(field.format())
+				.locale(field.locale())
 				.placeholder(field.placeholder());
 	}
 

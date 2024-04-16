@@ -22,6 +22,9 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+import java.text.DateFormat;
+import java.text.DecimalFormat;
+import java.util.Locale;
 
 /**
  * Maps a JavaBean property to a text format field.
@@ -82,6 +85,27 @@ public @interface FormatField {
 	 * @return The format of the text format field.
 	 */
 	String format() default "";
+
+	/**
+	 * (Optional) The {@link Locale} to be used with the {@link #format()} if specified.
+	 * 
+	 * <p>
+	 * If the value is empty (the default value), the {@link Locale#getDefault()} will be
+	 * used with the {@code format} of the text format field.
+	 * </p>
+	 * 
+	 * <p>
+	 * The specified {@link Locale} value must be a valid language tag.
+	 * </p>
+	 * 
+	 * @return The {@link Locale} of the text format field.
+	 * 
+	 * @see DateFormat
+	 * @see DecimalFormat
+	 * @see Locale
+	 * @see Locale#forLanguageTag(String)
+	 */
+	String locale() default "";
 
 	/**
 	 * (Optional) The placeholder of the text format field.

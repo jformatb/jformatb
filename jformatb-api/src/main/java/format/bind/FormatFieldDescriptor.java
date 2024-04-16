@@ -15,6 +15,9 @@
  */
 package format.bind;
 
+import java.util.Locale;
+
+import format.bind.annotation.FormatField;
 import format.bind.annotation.FormatField.Type;
 
 /**
@@ -63,6 +66,15 @@ public interface FormatFieldDescriptor {
 	 * @return The format of the text format field.
 	 */
 	String format();
+
+	/**
+	 * The {@link Locale} to be used with the {@code #format()} if specified.
+	 * 
+	 * @return The {@link Locale} of the text format field.
+	 * 
+	 * @see FormatField#locale()
+	 */
+	String locale();
 
 	/**
 	 * The placeholder of the text format field.
