@@ -8,14 +8,18 @@ The **Java Format Binding** aims to facilitate the conversion of any type of tex
 
 ## Getting started
 
-At the moment the API is not yet available for download on the [Maven Central Repository](https://mvnrepository.com/). So to see the **Java Format Binding** in action you can just clone this repository and make a build in your local environment.
+The latest release is available for download on the [Maven Central Repository](https://mvnrepository.com/search?q=io.github.jformatb). Go to the [usage section](#usage) to see how to install.
+
+## Building
+
+To build your own version of the **Java Format Binding**, you can just clone this repository and make a build in your local environment.
 
 ### Prerequisite
 
 To build the **Java Format Binding** project, you need to install the following software:
 
  - **OpenJDK 17 64-bit** or latest
- - (Optional) **Gradle**: It is not required to install Gradle since the project contains a Gradle Wrapper, which is a batch/shell script that bootstraps/downloads Gradle in the required version by itself. As long as internet access is available, a call to `./gradlew` or `gradle.bat` will start this bootstrap.
+ - (Optional) **Gradle**: It is not required to install Gradle since the project contains a Gradle Wrapper, which is a batch/shell script that bootstraps/downloads Gradle in the required version by itself. As long as internet access is available, a call to `./gradlew` or `gradlew.bat` will start this bootstrap.
 
 ### First build
 
@@ -30,15 +34,23 @@ $ git clone git@github.com:jformatb/jformatb.git
 
 ```md
 jformatb
+├── .github
+│   └── workflows
+│       └── *.yml
 ├── gradle
 │   └── wrapper
 │       ├── gradle-wrapper.jar
 │       └── gradle-wrapper.properties
 ├── jformatb-api
 │   ├── src
-│   │   └── main
-│   │       └── java
-│   │           └── **/*.java
+│   │   ├── main
+│   │   │    └── java
+│   │   │       └── **/*.java
+│   │   └── test
+│   │       ├── java
+│   │       │   └── **/*.java
+│   │       └── resources
+│   │           └── **/*
 │   └── build.gradle
 ├── jformatb-bom
 │   └── build.gradle
@@ -93,12 +105,12 @@ For Maven project:
 <dependency>
   <groupId>io.github.jformatb</groupId>
   <artifactId>jformatb-api</artifactId>
-  <version>0.1-SNAPSHOT</version>
+  <version>0.1</version>
 </dependency>
 <dependency>
   <groupId>io.github.jformatb</groupId>
   <artifactId>jformatb-ri</artifactId>
-  <version>0.1-SNAPSHOT</version>
+  <version>0.1</version>
 </dependency>
 ```
 
@@ -106,8 +118,8 @@ For Gradle project:
 
 ```groovy
 dependencies {
-    implementation "io.github.jformatb:jformatb-api:0.1-SNAPSHOT"
-    implementation "io.github.jformatb:jformatb-ri:0.1-SNAPSHOT"
+    implementation "io.github.jformatb:jformatb-api:0.1"
+    implementation "io.github.jformatb:jformatb-ri:0.1"
 }
 ```
 
@@ -118,6 +130,7 @@ Now we are ready to use the Java Format Binding API. In this example let suppose
 ```md
 USD000000100000
 ```
+
 In this example the message just represents `$1,000.00` and can be converted to the following Java type:
 
 ```java
