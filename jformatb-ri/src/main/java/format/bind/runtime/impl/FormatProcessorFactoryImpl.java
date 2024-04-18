@@ -28,13 +28,13 @@ public class FormatProcessorFactoryImpl implements FormatProcessorFactory {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T, F extends FormatReader<T, F>> FormatReader<T, F> createReader(Class<T> type, String pattern) {
+	public <T, F extends FormatReader<T, F>> FormatReader<T, F> createReader(Class<? extends T> type, String pattern) {
 		return (FormatReader<T, F>) FormatReaderImpl.of(type, pattern);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T, F extends FormatWriter<T, F>> FormatWriter<T, F> createWriter(Class<T> type, String pattern) {
+	public <T, F extends FormatWriter<T, F>> FormatWriter<T, F> createWriter(Class<? extends T> type, String pattern) {
 		return (FormatWriter<T, F>) FormatWriterImpl.of(type, pattern);
 	}
 

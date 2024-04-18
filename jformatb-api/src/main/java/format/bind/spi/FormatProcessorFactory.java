@@ -38,7 +38,7 @@ public interface FormatProcessorFactory {
 	 * @param pattern The pattern of the text format to read.
 	 * @return The instance of {@link FormatReader}.
 	 */
-	<T, F extends FormatReader<T, F>> FormatReader<T, F> createReader(Class<T> type, String pattern);
+	<T, F extends FormatReader<T, F>> FormatReader<T, F> createReader(Class<? extends T> type, String pattern);
 
 	/**
 	 * Creates a new instance of {@link FormatWriter} for Java object formatting.
@@ -48,6 +48,6 @@ public interface FormatProcessorFactory {
 	 * @param pattern The pattern of the text format to write.
 	 * @return The instance of {@link FormatWriter}.
 	 */
-	<T, F extends FormatWriter<T, F>> FormatWriter<T, F> createWriter(Class<T> type, String pattern);
+	<T, F extends FormatWriter<T, F>> FormatWriter<T, F> createWriter(Class<? extends T> type, String pattern);
 
 }

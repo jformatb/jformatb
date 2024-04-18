@@ -50,7 +50,7 @@ import lombok.With;
 public class Formatter<T> {
 
 	/** The base type of this {@code Formatter}. */
-	private Class<T> type;
+	private Class<? extends T> type;
 
 	/**
 	 * The text format pattern of this {@code Formatter}.
