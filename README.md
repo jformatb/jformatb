@@ -105,12 +105,12 @@ For Maven project:
 <dependency>
   <groupId>io.github.jformatb</groupId>
   <artifactId>jformatb-api</artifactId>
-  <version>0.1</version>
+  <version>0.2</version>
 </dependency>
 <dependency>
   <groupId>io.github.jformatb</groupId>
   <artifactId>jformatb-ri</artifactId>
-  <version>0.1</version>
+  <version>0.2</version>
 </dependency>
 ```
 
@@ -118,8 +118,8 @@ For Gradle project:
 
 ```groovy
 dependencies {
-    implementation "io.github.jformatb:jformatb-api:0.1"
-    implementation "io.github.jformatb:jformatb-ri:0.1"
+    implementation "io.github.jformatb:jformatb-api:0.2"
+    implementation "io.github.jformatb:jformatb-ri:0.2"
 }
 ```
 
