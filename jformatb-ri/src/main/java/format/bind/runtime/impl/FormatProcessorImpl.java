@@ -22,7 +22,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ListIterator;
@@ -154,12 +153,12 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 			prepareProperty(bean, next, val);
 
 			if (resolver.hasNested(expr)) {
+				// Get nested value
+				val = propertyUtils.getProperty(bean, next);
+
 				if (val == null) {
 					// Initialize nested value
-					val = setNested(bean, next, text);
-				} else {
-					// Get nested value
-					val = propertyUtils.getProperty(bean, next);
+					val = createNested(bean, next, text);
 				}
 
 				bean = val;
@@ -340,7 +339,7 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 				propertyUtils.setProperty(bean, name, new ArrayList<>());
 			} else if (mapped) {
 				// Initialize map
-				propertyUtils.setProperty(bean, name, new HashMap<>());
+				propertyUtils.setProperty(bean, name, new LinkedHashMap<>());
 			}
 		}
 
@@ -353,7 +352,7 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 		}
 	}
 
-	private Object setNested(final Object bean, final String expression, final String text) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalArgumentException, SecurityException {
+	private Object createNested(final Object bean, final String expression, final String text) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalArgumentException, SecurityException {
 		Resolver resolver = getResolver();
 		Field field = FieldUtils.getField(bean.getClass(), resolver.getProperty(expression), true);
 		Class<?> propertyType = getFieldPropertyType(field, text);

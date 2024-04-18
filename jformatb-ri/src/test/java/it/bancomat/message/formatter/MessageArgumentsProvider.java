@@ -29,11 +29,11 @@ import org.junit.jupiter.params.provider.ArgumentsProvider;
 
 import it.bancomat.message.AccountingClosureRequestMessage;
 import it.bancomat.message.CashLoadingRequestMessage;
+import it.bancomat.message.CashLoadingRequestMessage.Cassette;
+import it.bancomat.message.CashLoadingRequestMessage.Type;
 import it.bancomat.message.Denomination;
 import it.bancomat.message.DepositRecoveryRequestMessage;
 import it.bancomat.message.DepositRequestMessage;
-import it.bancomat.message.CashLoadingRequestMessage.Cassette;
-import it.bancomat.message.CashLoadingRequestMessage.Type;
 
 public class MessageArgumentsProvider implements ArgumentsProvider {
 
@@ -42,11 +42,11 @@ public class MessageArgumentsProvider implements ArgumentsProvider {
 	private static final String TARGET_ACCOUNT = "XXXXXXXXX453";
 	private static final String TRANSACTION_REFERENCE = "20062609540300124";
 
-	static Date dateFrom(LocalDate localDate) {
+	private static Date dateFrom(LocalDate localDate) {
 		return dateFrom(localDate.atStartOfDay());
 	}
 
-	static Date dateFrom(LocalDateTime localDateTime) {
+	private static Date dateFrom(LocalDateTime localDateTime) {
 		return Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
 	}
 
