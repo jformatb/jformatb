@@ -56,7 +56,7 @@ class IBANFormatterTest {
 		String expected = iban;
 		String actual = Formatter.of(IBAN.class)
 				.createWriter()
-				.setListener((obj, values) -> resolvedValues.putAll(values))
+				.withListener((obj, values) -> resolvedValues.putAll(values))
 				.write(IBAN.builder()
 						.countryCode(countryCode)
 						.checkDigits(checkDigits)

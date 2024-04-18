@@ -62,4 +62,18 @@ public interface FormatProcessor<T, F extends FormatProcessor<T, F>> {
 	 */
 	F setListener(final Listener<T> listener);
 
+	/**
+	 * Register a post processing event callback {@link Listener} with this {@link FormatProcessor}.
+	 * 
+	 * <p>
+	 * There is only one {@code Listener} per {@code FormatProcessor}. Setting a {@code Listener}
+	 * replaces the previous registered.
+	 * 
+	 * @param listener The post processing event callback for this {@link FormatProcessor}.
+	 * @return This {@code FormatProcessor}.
+	 */
+	default F withListener(final Listener<T> listener) {
+		return setListener(listener);
+	}
+
 }
