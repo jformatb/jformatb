@@ -43,20 +43,20 @@ final class StringConverter implements FieldConverter<String> {
 	}
 
 	@Override
-	public String parse(final FormatFieldDescriptor fieldSpec, final String source) throws FieldConversionException {
+	public String parse(final FormatFieldDescriptor descriptor, final String source) throws FieldConversionException {
 		try {
-			if (fieldSpec.type() == Type.NUMERIC) {
+			if (descriptor.type() == Type.NUMERIC) {
 				long value = Long.parseLong(source);
-				if (fieldSpec.placeholder().equals(String.valueOf(value))) {
+				if (descriptor.placeholder().equals(String.valueOf(value))) {
 					return null;
 				} else {
-					return new DecimalFormat(StringUtils.defaultIfBlank(fieldSpec.format(), "0")).format(value);
+					return new DecimalFormat(StringUtils.defaultIfBlank(descriptor.format(), "0")).format(value);
 				}
 			} else {
-				return StringUtils.trimToNull((source.equals(fieldSpec.placeholder()) ? "" : source));
+				return StringUtils.trimToNull((source.equals(descriptor.placeholder()) ? "" : source));
 			}
 		} catch (Exception e) {
-			return FieldConverters.throwParseFieldConversionException(fieldSpec, source, e);
+			return FieldConverters.throwParseFieldConversionException(descriptor, source, e);
 		}
 	}
 

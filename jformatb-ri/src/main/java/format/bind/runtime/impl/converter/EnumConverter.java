@@ -48,15 +48,15 @@ final class EnumConverter<E extends Enum<E>> implements FieldConverter<E> {
 	}
 
 	@Override
-	public E parse(final FormatFieldDescriptor fieldSpec, final String source) throws FieldConversionException {
+	public E parse(final FormatFieldDescriptor descriptor, final String source) throws FieldConversionException {
 		try {
-			if (fieldSpec.type() == Type.ALPHANUMERIC) {
+			if (descriptor.type() == Type.ALPHANUMERIC) {
 				return Enum.valueOf(enumType, StringUtils.trim(source));
 			} else {
 				return enumType.getEnumConstants()[Integer.parseInt(StringUtils.trim(source))];
 			}
 		} catch (Exception e) {
-			return FieldConverters.throwParseFieldConversionException(fieldSpec, source, e);
+			return FieldConverters.throwParseFieldConversionException(descriptor, source, e);
 		}
 	}
 
