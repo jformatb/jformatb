@@ -7,6 +7,20 @@
  * in the user manual at https://docs.gradle.org/7.6.4/userguide/multi_project_builds.html
  */
 
+plugins {
+    id 'com.gradle.enterprise' version '3.9'
+}
+
+gradleEnterprise {
+    if (System.getenv('CI') != null) {
+        buildScan {
+            publishAlways()
+            termsOfServiceUrl = 'https://gradle.com/terms-of-service'
+            termsOfServiceAgree = 'yes'
+        }
+    }
+}
+
 rootProject.name = 'jformatb'
 
 include 'jformatb-bom'
