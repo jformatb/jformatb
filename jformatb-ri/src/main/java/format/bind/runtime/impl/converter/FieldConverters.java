@@ -70,6 +70,7 @@ class FieldConverters {
 		addConverter(ZonedDateTime.class, ZonedDateTimeConverter::new);
 		addConverter(Currency.class, CurrencyConverter::new);
 		addConverter(UUID.class, UUIDConverter::new);
+		addConverter(byte[].class, ByteArrayConverter::new);
 	}
 
 	/**
