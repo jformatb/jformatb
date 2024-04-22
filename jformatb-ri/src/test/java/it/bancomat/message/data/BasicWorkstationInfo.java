@@ -7,11 +7,10 @@ package it.bancomat.message.data;
 import java.util.List;
 import java.util.Map;
 
+import format.bind.annotation.Format;
 import format.bind.annotation.FormatField;
 import format.bind.annotation.FormatField.Type;
 import format.bind.annotation.FormatFieldContainer;
-import format.bind.annotation.FormatFieldConverter;
-import it.bancomat.message.converter.WorkstationInfoCassetteConverter;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.Singular;
@@ -49,8 +48,8 @@ public abstract class BasicWorkstationInfo implements WorkstationInfo {
 	@FormatField(length = 1)
 	private Integer workingState;
 
+	@Format(pattern = "EUR${denomination}${initialCount}${initialAmount}${dispensedCount}${dispensedAmount}")
 	@FormatField(length = 26, placeholder = "EUR00000000000000000000000")
-	@FormatFieldConverter(WorkstationInfoCassetteConverter.class)
 	@Singular
 	private List<Cassette> cassettes;
 

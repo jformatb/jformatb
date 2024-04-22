@@ -83,4 +83,14 @@ public interface FormatFieldDescriptor {
 	 */
 	String placeholder();
 
+	/**
+	 * Whether the text format field is read only.
+	 * 
+	 * @return {@code true} if text format field is read only; otherwise returns
+	 * 		{@code false} (default value).
+	 * 
+	 * @see FormatField#readOnly()
+	 */
+	boolean readOnly();
+
 }

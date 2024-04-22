@@ -29,6 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import format.bind.FormatFieldAccessor;
 import format.bind.FormatFieldAccessor.Strategy;
+import format.bind.FormatFieldDescriptor;
 import format.bind.FormatProcessingException;
 import format.bind.FormatReader;
 import format.bind.annotation.FormatTypeInfo;
@@ -127,9 +128,10 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 
 					Object value = parseFieldValue(source, descriptor, converter);
 
-					// Set field value if not null
-					if (value != null) {
-						resolvedValues.put(name, value);
+					resolvedValues.put(name, value);
+
+					// Set field value if not null && not read only
+					if (isValid(value, descriptor)) {
 						setValue(obj, property, value, text);
 					}
 
@@ -157,6 +159,10 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 		}
 
 		return type.getConstructor().newInstance();
+	}
+
+	private boolean isValid(Object value, FormatFieldDescriptor descriptor) {
+		return value != null && !descriptor.readOnly();
 	}
 
 	private FormatProcessingException handleException(final String text, final Exception eexception) {

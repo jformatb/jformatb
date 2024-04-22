@@ -115,6 +115,22 @@ public @interface FormatField {
 	String placeholder() default "";
 
 	/**
+	 * (Optional) Whether the text format field is read only.
+	 * 
+	 * <p>
+	 * Useful when the text format field value cannot be set on the target Java
+	 * object but can be formatted to text. This must be used with property access
+	 * strategy and usually for a computed field property.
+	 * </p>
+	 * 
+	 * @return {@code true} if text format field is read only; otherwise returns
+	 * 		{@code false} (default value).
+	 * 
+	 * @see FormatAccess
+	 */
+	boolean readOnly() default false;
+
+	/**
 	 * Used in {@link FormatField#type()} to specify the type of the
 	 * text format field.
 	 */

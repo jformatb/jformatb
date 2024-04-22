@@ -5,7 +5,6 @@
 package it.bancomat.message.data;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -58,17 +57,15 @@ public interface WorkstationInfo extends Serializable {
 		private int dispensedCount;
 
 		private long getAmount(int count) {
-			return BigDecimal.valueOf(denomination, 2)
-					.multiply(BigDecimal.valueOf(count))
-					.longValueExact();
+			return denomination * count;
 		}
 
-//		@FormatField(length = 6, readOnly = true)
+		@FormatField(length = 6, scale = -2, readOnly = true)
 		public long getInitialAmount() {
 			return getAmount(initialCount);
 		}
 
-//		@FormatField(length = 6, readOnly = true)
+		@FormatField(length = 6, scale = -2, readOnly = true)
 		public long getDispensedAmount() {
 			return getAmount(dispensedCount);
 		}
