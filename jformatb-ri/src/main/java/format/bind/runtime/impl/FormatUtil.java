@@ -16,9 +16,6 @@
 package format.bind.runtime.impl;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.AccessibleObject;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -28,9 +25,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.commons.lang3.reflect.FieldUtils;
 
+import org.apache.commons.lang3.ClassUtils;
+
+import format.bind.FormatFieldAccessor;
+import format.bind.FormatFieldAccessor.Strategy;
 import format.bind.FormatFieldDescriptor;
 import format.bind.Formatter;
 import format.bind.annotation.Format;
@@ -72,26 +71,26 @@ class FormatUtil {
 				.orElse(type);
 	}
 
-	private <A extends Annotation> Field getField(final Class<?> beanType, final String name, Class<A> annotationType, Function<A, String> annotationName) {
-		return FieldUtils.getFieldsListWithAnnotation(beanType, annotationType).stream()
+	private <A extends Annotation> FormatFieldAccessor getField(final Strategy strategy, final Class<?> beanType, final String name, final Class<A> annotationType, final Function<A, String> annotationName) {
+		return FormatFieldAccessorUtil.getFieldAccessors(strategy, beanType, annotationType).stream()
 				.filter(field -> annotationName.apply(field.getAnnotation(annotationType)).equals(name) ||
 						field.getName().equals(name))
 				.findFirst()
 				.orElseGet(() -> getFieldOverride(beanType, name));
 	}
 
-	Field getField(final Class<?> beanClass, final String name) {
-		return getField(beanClass, name, FormatField.class, FormatField::name);
+	FormatFieldAccessor getField(final Strategy strategy, final Class<?> beanClass, final String name) {
+		return getField(strategy, beanClass, name, FormatField.class, FormatField::name);
 	}
 
-	Field getFieldContainer(final Class<?> beanClass, final String name) {
-		return getField(beanClass, name, FormatFieldContainer.class, FormatFieldContainer::name);
+	FormatFieldAccessor getFieldContainer(final Strategy strategy, final Class<?> beanClass, final String name) {
+		return getField(strategy, beanClass, name, FormatFieldContainer.class, FormatFieldContainer::name);
 	}
 
-	Field getFieldOverride(final Class<?> beanClass, final String name) {
+	FormatFieldAccessor getFieldOverride(final Class<?> beanClass, final String name) {
 		return Arrays.stream(beanClass.getDeclaredAnnotationsByType(FormatFieldOverride.class))
 				.filter(override -> override.field().name().equals(name))
-				.map(override -> FieldUtils.getField(beanClass, override.property(), true))
+				.map(override -> FormatFieldAccessorUtil.getFieldAccessor(beanClass, override.property()))
 				.findFirst()
 				.orElse(Optional.ofNullable(beanClass.getSuperclass())
 						.map(superclass -> getFieldOverride(superclass, name))
@@ -99,7 +98,7 @@ class FormatUtil {
 	}
 
 	@SuppressWarnings("unchecked")
-	<T> FieldConverter<T> getFieldConverter(final AccessibleObject accessor, final Class<T> type) {
+	<T> FieldConverter<T> getFieldConverter(final FormatFieldAccessor accessor, final Class<T> type) {
 		FieldConverterProvider provider = FieldConverter.provider();
 		FieldConverter<T> converter = null;
 
@@ -119,15 +118,12 @@ class FormatUtil {
 		return converter;
 	}
 
-	Class<? extends Object> getFieldPropertyType(final Field accessor, final Object value) {
-		if (value != null) {
-			return getFieldPropertyType(value.getClass(), accessor.getGenericType());
-		} else {
-			return getFieldPropertyType(accessor);
-		}
+	Class<?> getFieldPropertyType(final FormatFieldAccessor accessor, final Object value) {
+		Class<?> type = value != null ? value.getClass() : accessor.getType();
+		return getFieldPropertyType(type, accessor.getGenericType());
 	}
 
-	Class<?> getFieldPropertyType(final Field accessor, final String text) {
+	Class<?> getFieldPropertyType(final FormatFieldAccessor accessor, final String text) {
 		Class<?> propertyType = getFieldPropertyType(accessor);
 
 		FormatTypeInfo typeInfo = Optional.ofNullable(accessor.getAnnotation(FormatTypeInfo.class))
@@ -141,15 +137,11 @@ class FormatUtil {
 		return propertyType;
 	}
 
-	Class<?> getFieldPropertyType(final Field accessor) {
+	Class<?> getFieldPropertyType(final FormatFieldAccessor accessor) {
 		return getFieldPropertyType(accessor.getType(), accessor.getGenericType());
 	}
 
-	Class<?> getFieldPropertyType(final Method accessor) {
-		return getFieldPropertyType(accessor.getReturnType(), accessor.getGenericReturnType());
-	}
-
-	private Class<?> getFieldPropertyType(final Class<?> type, final Type genericType) {
+	Class<?> getFieldPropertyType(final Class<?> type, final Type genericType) {
 		if (type.isPrimitive()) {
 			return ClassUtils.primitiveToWrapper(type);
 		}
@@ -174,7 +166,7 @@ class FormatUtil {
 		return converter.parse(descriptor, source);
 	}
 
-	FormatFieldDescriptorImpl buildFieldDescriptor(final Field accessor, final Class<?> propertyType, final String[] options) {
+	FormatFieldDescriptorImpl buildFieldDescriptor(final FormatFieldAccessor accessor, final Class<?> propertyType, final String[] options) {
 		FormatFieldDescriptorImpl descriptor = FormatFieldDescriptorImpl.from(accessor.getAnnotation(FormatField.class));
 
 		applyOverrides(descriptor, accessor, propertyType);
@@ -197,7 +189,7 @@ class FormatUtil {
 		return descriptor;
 	}
 
-	void applyOverrides(final FormatFieldDescriptorImpl descriptor, final Field accessor, final Class<?> propertyType) {
+	void applyOverrides(final FormatFieldDescriptorImpl descriptor, final FormatFieldAccessor accessor, final Class<?> propertyType) {
 		List<Class<?>> superclasses = ClassUtils.getAllSuperclasses(propertyType);
 
 		superclasses.add(0, propertyType);
@@ -210,7 +202,7 @@ class FormatUtil {
 		applyOverrides(descriptor, accessor, accessor.getDeclaredAnnotationsByType(FormatFieldOverride.class));
 	}
 
-	void applyOverrides(final FormatFieldDescriptorImpl descriptor, final Field accessor, final FormatFieldOverride[] overrides) {
+	void applyOverrides(final FormatFieldDescriptorImpl descriptor, final FormatFieldAccessor accessor, final FormatFieldOverride[] overrides) {
 		Arrays.stream(overrides)
 				.filter(annotation -> annotation.property().equals(accessor.getName()))
 				.findFirst()

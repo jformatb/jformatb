@@ -5,15 +5,19 @@
 package it.bancomat.message.data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+import format.bind.annotation.FormatAccess;
+import format.bind.annotation.FormatAccess.Type;
 import format.bind.annotation.FormatField;
 import format.bind.annotation.FormatSubTypes;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Singular;
 
@@ -35,6 +39,7 @@ public interface WorkstationInfo extends Serializable {
 	@Builder
 	@NoArgsConstructor
 	@AllArgsConstructor
+	@FormatAccess(Type.PROPERTY)
 	class Cassette implements Serializable {
 
 		/** The generated serial version of this class. */
@@ -43,14 +48,30 @@ public interface WorkstationInfo extends Serializable {
 		@Builder.Default
 		private String currencyCode = "EUR";
 
-		@FormatField(length = 3, scale = -2, placeholder = "0")
+		@Getter(onMethod_ = @FormatField(length = 3, scale = -2, placeholder = "0"))
 		private int denomination;
 
-		@FormatField(length = 4)
+		@Getter(onMethod_ = @FormatField(length = 4))
 		private int initialCount;
 
-		@FormatField(length = 4)
+		@Getter(onMethod_ = @FormatField(length = 4))
 		private int dispensedCount;
+
+		private long getAmount(int count) {
+			return BigDecimal.valueOf(denomination, 2)
+					.multiply(BigDecimal.valueOf(count))
+					.longValueExact();
+		}
+
+//		@FormatField(length = 6, readOnly = true)
+		public long getInitialAmount() {
+			return getAmount(initialCount);
+		}
+
+//		@FormatField(length = 6, readOnly = true)
+		public long getDispensedAmount() {
+			return getAmount(dispensedCount);
+		}
 
 	}
 

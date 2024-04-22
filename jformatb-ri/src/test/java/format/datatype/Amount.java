@@ -25,24 +25,27 @@ import java.util.Locale;
 
 import org.apache.commons.lang3.StringUtils;
 
+import format.bind.annotation.FormatAccess;
+import format.bind.annotation.FormatAccess.Type;
 import format.bind.annotation.FormatField;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter(onMethod_ = @FormatField)
+@FormatAccess(Type.PROPERTY)
 public class Amount implements Serializable {
 
 	private static final long serialVersionUID = 277731192675579750L;
 
-	@FormatField
 	private Currency currency;
 
-	@FormatField
 	private long value;
 
 	public static Amount of(final String language, final String country, final long value) {

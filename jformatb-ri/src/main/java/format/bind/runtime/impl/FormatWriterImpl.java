@@ -17,7 +17,6 @@ package format.bind.runtime.impl;
 
 import static format.bind.runtime.impl.FormatUtil.*;
 
-import java.lang.reflect.Field;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ListIterator;
@@ -25,6 +24,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import format.bind.FormatFieldAccessor;
+import format.bind.FormatFieldAccessor.Strategy;
 import format.bind.FormatProcessingException;
 import format.bind.FormatWriter;
 import format.bind.annotation.FormatTypeInfo;
@@ -66,6 +67,7 @@ final class FormatWriterImpl<T> extends FormatProcessorImpl<T, FormatWriterImpl<
 		try {
 			StringBuilder output = new StringBuilder();
 			Class<?> resultType = obj.getClass();
+			Strategy strategy = getStrategy(resultType);
 
 			String pattern = getPattern(resultType);
 			Matcher matcher = compile(pattern);
@@ -82,7 +84,7 @@ final class FormatWriterImpl<T> extends FormatProcessorImpl<T, FormatWriterImpl<
 				String name = parts[0].replace("..", "::");
 
 				// Resolve bean property name
-				List<String> properties = resolveProperty(resultType, name, null);
+				List<String> properties = resolveProperty(strategy, resultType, name, null);
 
 				if (isTypeInfoFieldAbsent(typeInfo, name, properties)) {
 					String value = resultType.getAnnotation(FormatTypeValue.class).value();
@@ -106,7 +108,7 @@ final class FormatWriterImpl<T> extends FormatProcessorImpl<T, FormatWriterImpl<
 						break;
 					}
 
-					Field accessor = resolvedProperties.get(property);
+					FormatFieldAccessor accessor = resolvedProperties.get(property);
 					Class<?> propertyType = getFieldPropertyType(accessor, value);
 					FormatFieldDescriptorImpl descriptor = buildFieldDescriptor(accessor, propertyType, parts);
 					FieldConverter<?> converter = getFieldConverter(accessor, propertyType);

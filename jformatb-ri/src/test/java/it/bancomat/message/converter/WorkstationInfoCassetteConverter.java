@@ -4,8 +4,6 @@
 */
 package it.bancomat.message.converter;
 
-import java.math.BigDecimal;
-
 import org.apache.commons.lang3.StringUtils;
 
 import format.bind.FormatFieldDescriptor;
@@ -16,8 +14,8 @@ import it.bancomat.message.data.WorkstationInfo.Cassette;;
 
 public class WorkstationInfoCassetteConverter implements FieldConverter<Cassette> {
 
-	private static final String PATTERN = "EUR${denomination}${initialCount}<0000>${dispensedCount}<0000>";
-	private static final String AMOUNT = "<0000>";
+	private static final String PATTERN = "EUR${denomination}${initialCount}${initialAmount}${dispensedCount}${dispensedAmount}";
+	private static final String AMOUNT = "\\$\\{(initialAmount|dispensedAmount)\\}";
 
 	@Override
 	public String format(FormatFieldDescriptor descriptor, Cassette value) throws FieldConversionException {
@@ -25,9 +23,8 @@ public class WorkstationInfoCassetteConverter implements FieldConverter<Cassette
 				.withPattern(PATTERN)).format(descriptor, value);
 
 		if (!text.equals(descriptor.placeholder())) {
-			int[] counts = new int[] { value.getInitialCount(), value.getDispensedCount() };
-			for (int count : counts) {
-				long amount = computeAmount(value.getDenomination(), count);
+			long[] amounts = new long[] { value.getInitialAmount(), value.getDispensedAmount() };
+			for (long amount : amounts) {
 				text = text.replaceFirst(AMOUNT, formatAmount(amount));
 			}
 		}
@@ -38,17 +35,11 @@ public class WorkstationInfoCassetteConverter implements FieldConverter<Cassette
 	@Override
 	public Cassette parse(FormatFieldDescriptor descriptor, String source) throws FieldConversionException {
 		return FieldConverter.provider().getConverter(Formatter.of(Cassette.class)
-				.withPattern(PATTERN)).parse(descriptor, source);
-	}
-
-	private static long computeAmount(int denomination, int count) {
-		return BigDecimal.valueOf(denomination, 2)
-				.multiply(BigDecimal.valueOf(count))
-				.longValueExact();
+				.withPattern(PATTERN.replaceAll(AMOUNT, "000000"))).parse(descriptor, source);
 	}
 
 	private static String formatAmount(long amount) {
-		return StringUtils.leftPad(String.valueOf(amount), AMOUNT.length(), "0");
+		return StringUtils.leftPad(String.valueOf(amount), 6, "0");
 	}
 
 }
