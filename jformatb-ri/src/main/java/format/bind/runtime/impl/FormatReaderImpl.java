@@ -128,7 +128,7 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 
 					Object value = parseFieldValue(source, descriptor, converter);
 
-					resolvedValues.put(name, value);
+					resolvedValues.put(property, value);
 
 					// Set field value if not null && not read only
 					if (isValid(value, descriptor)) {

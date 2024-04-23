@@ -115,7 +115,7 @@ final class FormatWriterImpl<T> extends FormatProcessorImpl<T, FormatWriterImpl<
 
 					output.append(pattern, lastIndex, matcher.start());
 					output.append(formatFieldValue(value, descriptor, converter));
-					resolvedValues.put(name, value);
+					resolvedValues.put(property, value);
 					lastIndex = ++counter < properties.size() ? matcher.start() : matcher.end();
 				}
 			}
