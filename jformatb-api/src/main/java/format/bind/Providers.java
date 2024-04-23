@@ -34,9 +34,6 @@ import format.bind.spi.FormatProcessorFactory;
  */
 public class Providers {
 
-	/** The singleton instance of this class. */
-	private static Providers instance;
-
 	/** The cache of resolved SPIs. */
 	private Cache cache;
 
@@ -53,11 +50,7 @@ public class Providers {
 	 * @return The singleton instance of this class.
 	 */
 	public static synchronized Providers getInstance() {
-		if (instance == null) {
-			instance = new Providers();
-		}
-
-		return instance;
+		return Helper.INSTANCE;
 	}
 
 	/**
@@ -93,24 +86,7 @@ public class Providers {
 		if (cache.containsKey(interfaceName)) {
 			return (T) cache.get(interfaceName);
 		} else {
-			ServiceLoader<T> loader = ServiceLoader.load(serviceProviderInterface);
-			Iterator<T> it = loader.iterator();
-
-			String className = System.getProperty(interfaceName);
-			T found = null;
-
-			while (it.hasNext()) {
-				T next = it.next();
-
-				if (found == null) {
-					found = next;
-				}
-
-				if (next.getClass().getName().equals(className)) {
-					found = next;
-					break;
-				}
-			}
+			T found = load(serviceProviderInterface);
 
 			Optional<T> provider = Optional.ofNullable(found);
 
@@ -118,6 +94,38 @@ public class Providers {
 
 			return provider.orElseThrow(() -> new FormatException(String.format("No provider found for '%s' interface.", interfaceName)));
 		}
+	}
+
+	/**
+	 * Load and return the implementation of the given service provider interface.
+	 * 
+	 * @param <T> The type of the service provider interface.
+	 * @param serviceProviderInterface The interface instance of the implementation
+	 * 		to load.
+	 * @return The found implementation of the service provider interface or
+	 * 		{@code null} if not found.
+	 */
+	private <T> T load(Class<T> serviceProviderInterface) {
+		ServiceLoader<T> loader = ServiceLoader.load(serviceProviderInterface);
+		Iterator<T> it = loader.iterator();
+
+		String className = System.getProperty(serviceProviderInterface.getName());
+
+		T found = null;
+
+		while (it.hasNext()) {
+			T next = it.next();
+
+			if (next.getClass().getName().equals(className)) {
+				return next;
+			}
+
+			if (found == null) {
+				found = next;
+			}
+		}
+
+		return found;
 	}
 
 	/**
@@ -157,6 +165,18 @@ public class Providers {
 		public Object put(String key, Object value) {
 			return items.put(key, value);
 		}
+
+	}
+
+	/**
+	 * Helper class used to obtain the singleton instance of the {@link Providers} class.
+	 * 
+	 * @author Yannick Ebongue
+	 */
+	private static class Helper {
+
+		/** The singleton instance of the {@link Providers} class. */
+		private static final Providers INSTANCE = new Providers();
 
 	}
 
