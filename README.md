@@ -1,6 +1,6 @@
 # Java Format Binding
 
-[![Java CI with Gradle](https://github.com/jformatb/jformatb/actions/workflows/gradle.yml/badge.svg)](https://github.com/jformatb/jformatb/actions/workflows/gradle.yml) [![Gradle Package](https://github.com/jformatb/jformatb/actions/workflows/gradle-publish.yml/badge.svg)](https://github.com/jformatb/jformatb/actions/workflows/gradle-publish.yml) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=jformatb_jformatb&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=jformatb_jformatb)
+[![Java CI with Gradle](https://github.com/jformatb/jformatb/actions/workflows/gradle.yml/badge.svg)](https://github.com/jformatb/jformatb/actions/workflows/gradle.yml) [![Gradle Package](https://github.com/jformatb/jformatb/actions/workflows/gradle-publish.yml/badge.svg)](https://github.com/jformatb/jformatb/actions/workflows/gradle-publish.yml) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=jformatb_jformatb&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=jformatb_jformatb) [![Maven Central Version](https://img.shields.io/maven-central/v/io.github.jformatb/jformatb-api?logo=apache%20maven&label=Maven%20Central)](https://mvnrepository.com/search?q=io.github.jformatb)
 
 The **Java Format Binding** provides an API that allows the mapping between text messages with fixed length fields and Plain Old Java Objects (POJOs).
 
@@ -105,12 +105,13 @@ For Maven project:
 <dependency>
   <groupId>io.github.jformatb</groupId>
   <artifactId>jformatb-api</artifactId>
-  <version>0.2</version>
+  <version>${jformatb.version}</version>
 </dependency>
 <dependency>
   <groupId>io.github.jformatb</groupId>
   <artifactId>jformatb-ri</artifactId>
-  <version>0.2</version>
+  <version>${jformatb.version}</version>
+  <scope>runtime</scope>
 </dependency>
 ```
 
@@ -118,8 +119,8 @@ For Gradle project:
 
 ```groovy
 dependencies {
-    implementation "io.github.jformatb:jformatb-api:0.2"
-    implementation "io.github.jformatb:jformatb-ri:0.2"
+    implementation "io.github.jformatb:jformatb-api:${jformatb.version}"
+    runtimeOnly "io.github.jformatb:jformatb-ri:${jformatb.version}"
 }
 ```
 
