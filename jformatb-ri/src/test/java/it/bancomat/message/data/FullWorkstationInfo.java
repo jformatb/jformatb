@@ -27,10 +27,10 @@ public class FullWorkstationInfo extends BasicWorkstationInfo {
 	@FormatField(length = 1)
 	private WorkstationType workstationType;
 
-	@FormatField(length = 4, type = Type.NUMERIC, format = "0000", placeholder = "0000")
+	@FormatField(length = 4, type = Type.NUMERIC)
 	private String workstationBrand;
 
-	@FormatField(length = 4, type = Type.NUMERIC, format = "0000", placeholder = "0000")
+	@FormatField(length = 4, type = Type.NUMERIC)
 	private String workstationModel;
 
 	@FormatField(length = 1)

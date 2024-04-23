@@ -113,7 +113,6 @@ public class WorkstationInfoArgumentsProvider implements ArgumentsProvider {
 						.workstationId(workstationId)
 						.bankCode(bankCode)
 						.branchCode(branchCode)
-						.companyCode("000")
 						.dependencyCode("0024")
 						.workstationType(WorkstationType.INTERNAL)
 						.workstationBrand("1663")

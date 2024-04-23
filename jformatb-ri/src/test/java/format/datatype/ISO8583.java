@@ -34,7 +34,7 @@ public class ISO8583 implements Serializable {
 
 	private static final long serialVersionUID = 2260586751727192971L;
 
-	@FormatField(length = 4, type = Type.NUMERIC, format = "0000")
+	@FormatField(length = 4, type = Type.NUMERIC)
 	private String messageTypeIndicator;
 
 	@FormatField(length = 16)

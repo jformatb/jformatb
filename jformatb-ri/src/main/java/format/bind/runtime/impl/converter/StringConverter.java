@@ -47,10 +47,10 @@ final class StringConverter implements FieldConverter<String> {
 		try {
 			if (descriptor.type() == Type.NUMERIC) {
 				long value = Long.parseLong(source);
-				if (descriptor.placeholder().equals(String.valueOf(value))) {
+				if (StringUtils.defaultIfBlank(descriptor.placeholder(), "0").equals(String.valueOf(value))) {
 					return null;
 				} else {
-					return new DecimalFormat(StringUtils.defaultIfBlank(descriptor.format(), "0")).format(value);
+					return new DecimalFormat(StringUtils.defaultIfBlank(descriptor.format(), StringUtils.leftPad("", descriptor.length(), "0"))).format(value);
 				}
 			} else {
 				return StringUtils.trimToNull((source.equals(descriptor.placeholder()) ? "" : source));

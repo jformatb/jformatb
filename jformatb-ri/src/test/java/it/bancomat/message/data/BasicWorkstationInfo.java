@@ -24,19 +24,19 @@ public abstract class BasicWorkstationInfo implements WorkstationInfo {
 	/** The generated serial version of this class. */
 	private static final long serialVersionUID = -3126779751110807989L;
 
-	@FormatField(length = 4, type = Type.NUMERIC, format = "0000")
+	@FormatField(length = 4, type = Type.NUMERIC)
 	private String workstationId;
 
-	@FormatField(length = 4, type = Type.NUMERIC, format = "0000")
+	@FormatField(length = 4, type = Type.NUMERIC)
 	private String bankCode;
 
-	@FormatField(length = 5, type = Type.NUMERIC, format = "00000")
+	@FormatField(length = 5, type = Type.NUMERIC)
 	private String branchCode;
 
-	@FormatField(length = 3, type = Type.NUMERIC, format = "000", placeholder = "000")
+	@FormatField(length = 3, type = Type.NUMERIC)
 	private String companyCode;
 
-	@FormatField(length = 4, type = Type.NUMERIC, format = "0000", placeholder = "0000")
+	@FormatField(length = 4, type = Type.NUMERIC)
 	private String dependencyCode;
 
 	@FormatField(length = 1)
