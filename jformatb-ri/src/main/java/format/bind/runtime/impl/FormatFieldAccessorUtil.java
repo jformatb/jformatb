@@ -18,9 +18,11 @@ package format.bind.runtime.impl;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
@@ -93,6 +95,20 @@ class FormatFieldAccessorUtil {
 	}
 
 	/**
+	 * Lookup for the registered field accessors of the given bean type.
+	 * 
+	 * @param <T> The type to look for.
+	 * @param beanType The class instance representing the type to process.
+	 * @return The list of field accessors.
+	 */
+	private <T> List<FormatFieldAccessor> findFieldAccessors(final Class<? super T> beanType) {
+		return Optional.ofNullable(beanType)
+				.map(type -> Optional.ofNullable(accessors.get(type))
+						.orElse(findFieldAccessors(type.getSuperclass())))
+				.orElseGet(Collections::emptyList);
+	}
+
+	/**
 	 * Get the field accessor by name of the given type.
 	 * 
 	 * @param beanType The type to be processed.
@@ -100,7 +116,7 @@ class FormatFieldAccessorUtil {
 	 * @return The field accessor.
 	 */
 	FormatFieldAccessor getFieldAccessor(final Class<?> beanType, final String name) {
-		return accessors.get(beanType).stream()
+		return findFieldAccessors(beanType).stream()
 				.filter(accessor -> accessor.getName().equals(name))
 				.findFirst()
 				.orElseThrow(() -> new IllegalStateException(String.format("Unable to find property '%s' in bean class %s", name, beanType)));
