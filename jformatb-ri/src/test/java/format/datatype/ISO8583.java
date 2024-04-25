@@ -17,7 +17,10 @@ package format.datatype;
 
 import java.io.Serializable;
 
-import format.bind.annotation.Format;
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.lang3.StringUtils;
+
 import format.bind.annotation.FormatField;
 import format.bind.annotation.FormatField.Type;
 import lombok.AllArgsConstructor;
@@ -29,15 +32,54 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Format(name = "ISO8583", pattern = "${messageTypeIndicator}${primaryBitmap}")
 public class ISO8583 implements Serializable {
 
 	private static final long serialVersionUID = 2260586751727192971L;
 
-	@FormatField(length = 4, type = Type.NUMERIC)
+	@FormatField(name = "MTI", length = 4, type = Type.NUMERIC)
 	private String messageTypeIndicator;
 
-	@FormatField(length = 16)
-	private byte[] primaryBitmap;
+	@FormatField(name = "BITMAP")
+	private byte[] bitmap;
+
+	private static String extractMessageTypeIndicator(final String message) {
+		return message.substring(0, 4);
+	}
+
+	private static byte[] extractBitmap(final String message) {
+		String dataElements = message.substring(4);
+		int start = 0;
+		int length = 16;
+		StringBuilder bitmap = new StringBuilder();
+
+		do {
+			String hex = dataElements.substring(start, start + length);
+			String bin = toBinaryString(hex);
+			bitmap.append(hex);
+
+			if (bin.charAt(0) == '0') {
+				break;
+			}
+
+			start += length;
+		} while (true);
+
+		try {
+			return Hex.decodeHex(bitmap.toString());
+		} catch (DecoderException e) {
+			throw new IllegalArgumentException(e);
+		}
+	}
+
+	private static String toBinaryString(final String hex) {
+		return StringUtils.leftPad(Long.toBinaryString(Long.parseLong(hex, 16)), (hex.length() / 2) * 8, "0");
+	}
+
+	public static ISO8583 fromString(final String message) {
+		return ISO8583.builder()
+				.messageTypeIndicator(extractMessageTypeIndicator(message))
+				.bitmap(extractBitmap(message))
+				.build();
+	}
 
 }
