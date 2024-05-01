@@ -107,9 +107,9 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 					String property = nextProperty(iterator, counter);
 
 					FormatFieldAccessor accessor = resolvedProperties.get(property);
-					Class<?> propertyType = getFieldPropertyType(accessor, text);
-					FormatFieldDescriptorImpl descriptor = buildFieldDescriptor(accessor, propertyType, parts);
-					FieldConverter<?> converter = getFieldConverter(accessor, propertyType);
+					Class<?> propertyType = getPropertyType(accessor, property, text);
+					FormatFieldDescriptor descriptor = buildFieldDescriptor(accessor, property, propertyType, parts);
+					FieldConverter<?> converter = getFieldConverter(accessor, property, propertyType);
 
 					int start = matcher.start() - matcherEnd + lastIndex;
 

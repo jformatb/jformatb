@@ -65,17 +65,11 @@ public class WorkstationInfoArgumentsProvider implements ArgumentsProvider {
 				.build();
 	}
 
-	private static Notification buildNotification(String name, String dateTime, String propertyName, String propertyValue) {
+	private static Notification buildNotification(String name, String dateTime, String propertyName, Object propertyValue) {
 		return Notification.builder()
 				.name(name)
 				.dateTime(LocalDateTime.parse(dateTime, DateTimeFormatter.ofPattern(DATE_TIME_PATTERN)))
 				.property(propertyName, propertyValue)
-				.build();
-	}
-
-	private static Operation buildOperation(String name) {
-		return Operation.builder()
-				.name(name)
 				.build();
 	}
 
@@ -99,13 +93,7 @@ public class WorkstationInfoArgumentsProvider implements ArgumentsProvider {
 						.notification(WorkstationInfo.EV_CASH_LOADING, buildNotification(WorkstationInfo.EV_CASH_LOADING, "2403230851"))
 						.cassette(buildCassette(2000, 764, 37))
 						.cassette(buildCassette(5000, 628, 30))
-						.total(WorkstationInfo.TT_REJECTED_NOTE, 0)
-						.total(WorkstationInfo.TT_RECOVERY_OPERATION, 0)
 						.operation(WorkstationInfo.OP_WITHDRAWAL, buildOperation(WorkstationInfo.OP_WITHDRAWAL, 10, 224000))
-						.operation(WorkstationInfo.OP_CASH_DEPOSIT, buildOperation(WorkstationInfo.OP_CASH_DEPOSIT))
-						.operation(WorkstationInfo.OP_UTILITIES, buildOperation(WorkstationInfo.OP_UTILITIES))
-						.operation(WorkstationInfo.OP_PAYMENT, buildOperation(WorkstationInfo.OP_PAYMENT))
-						.operation(WorkstationInfo.OP_DEPOSIT_RECOVERY, buildOperation(WorkstationInfo.OP_DEPOSIT_RECOVERY))
 						.notification(WorkstationInfo.EV_RETAINED_CARD_RECOVERY, buildNotification(WorkstationInfo.EV_RETAINED_CARD_RECOVERY, "2403230846"))
 						.total(WorkstationInfo.TT_RETAINED_CARD, 1)
 						.build()),
@@ -127,19 +115,7 @@ public class WorkstationInfoArgumentsProvider implements ArgumentsProvider {
 						.notification(WorkstationInfo.EV_CASH_LOADING, buildNotification(WorkstationInfo.EV_CASH_LOADING, "2403230851"))
 						.cassette(buildCassette(2000, 727))
 						.cassette(buildCassette(5000, 598))
-						.total(WorkstationInfo.TT_REJECTED_NOTE, 0)
-						.total(WorkstationInfo.TT_RECOVERY_OPERATION, 0)
-						.operation(WorkstationInfo.OP_WITHDRAWAL, buildOperation(WorkstationInfo.OP_WITHDRAWAL))
-						.operation(WorkstationInfo.OP_CASH_DEPOSIT, buildOperation(WorkstationInfo.OP_CASH_DEPOSIT))
-						.operation(WorkstationInfo.OP_UTILITIES, buildOperation(WorkstationInfo.OP_UTILITIES))
-						.operation(WorkstationInfo.OP_PAYMENT, buildOperation(WorkstationInfo.OP_PAYMENT))
-						.operation(WorkstationInfo.OP_DEPOSIT_RECOVERY, buildOperation(WorkstationInfo.OP_DEPOSIT_RECOVERY))
 						.notification(WorkstationInfo.EV_RETAINED_CARD_RECOVERY, buildNotification(WorkstationInfo.EV_RETAINED_CARD_RECOVERY, "2703230837"))
-						.total(WorkstationInfo.TT_RETAINED_CARD, 0)
-						.total(WorkstationInfo.TT_ACCOUNT_BALANCE, 0)
-						.total(WorkstationInfo.TT_ACCOUNT_MOVEMENT, 0)
-						.total(WorkstationInfo.TT_FAILURE_OPERATION, 0)
-						.total(WorkstationInfo.TT_SERVICE_OPERATION, 0)
 						.total(WorkstationInfo.TT_OVERALL_OPERATION, 1)
 						.build()));
 	}

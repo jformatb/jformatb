@@ -37,14 +37,21 @@ import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.NestedNullException;
 import org.apache.commons.beanutils.PropertyUtilsBean;
 import org.apache.commons.beanutils.expression.DefaultResolver;
-import org.apache.commons.beanutils.expression.Resolver;
 
 import format.bind.FormatFieldAccessor;
 import format.bind.FormatFieldAccessor.Strategy;
+import format.bind.FormatFieldDescriptor;
 import format.bind.FormatProcessor;
+import format.bind.Formatter;
 import format.bind.annotation.Format;
 import format.bind.annotation.FormatAccess;
 import format.bind.annotation.FormatAccess.Type;
+import format.bind.converter.FieldConverter;
+import format.bind.converter.spi.FieldConverterProvider;
+import format.bind.annotation.FormatField;
+import format.bind.annotation.FormatFieldConverter;
+import format.bind.annotation.FormatMapEntry;
+import format.bind.annotation.FormatMapEntryField;
 import format.bind.annotation.FormatTypeInfo;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -75,6 +82,11 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 	@ToString.Exclude
 	final PropertyUtilsBean propertyUtils;
 
+	/** The property name expression resolver to set to the property utils bean. */
+	@EqualsAndHashCode.Exclude
+	@ToString.Exclude
+	final PropertyResolver resolver = new PropertyResolver();
+
 	/** The map of all resolved fields of this format processor. */
 	@EqualsAndHashCode.Exclude
 	@ToString.Exclude
@@ -90,7 +102,7 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 		this.pattern = pattern;
 
 		propertyUtils = BeanUtilsBean.getInstance().getPropertyUtils();
-		propertyUtils.setResolver(new PropertyResolver());
+		propertyUtils.setResolver(resolver);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -138,6 +150,89 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 				.matcher(input);
 	}
 
+	FormatFieldDescriptor buildFieldDescriptor(final FormatFieldAccessor accessor, final String expression, final Class<?> propertyType, final String[] options) {
+		String target = getLastProperty(expression);
+
+		if (resolver.isMapped(target)) {
+			String key = resolver.getKey(target);
+			FormatField field = Arrays.stream(accessor.getAnnotationsByType(FormatMapEntryField.class))
+					.filter(annotation -> Arrays.asList(annotation.keys()).contains(key))
+					.map(FormatMapEntryField::field)
+					.findFirst()
+					.orElse(accessor.getAnnotation(FormatField.class));
+			FormatFieldDescriptorImpl descriptor = FormatFieldDescriptorImpl.from(field);
+
+			if (descriptor.name().isEmpty()) {
+				// Use class field name
+				descriptor.name(expression);
+			}
+
+			if (options.length > 1) {
+				// Override annotation field length
+				descriptor.length(Integer.parseInt(options[1]));
+			}
+
+			if (options.length > 2) {
+				// Override annotation field placeholder
+				descriptor.placeholder(options[2]);
+			}
+
+			return descriptor;
+		}
+
+		return FormatUtil.buildFieldDescriptor(accessor, propertyType, options);
+	}
+
+	<X> FieldConverter<X> getFieldConverter(final FormatFieldAccessor accessor, final String expression, final Class<X> propertyType) {
+		String target = getLastProperty(expression);
+
+		if (resolver.isMapped(target)) {
+			String key = resolver.getKey(target);
+			FieldConverterProvider provider = FieldConverter.provider();
+			@SuppressWarnings("unchecked")
+			Class<? extends FieldConverter<X>> converterType = (Class<? extends FieldConverter<X>>) Arrays.stream(accessor.getAnnotationsByType(FormatMapEntryField.class))
+					.filter(annotation -> Arrays.asList(annotation.keys()).contains(key))
+					.map(FormatMapEntryField::converter)
+					.findFirst()
+					.filter(clazz -> !FormatFieldConverter.DEFAULT.class.isAssignableFrom(clazz))
+					.orElse(null);
+
+			if (converterType != null) {
+				return provider.getConverter(propertyType, converterType);
+			}
+
+			Formatter<X> formatter = Arrays.stream(accessor.getAnnotationsByType(FormatMapEntry.class))
+					.filter(annotation -> Arrays.asList(annotation.keys()).contains(key))
+					.map(FormatMapEntry::pattern)
+					.findFirst()
+					.map(Formatter.of(propertyType)::withPattern)
+					.orElse(null);
+
+			if (formatter != null) {
+				return provider.getConverter(formatter);
+			}
+		}
+
+		return FormatUtil.getFieldConverter(accessor, propertyType);
+	}
+
+	Class<?> getPropertyType(final FormatFieldAccessor accessor, final String expression, final String text) {
+		Class<?> propertyType = getMappedPropertyType(accessor, expression);
+		return propertyType != null ? propertyType : getFieldPropertyType(accessor, text);
+	}
+
+	Class<?> getPropertyType(final FormatFieldAccessor accessor, final String expression, final Object value) {
+		if (value == null) {
+			Class<?> propertyType = getMappedPropertyType(accessor, expression);
+
+			if (propertyType != null) {
+				return propertyType;
+			}
+		}
+
+		return getFieldPropertyType(accessor, value);
+	}
+
 	<U extends T> Object getValue(final U target, final String expression) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		try {
 			return propertyUtils.getProperty(target, expression);
@@ -148,7 +243,6 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 
 	<U extends T> void setValue(final U target, final String expression, final Object value, final String text) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, InstantiationException {
 		// Create nested beans
-		Resolver resolver = getResolver();
 		Object bean = target;
 		String expr = expression;
 
@@ -178,7 +272,7 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 	}
 
 	List<String> resolveProperty(final Strategy strategy, final Class<?> beanType, final String expression, final String parent) {
-		if (getResolver().hasNested(expression)) {
+		if (resolver.hasNested(expression)) {
 			return resolveNestedProperty(strategy, beanType, expression, parent);
 		} else {
 			return resolveSimpleProperty(strategy, beanType, expression, parent);
@@ -186,8 +280,6 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 	}
 
 	private List<String> resolveNestedProperty(final Strategy strategy, final Class<?> beanType, final String expression, final String parent) {
-		Resolver resolver = getResolver();
-
 		String containerName = resolver.getProperty(expression);
 
 		// Find the field with FormatFieldContainer annotation that match the field name.
@@ -214,7 +306,6 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 	}
 
 	private List<String> resolveIndexedNestedProperty(final Strategy strategy, final Class<?> containerType, final String property, final String expression) {
-		PropertyResolver resolver = getResolver();
 		int index = resolver.getIndex(expression);
 
 		if (index == -1) {
@@ -242,17 +333,16 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 	}
 
 	private List<String> resolveMappedNestedProperty(final Strategy strategy, final Class<?> containerType, final String property, final String expression) {
-		Resolver resolver = getResolver();
-		return Arrays.stream(resolver.getKey(expression).split(","))
-				.map(String::trim)
-				.map(key -> String.format(MAPPED_PROP_FORMAT, property, key))
-				.flatMap(prop -> resolveProperty(strategy, containerType, resolver.remove(expression), prop).stream())
-				.collect(Collectors.toList());
+		return Optional.ofNullable(resolver.getKey(expression))
+				.map(keys -> Arrays.stream(keys.split(","))
+						.map(String::trim)
+						.map(key -> String.format(MAPPED_PROP_FORMAT, property, key))
+						.flatMap(prop -> resolveProperty(strategy, containerType, resolver.remove(expression), prop).stream())
+						.collect(Collectors.toList()))
+				.orElseGet(Collections::emptyList);
 	}
 
 	private List<String> resolveSimpleProperty(final Strategy strategy, final Class<?> beanType, final String expression, final String parent) {
-		Resolver resolver = getResolver();
-
 		String fieldName = resolver.getProperty(expression);
 
 		// Find the field with FormatField annotation that match the field name.
@@ -283,7 +373,6 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 	}
 
 	private List<String> resolveIndexedSimpleProperty(final FormatFieldAccessor accessor, final String property, final String expression) {
-		PropertyResolver resolver = getResolver();
 		int index = resolver.getIndex(expression);
 
 		if (index == -1) {
@@ -320,20 +409,22 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 	}
 
 	private List<String> resolveMappedSimpleProperty(final FormatFieldAccessor accessor, final String property, final String expression) {
-		Resolver resolver = getResolver();
-		List<String> properties = Arrays.stream(resolver.getKey(expression).split(","))
-				.map(String::trim)
-				.map(key -> String.format(MAPPED_PROP_FORMAT, property, key))
-				.collect(Collectors.toList());
+		return Optional.ofNullable(resolver.getKey(expression))
+				.map(keys -> {
+					List<String> properties = Arrays.stream(keys.split(","))
+							.map(String::trim)
+							.map(key -> String.format(MAPPED_PROP_FORMAT, property, key))
+							.collect(Collectors.toList());
 
-		properties.forEach(prop -> resolvedProperties.put(prop, accessor));
+					properties.forEach(prop -> resolvedProperties.put(prop, accessor));
 
-		return Collections.unmodifiableList(properties);
+					return Collections.unmodifiableList(properties);
+				})
+				.orElseGet(Collections::emptyList);
 	}
 
 	@SuppressWarnings("unchecked")
 	private void prepareProperty(final Object bean, final String expression, final Object value) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-		Resolver resolver = getResolver();
 		String name = resolver.getProperty(expression);
 
 		boolean indexed = resolver.isIndexed(expression);
@@ -359,7 +450,6 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 	}
 
 	private Object createNested(final Object bean, final String expression, final String text) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalArgumentException, SecurityException {
-		Resolver resolver = getResolver();
 		FormatFieldAccessor field = FormatFieldAccessorUtil.getFieldAccessor(bean.getClass(), resolver.getProperty(expression));
 		Class<?> propertyType = getFieldPropertyType(field, text);
 		Object value = propertyType.getConstructor().newInstance();
@@ -367,8 +457,26 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 		return value;
 	}
 
-	private PropertyResolver getResolver() {
-		return (PropertyResolver) propertyUtils.getResolver();
+	private String getLastProperty(final String expression) {
+		return Arrays.stream(expression.split(PropertyResolver.NESTED_REGEX))
+				.reduce((current, next) -> next)
+				.orElse(null);
+	}
+
+	private Class<?> getMappedPropertyType(final FormatFieldAccessor accessor, final String expression) {
+		String target = getLastProperty(expression);
+
+		if (resolver.isMapped(target)) {
+			String key = resolver.getKey(target);
+			return Arrays.stream(accessor.getAnnotationsByType(FormatMapEntryField.class))
+					.filter(annotation -> Arrays.asList(annotation.keys()).contains(key))
+					.map(FormatMapEntryField::targetClass)
+					.findFirst()
+					.filter(clazz -> !Void.class.isAssignableFrom(clazz))
+					.orElse(null);
+		}
+
+		return null;
 	}
 
 	@NoArgsConstructor

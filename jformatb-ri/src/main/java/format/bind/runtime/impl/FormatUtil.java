@@ -73,10 +73,9 @@ class FormatUtil {
 
 	private <A extends Annotation> FormatFieldAccessor getField(final Strategy strategy, final Class<?> beanType, final String name, final Class<A> annotationType, final Function<A, String> annotationName) {
 		return FormatFieldAccessorUtil.getFieldAccessors(strategy, beanType, annotationType).stream()
-				.filter(field -> annotationName.apply(field.getAnnotation(annotationType)).equals(name) ||
-						field.getName().equals(name))
+				.filter(field -> annotationName.apply(field.getAnnotation(annotationType)).equals(name) || field.getName().equals(name))
 				.findFirst()
-				.orElseGet(() -> getFieldOverride(beanType, name));
+				.orElse(getFieldOverride(beanType, name));
 	}
 
 	FormatFieldAccessor getField(final Strategy strategy, final Class<?> beanClass, final String name) {

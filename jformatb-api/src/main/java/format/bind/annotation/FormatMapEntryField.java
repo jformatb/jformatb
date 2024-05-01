@@ -17,54 +17,56 @@ package format.bind.annotation;
 
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Documented;
-import java.lang.annotation.Inherited;
+import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import format.bind.Formatter;
+import format.bind.converter.FieldConverter;
 
 /**
- * Instructs the {@link Formatter} how to find the {@link FormatTypeValue} that
- * identifies the target {@link Format} Java type.
+ * Specifies the mapping of a map entry to a text format field.
  * 
  * @author Yannick Ebongue
  * 
- * @see Format
- * @see FormatSubTypes
- * @see FormatTypeValue
- * @see Formatter
  */
-@Inherited
+@Repeatable(FormatMapEntryFields.class)
 @Documented
 @Retention(RUNTIME)
-@Target({ TYPE, FIELD, METHOD })
-public @interface FormatTypeInfo {
+@Target({ FIELD, METHOD })
+public @interface FormatMapEntryField {
 
 	/**
-	 * (Required) The format field name of the text format field that contains the type
-	 * info value.
+	 * (Required) The keys of the map entry to map.
 	 * 
-	 * @return The format field name of the text format field.
+	 * @return The keys of the map entry.
 	 */
-	String fieldName();
+	String[] keys();
 
 	/**
-	 * (Required) The length of the text format field containing the type info value.
+	 * (Required) The {@link FormatField} annotation with specification to apply.
 	 * 
-	 * @return The length of the text format field.
+	 * @return The {@link FormatField} annotation with specification to apply.
 	 */
-	int length();
+	FormatField field();
 
 	/**
-	 * (Optional) The index of the starting point of the text format field in the whole
-	 * formatted text.
+	 * (Optional) The target class of the map entry value to map.
 	 * 
-	 * @return The index of the starting point of the text format field.
+	 * @return The target class of the map entry value.
 	 */
-	int start() default 0;
+	Class<?> targetClass() default Void.class;
+
+	/**
+	 * (Optional) The class that converts a text format field of the map entry
+	 * 		value.
+	 * 
+	 * @return The class that converts a text format field value of the map entry
+	 * 		value.
+	 */
+	@SuppressWarnings("rawtypes")
+	Class<? extends FieldConverter> converter() default FormatFieldConverter.DEFAULT.class;
 
 }

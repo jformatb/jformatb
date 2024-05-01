@@ -17,54 +17,44 @@ package format.bind.annotation;
 
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Documented;
-import java.lang.annotation.Inherited;
+import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import format.bind.Formatter;
-
 /**
- * Instructs the {@link Formatter} how to find the {@link FormatTypeValue} that
- * identifies the target {@link Format} Java type.
+ * Specifies the mapping for the entry value of a map.
  * 
  * @author Yannick Ebongue
  * 
- * @see Format
- * @see FormatSubTypes
- * @see FormatTypeValue
- * @see Formatter
  */
-@Inherited
+@Repeatable(FormatMapEntries.class)
 @Documented
 @Retention(RUNTIME)
-@Target({ TYPE, FIELD, METHOD })
-public @interface FormatTypeInfo {
+@Target({ FIELD, METHOD })
+public @interface FormatMapEntry {
 
 	/**
-	 * (Required) The format field name of the text format field that contains the type
-	 * info value.
+	 * (Required) The keys of the map entry to map.
 	 * 
-	 * @return The format field name of the text format field.
+	 * @return The keys of the map entry.
 	 */
-	String fieldName();
+	String[] keys();
 
 	/**
-	 * (Required) The length of the text format field containing the type info value.
+	 * (Required) The pattern of the text format of the entry value.
 	 * 
-	 * @return The length of the text format field.
+	 * @return The pattern of the text format of the entry value.
 	 */
-	int length();
+	String pattern();
 
 	/**
-	 * (Optional) The index of the starting point of the text format field in the whole
-	 * formatted text.
+	 * (Optional) The target class of the map entry value to map.
 	 * 
-	 * @return The index of the starting point of the text format field.
+	 * @return The target class of the map entry value.
 	 */
-	int start() default 0;
+	Class<?> targetClass() default Void.class;
 
 }

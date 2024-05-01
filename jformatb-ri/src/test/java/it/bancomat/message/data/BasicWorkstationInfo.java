@@ -10,7 +10,8 @@ import java.util.Map;
 import format.bind.annotation.Format;
 import format.bind.annotation.FormatField;
 import format.bind.annotation.FormatField.Type;
-import format.bind.annotation.FormatFieldContainer;
+import format.bind.annotation.FormatMapEntry;
+import format.bind.annotation.FormatMapEntryField;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.Singular;
@@ -53,15 +54,24 @@ public abstract class BasicWorkstationInfo implements WorkstationInfo {
 	@Singular
 	private List<Cassette> cassettes;
 
-	@FormatFieldContainer
+	@Format(pattern = "${dateTime:10}")
+	@FormatField(length = 10, placeholder = "0000000000")
+	@FormatMapEntry(keys = { "Anomaly" }, pattern = "${dateTime:10}${properties[\"AnomalyCode\"]:2:00}")
+	@FormatMapEntry(keys = { "CompletedOperation" }, pattern = "${dateTime:10}${properties[\"TransactionNumber\"]:5:0}")
+	@FormatMapEntryField(keys = { "Anomaly" }, field = @FormatField(length = 12, placeholder = "000000000000"))
+	@FormatMapEntryField(keys = { "CompletedOperation" }, field = @FormatField(length = 15, placeholder = "000000000000000"))
 	@Singular
 	private Map<String, Notification> notifications;
 
-	@FormatFieldContainer
+	@FormatField
+	@FormatMapEntry(keys = { "CashDeposit", "DepositRecovery", "Withdrawal" }, pattern = "${totalCount:4}${totalAmount:6}")
+	@FormatMapEntry(keys = { "Payment", "Utilities" }, pattern = "${totalCount:4}${totalAmount:9}")
+	@FormatMapEntryField(keys = { "CashDeposit", "DepositRecovery", "Withdrawal" }, field = @FormatField(length = 10, placeholder = "0000000000"))
+	@FormatMapEntryField(keys = { "Payment", "Utilities" }, field = @FormatField(length = 13, placeholder = "0000000000000"))
 	@Singular
 	private Map<String, Operation> operations;
 
-	@FormatField(length = 4)
+	@FormatField(length = 4, placeholder = "0")
 	@Singular
 	private Map<String, Integer> totals;
 

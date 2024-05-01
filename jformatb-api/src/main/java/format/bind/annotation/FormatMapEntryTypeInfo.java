@@ -17,11 +17,10 @@ package format.bind.annotation;
 
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Documented;
-import java.lang.annotation.Inherited;
+import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
@@ -29,20 +28,29 @@ import format.bind.Formatter;
 
 /**
  * Instructs the {@link Formatter} how to find the {@link FormatTypeValue} that
- * identifies the target {@link Format} Java type.
+ * identifies the target {@link Format} Java type of the map entry value.
  * 
  * @author Yannick Ebongue
  * 
  * @see Format
+ * @see FormatMapEntry
  * @see FormatSubTypes
  * @see FormatTypeValue
  * @see Formatter
+ * 
  */
-@Inherited
+@Repeatable(FormatMapEntryTypeInfoList.class)
 @Documented
 @Retention(RUNTIME)
-@Target({ TYPE, FIELD, METHOD })
-public @interface FormatTypeInfo {
+@Target({ FIELD, METHOD })
+public @interface FormatMapEntryTypeInfo {
+
+	/**
+	 * (Required) The keys of the map entry to map.
+	 * 
+	 * @return The keys of the map entry.
+	 */
+	String[] keys();
 
 	/**
 	 * (Required) The format field name of the text format field that contains the type

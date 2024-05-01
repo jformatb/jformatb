@@ -16,7 +16,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-@Format(pattern = "${workstationId}${bankCode}${branchCode}${notifications[\"LocalAccountingClosure,CentralAccountingClosure,CashLoading\"].dateTime}${cassettes[0..2]}${totals[\"RejectedNote,RecoveryOperation\"]}${operations[\"Withdrawal\"].totalCount}${operations[\"Withdrawal\"].totalAmount}${operations[\"CashDeposit\"].totalCount}${operations[\"CashDeposit\"].totalAmount}${operations[\"Utilities\"].totalCount}${operations[\"Utilities\"].totalAmount:9}${operations[\"Payment\"].totalCount}${operations[\"Payment\"].totalAmount:9}${notifications[\"DepositRecovery\"].dateTime}${operations[\"DepositRecovery\"].totalCount}${operations[\"DepositRecovery\"].totalAmount}${notifications[\"RetainedCardRecovery\"].dateTime}${totals[\"RetainedCard\"]}")
+@Format(pattern = "${workstationId}${bankCode}${branchCode}${notifications[\"LocalAccountingClosure,CentralAccountingClosure,CashLoading\"]}${cassettes[0..2]}${totals[\"RejectedNote,RecoveryOperation\"]}${operations[\"Withdrawal,CashDeposit,Utilities,Payment\"]}${notifications[\"DepositRecovery\"]}${operations[\"DepositRecovery\"]}${notifications[\"RetainedCardRecovery\"]}${totals[\"RetainedCard\"]}")
 public class CashierWorkstationInfo extends BasicWorkstationInfo {
 
 	/** The generated serial version of this class. */

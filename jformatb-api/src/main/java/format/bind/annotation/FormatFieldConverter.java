@@ -70,4 +70,10 @@ public @interface FormatFieldConverter {
 	@SuppressWarnings("rawtypes")
 	Class<? extends FieldConverter> value();
 
+	/**
+	 * Used to signal that the converter be inferred from the signature of the
+	 * property.
+	 */
+	abstract class DEFAULT implements FieldConverter<Void> {  }
+
 }

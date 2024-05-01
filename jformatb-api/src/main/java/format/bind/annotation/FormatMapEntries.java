@@ -17,54 +17,29 @@ package format.bind.annotation;
 
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Documented;
-import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import format.bind.Formatter;
-
 /**
- * Instructs the {@link Formatter} how to find the {@link FormatTypeValue} that
- * identifies the target {@link Format} Java type.
+ * A container for multiple {@link FormatMapEntry} annotations.
  * 
  * @author Yannick Ebongue
  * 
- * @see Format
- * @see FormatSubTypes
- * @see FormatTypeValue
- * @see Formatter
+ * @see FormatMapEntry
  */
-@Inherited
 @Documented
 @Retention(RUNTIME)
-@Target({ TYPE, FIELD, METHOD })
-public @interface FormatTypeInfo {
+@Target({ FIELD, METHOD })
+public @interface FormatMapEntries {
 
 	/**
-	 * (Required) The format field name of the text format field that contains the type
-	 * info value.
+	 * (Required) One or more field map entries.
 	 * 
-	 * @return The format field name of the text format field.
+	 * @return An array of field map entries.
 	 */
-	String fieldName();
-
-	/**
-	 * (Required) The length of the text format field containing the type info value.
-	 * 
-	 * @return The length of the text format field.
-	 */
-	int length();
-
-	/**
-	 * (Optional) The index of the starting point of the text format field in the whole
-	 * formatted text.
-	 * 
-	 * @return The index of the starting point of the text format field.
-	 */
-	int start() default 0;
+	FormatMapEntry[] value();
 
 }

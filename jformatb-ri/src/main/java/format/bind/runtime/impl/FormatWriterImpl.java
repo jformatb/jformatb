@@ -26,6 +26,7 @@ import java.util.regex.Pattern;
 
 import format.bind.FormatFieldAccessor;
 import format.bind.FormatFieldAccessor.Strategy;
+import format.bind.FormatFieldDescriptor;
 import format.bind.FormatProcessingException;
 import format.bind.FormatWriter;
 import format.bind.annotation.FormatTypeInfo;
@@ -109,9 +110,9 @@ final class FormatWriterImpl<T> extends FormatProcessorImpl<T, FormatWriterImpl<
 					}
 
 					FormatFieldAccessor accessor = resolvedProperties.get(property);
-					Class<?> propertyType = getFieldPropertyType(accessor, value);
-					FormatFieldDescriptorImpl descriptor = buildFieldDescriptor(accessor, propertyType, parts);
-					FieldConverter<?> converter = getFieldConverter(accessor, propertyType);
+					Class<?> propertyType = getPropertyType(accessor, property, value);
+					FormatFieldDescriptor descriptor = buildFieldDescriptor(accessor, property, propertyType, parts);
+					FieldConverter<?> converter = getFieldConverter(accessor, property, propertyType);
 
 					output.append(pattern, lastIndex, matcher.start());
 					output.append(formatFieldValue(value, descriptor, converter));

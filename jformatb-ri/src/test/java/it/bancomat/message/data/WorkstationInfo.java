@@ -12,6 +12,7 @@ import java.util.Map;
 import format.bind.annotation.FormatAccess;
 import format.bind.annotation.FormatAccess.Type;
 import format.bind.annotation.FormatField;
+import format.bind.annotation.FormatMapEntryField;
 import format.bind.annotation.FormatSubTypes;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -47,7 +48,7 @@ public interface WorkstationInfo extends Serializable {
 		@Builder.Default
 		private String currencyCode = "EUR";
 
-		@Getter(onMethod_ = @FormatField(length = 3, scale = -2, placeholder = "0"))
+		@Getter(onMethod_ = @FormatField(length = 3, scale = -2))
 		private int denomination;
 
 		@Getter(onMethod_ = @FormatField(length = 4))
@@ -87,8 +88,10 @@ public interface WorkstationInfo extends Serializable {
 		private LocalDateTime dateTime;
 
 		@FormatField
+		@FormatMapEntryField(keys = "AnomalyCode", targetClass = String.class, field = @FormatField(length = 2, placeholder = "00"))
+		@FormatMapEntryField(keys = "TransactionNumber", targetClass = Integer.class, field = @FormatField(length = 5))
 		@Singular
-		private Map<String, String> properties;
+		private Map<String, Object> properties;
 
 	}
 

@@ -16,6 +16,7 @@
 package format.bind.runtime.impl.converter;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -28,7 +29,9 @@ abstract class NumberConverter<N extends Number> implements FieldConverter<N> {
 	@Override
 	public String format(final FormatFieldDescriptor descriptor, final N number) throws FieldConversionException {
 		try {
-			long longValue = valueOf(number).setScale(descriptor.scale()).unscaledValue().longValueExact();
+			long longValue = Optional.ofNullable(number)
+					.map(value -> valueOf(value).setScale(descriptor.scale()).unscaledValue().longValueExact())
+					.orElse(Long.parseLong(StringUtils.defaultIfBlank(descriptor.placeholder(), "0")));
 			return StringUtils.leftPad(String.valueOf(longValue), descriptor.length(), "0");
 		} catch (Exception e) {
 			return FieldConverters.throwFormatFieldConversionException(descriptor, number, e);
@@ -38,7 +41,13 @@ abstract class NumberConverter<N extends Number> implements FieldConverter<N> {
 	@Override
 	public N parse(final FormatFieldDescriptor descriptor, final String source) throws FieldConversionException {
 		try {
-			return toValue(BigDecimal.valueOf(Long.valueOf(source), descriptor.scale()));
+			long longValue = Long.parseLong(source);
+
+			if (!descriptor.placeholder().isEmpty() && longValue == Long.parseLong(descriptor.placeholder())) {
+				return null;
+			}
+
+			return toValue(BigDecimal.valueOf(longValue, descriptor.scale()));
 		} catch (Exception e) {
 			return FieldConverters.throwParseFieldConversionException(descriptor, source, e);
 		}
