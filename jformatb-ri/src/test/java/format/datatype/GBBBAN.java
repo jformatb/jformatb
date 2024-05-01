@@ -5,6 +5,8 @@
 package format.datatype;
 
 import format.bind.annotation.Format;
+import format.bind.annotation.FormatField;
+import format.bind.annotation.FormatFieldOverride;
 import format.bind.annotation.FormatTypeValue;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -15,8 +17,9 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-@Format(pattern = "${bankCode:4}${branchCode:6}${accountNumber:8}")
+@Format(pattern = "${bankCode:4}${sortCode:6}${accountNumber:8}")
 @FormatTypeValue("GB")
+@FormatFieldOverride(property = "branchCode", field = @FormatField(name = "sortCode"))
 public class GBBBAN extends BBAN {
 
 	private static final long serialVersionUID = 1825299000395824603L;

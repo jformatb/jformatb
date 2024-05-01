@@ -44,7 +44,7 @@ jformatb
 ├── jformatb-api
 │   ├── src
 │   │   ├── main
-│   │   │    └── java
+│   │   │   └── java
 │   │   │       └── **/*.java
 │   │   └── test
 │   │       ├── java
