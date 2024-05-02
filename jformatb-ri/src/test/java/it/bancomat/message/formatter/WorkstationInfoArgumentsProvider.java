@@ -25,6 +25,7 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 
+import it.bancomat.message.Denomination;
 import it.bancomat.message.data.CashierWorkstationInfo;
 import it.bancomat.message.data.FullWorkstationInfo;
 import it.bancomat.message.data.WorkstationInfo;
@@ -41,7 +42,7 @@ public class WorkstationInfoArgumentsProvider implements ArgumentsProvider {
 	private static String bankCode = "3104";
 	private static String branchCode = "40090";
 
-	private static WorkstationInfo.Cassette buildCassette(int denomination, int initialCount) {
+	private static WorkstationInfo.Cassette buildCassette(Denomination denomination, int initialCount) {
 		return WorkstationInfo.Cassette.builder()
 				.currencyCode(CURRENCY_CODE)
 				.denomination(denomination)
@@ -49,7 +50,7 @@ public class WorkstationInfoArgumentsProvider implements ArgumentsProvider {
 				.build();
 	}
 
-	private static WorkstationInfo.Cassette buildCassette(int denomination, int initialCount, int dispensedCount) {
+	private static WorkstationInfo.Cassette buildCassette(Denomination denomination, int initialCount, int dispensedCount) {
 		return WorkstationInfo.Cassette.builder()
 				.currencyCode(CURRENCY_CODE)
 				.denomination(denomination)
@@ -88,13 +89,13 @@ public class WorkstationInfoArgumentsProvider implements ArgumentsProvider {
 						.workstationId(workstationId)
 						.bankCode(bankCode)
 						.branchCode(branchCode)
+						.cassette(buildCassette(Denomination.EURO_20, 764, 37))
+						.cassette(buildCassette(Denomination.EURO_50, 628, 30))
 						.notification(WorkstationInfo.EV_LOCAL_ACCOUNTING_CLOSURE, buildNotification(WorkstationInfo.EV_LOCAL_ACCOUNTING_CLOSURE, "2403230846"))
 						.notification(WorkstationInfo.EV_CENTRAL_ACCOUNTING_CLOSURE, buildNotification(WorkstationInfo.EV_CENTRAL_ACCOUNTING_CLOSURE, "2703230005"))
 						.notification(WorkstationInfo.EV_CASH_LOADING, buildNotification(WorkstationInfo.EV_CASH_LOADING, "2403230851"))
-						.cassette(buildCassette(2000, 764, 37))
-						.cassette(buildCassette(5000, 628, 30))
-						.operation(WorkstationInfo.OP_WITHDRAWAL, buildOperation(WorkstationInfo.OP_WITHDRAWAL, 10, 224000))
 						.notification(WorkstationInfo.EV_RETAINED_CARD_RECOVERY, buildNotification(WorkstationInfo.EV_RETAINED_CARD_RECOVERY, "2403230846"))
+						.operation(WorkstationInfo.OP_WITHDRAWAL, buildOperation(WorkstationInfo.OP_WITHDRAWAL, 10, 224000))
 						.total(WorkstationInfo.TT_RETAINED_CARD, 1)
 						.build()),
 				arguments("FullWorkstationInfo", "042931044009000000240166300041003270323083632270323083727032300052403230851EUR02007270145400000000000EUR05005980299000000000000EUR000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000027032308370000    00000000000000000000000000000000000100", FullWorkstationInfo.builder()
@@ -109,12 +110,12 @@ public class WorkstationInfoArgumentsProvider implements ArgumentsProvider {
 						.circolarityLevel(0)
 						.workingRestriction(0)
 						.workingState(3)
+						.cassette(buildCassette(Denomination.EURO_20, 727))
+						.cassette(buildCassette(Denomination.EURO_50, 598))
 						.notification(WorkstationInfo.EV_ANOMALY, buildNotification(WorkstationInfo.EV_ANOMALY, "2703230836", WorkstationInfo.EV_PROP_ANOMALY_CODE, "32"))
 						.notification(WorkstationInfo.EV_LOCAL_ACCOUNTING_CLOSURE, buildNotification(WorkstationInfo.EV_LOCAL_ACCOUNTING_CLOSURE, "2703230837"))
 						.notification(WorkstationInfo.EV_CENTRAL_ACCOUNTING_CLOSURE, buildNotification(WorkstationInfo.EV_CENTRAL_ACCOUNTING_CLOSURE, "2703230005"))
 						.notification(WorkstationInfo.EV_CASH_LOADING, buildNotification(WorkstationInfo.EV_CASH_LOADING, "2403230851"))
-						.cassette(buildCassette(2000, 727))
-						.cassette(buildCassette(5000, 598))
 						.notification(WorkstationInfo.EV_RETAINED_CARD_RECOVERY, buildNotification(WorkstationInfo.EV_RETAINED_CARD_RECOVERY, "2703230837"))
 						.total(WorkstationInfo.TT_OVERALL_OPERATION, 1)
 						.build()));

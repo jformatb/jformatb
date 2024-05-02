@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map:message-mappings version="1.0" xmlns:map="https://github.io/jformatb/message/mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://github.io/jformatb/message/mapping https://jformatb.github.io/message/mapping/message-mappings-1.0.xsd">
+	<map:message-field-container class="format.datatype.Amount" access="PROPERTY">
+		<map:message-field property="currency" length="3"/>
+		<map:message-field property="value"/>
+	</map:message-field-container>
+	<map:message name="IBAN" class="format.datatype.IBAN" pattern="${countryCode:2}${checkDigits:2}${BBAN}">
+		<map:message-field property="countryCode" length="2"/>
+		<map:message-field property="checkDigits" length="2"/>
+		<map:message-field property="BBAN">
+			<map:message-type-info field-name="countryCode" start="0" length="2"/>
+		</map:message-field>
+	</map:message>
+	<map:message-field-container name="BBAN" class="format.datatype.BBAN">
+		<map:message-sub-types>
+			<map:message-sub-type value="format.datatype.BEBBAN"/>
+			<map:message-sub-type value="format.datatype.DEBBAN"/>
+			<map:message-sub-type value="format.datatype.FRBBAN"/>
+			<map:message-sub-type value="format.datatype.GBBBAN"/>
+			<map:message-sub-type value="format.datatype.ITBBAN"/>
+		</map:message-sub-types>
+		<map:message-field property="bankCode"/>
+		<map:message-field property="branchCode"/>
+		<map:message-field property="accountNumber"/>
+		<map:message-field property="checkDigits"/>
+	</map:message-field-container>
+	<map:message type="BE" name="BEBBAN" class="format.datatype.BEBBAN" pattern="${bankCode:3}${accountNumber:7}${checkDigits:2}"/>
+	<map:message type="DE" name="DEBBAN" class="format.datatype.DEBBAN" pattern="${bankCode:8}${accountNumber:10}"/>
+	<map:message type="FR" name="FRBBAN" class="format.datatype.FRBBAN" pattern="${bankCode:5}${branchCode:5}${accountNumber:11}${checkDigits:2}"/>
+	<map:message type="GB" name="GBBBAN" class="format.datatype.GBBBAN" pattern="${bankCode:4}${sortCode:6}${accountNumber:8}">
+		<map:message-field-override property="branchCode" name="sortCode"/>
+	</map:message>
+	<map:message type="IT" name="ITBBAN" class="format.datatype.ITBBAN" pattern="${cin:1}${abi:5}${cab:5}${accountNumber:12}">
+		<map:message-field-override property="bankCode" name="abi"/>
+		<map:message-field-override property="branchCode" name="cab"/>
+		<map:message-field-override property="checkDigits" name="cin"/>
+	</map:message>
+	<map:message-field-container class="it.bancomat.message.CashLoadingRequestMessage.Cassette">
+		<map:message-field property="currency" length="3" placeholder="000"/>
+		<map:message-field property="denomination" length="3" scale="-2">
+			<map:message-field-converter value="it.bancomat.message.converter.DenominationConverter"/>
+		</map:message-field>
+		<map:message-field property="count" length="4"/>
+	</map:message-field-container>
+	<map:message-field-container class="it.bancomat.message.DepositRecoveryRequestMessage.Base">
+		<map:message-field property="amount" length="11"/>
+		<map:message-field property="count" length="5"/>
+	</map:message-field-container>
+	<map:message-field-container class="it.bancomat.message.DepositRecoveryRequestMessage.Cash">
+		<map:message-field property="level2Count" length="9"/>
+		<map:message-field property="level3Count" length="9"/>
+		<map:message-field property="items" length="9"/>
+	</map:message-field-container>
+	<map:message-field-container class="it.bancomat.message.DepositRequestMessage.Cash">
+		<map:message-field property="totalAmount" length="7" scale="-2"/>
+		<map:message-field property="noteCount" length="3"/>
+		<map:message-field property="level2Count" length="3"/>
+		<map:message-field property="level3Count" length="3"/>
+		<map:message-field property="items" length="3"/>
+	</map:message-field-container>
+	<map:message-field-container class="it.bancomat.message.DepositRequestMessage.Check">
+		<map:message-field property="documentNumber" length="3"/>
+		<map:message-field property="codeLine" length="33"/>
+		<map:message-field property="userAmount" length="9"/>
+		<map:message-field property="issueDate" length="6" format="ddMMyy" placeholder="010100"/>
+	</map:message-field-container>
+	<map:message-field-container class="it.bancomat.message.RequestMessage">
+		<map:message-type-info field-name="requestType" start="0" length="3"/>
+		<map:message-sub-types>
+			<map:message-sub-type value="it.bancomat.message.CustomerRequestMessage"/>
+			<map:message-sub-type value="it.bancomat.message.OperatorRequestMessage"/>
+		</map:message-sub-types>
+		<map:message-field property="workstationId" length="4"/>
+		<map:message-field property="transactionNumber" length="5"/>
+		<map:message-field property="dateTime" length="10" format="ddMMyyHHmm"/>
+		<map:message-field property="futureUse" length="1"/>
+		<map:message-field property="transmissionFlag" length="1"/>
+		<map:message-field property="anomalyCode" length="2" placeholder="00"/>
+	</map:message-field-container>
+	<map:message-field-container class="it.bancomat.message.CustomerRequestMessage">
+		<map:message-sub-types>
+			<map:message-sub-type value="it.bancomat.message.DepositRequestMessage"/>
+		</map:message-sub-types>
+		<map:message-field property="pan" length="17"/>
+		<map:message-field property="startPeriod" length="5" format="yyDDD"/>
+		<map:message-field property="remainingPeriod" length="4" scale="-2"/>
+		<map:message-field property="remainingSubPeriod" length="4" scale="-2"/>
+		<map:message-field property="lastTransactionDate" length="6" format="ddMMyy"/>
+	</map:message-field-container>
+	<map:message-field-container class="it.bancomat.message.OperatorRequestMessage">
+		<map:message-sub-types>
+			<map:message-sub-type value="it.bancomat.message.AccountingClosureRequestMessage"/>
+			<map:message-sub-type value="it.bancomat.message.CashLoadingRequestMessage"/>
+			<map:message-sub-type value="it.bancomat.message.DepositRecoveryRequestMessage"/>
+		</map:message-sub-types>
+	</map:message-field-container>
+	<map:message type="A90" class="it.bancomat.message.AccountingClosureRequestMessage" pattern="${requestType:3}${workstationId:4}${transactionNumber:5}${dateTime:10}0${anomalyCode:2:00}${transmissionFlag:1:0}"/>
+	<map:message type="A04" class="it.bancomat.message.CashLoadingRequestMessage" pattern="${requestType:3}${workstationId:4}${transactionNumber:5}${dateTime:10}0${anomalyCode:2:00}${transmissionFlag:1:0}${cassettes[0..2]:7:0000000}${type:1}${cassettes[0..2].currency:3:000}">
+		<map:message-field property="type" length="1"/>
+		<map:message-field property="cassettes" length="7" pattern="${count:4}${denomination:3}" placeholder="0000000"/>
+		<map:message-field-container property="cassettes"/>
+	</map:message>
+	<map:message type="A16" class="it.bancomat.message.DepositRecoveryRequestMessage" pattern="${requestType:3}${workstationId:4}${transactionNumber:5}${dateTime:10}1${anomalyCode:2:00}${transmissionFlag:1:0}${total.count:5}${cash.count:5:00000}${check.count:5:00000}E${total.amount:11}E${cash.amount:11}E${check.amount:11}${cash.items[0..6]:9:000000000}${cash.level2Count:9:000000000}${cash.level3Count:9:000000000}">
+		<map:message-field-container property="cash"/>
+		<map:message-field-container property="check"/>
+		<map:message-field-container property="total"/>
+	</map:message>
+	<map:message type="W78" class="it.bancomat.message.DepositRequestMessage" pattern="${requestType:3}${workstationId:4}${transactionNumber:5}${dateTime:10}1${transmissionFlag:1:0}${anomalyCode:2:00}${pan:17}${startPeriod:5}${remainingPeriod:4}${remainingSubPeriod:4}${depositType:1}${cash.noteCount:3:000}E${cash.totalAmount:7}${cash.items[&quot;500,1000,2000,5000,10000,20000,50000&quot;]:3:000}${cash.level2Count:3:000}${cash.level3Count:3:000}${check.codeLine:33}E${check.userAmount:9}${lastTransactionDate:6}${targetAccount:20}${transactionReferenceNumber:17}${check.documentNumber:3:000}000${check.issueDate:6:010100}">
+		<map:message-field property="depositType" length="1">
+			<map:message-field-converter value="it.bancomat.message.converter.DepositTypeConverter"/>
+		</map:message-field>
+		<map:message-field property="targetAccount" length="20"/>
+		<map:message-field property="transactionReferenceNumber" length="17"/>
+		<map:message-field-container property="cash"/>
+		<map:message-field-container property="check"/>
+	</map:message>
+	<map:message-field-container class="it.bancomat.message.data.WorkstationInfo.Cassette" access="PROPERTY">
+		<map:message-field property="denomination" length="3" scale="-2">
+			<map:message-field-converter value="it.bancomat.message.converter.DenominationConverter"/>
+		</map:message-field>
+		<map:message-field property="initialCount" length="4"/>
+		<map:message-field property="initialAmount" length="6" scale="-2" read-only="true"/>
+		<map:message-field property="dispensedCount" length="4"/>
+		<map:message-field property="dispensedAmount" length="6" scale="-2" read-only="true"/>
+	</map:message-field-container>
+	<map:message-field-container class="it.bancomat.message.data.WorkstationInfo.Notification">
+		<map:message-field property="dateTime" length="10" format="ddMMyyHHmm"/>
+		<map:message-field property="properties">
+			<map:message-field-map>
+				<map:message-field-entry key="AnomalyCode" class="java.lang.String" length="2" placeholder="00"/>
+				<map:message-field-entry key="TransactionNumber" class="java.lang.Integer"/>
+			</map:message-field-map>
+		</map:message-field>
+	</map:message-field-container>
+	<map:message-field-container class="it.bancomat.message.data.WorkstationInfo.Operation">
+		<map:message-field property="totalCount" length="4"/>
+		<map:message-field property="totalAmount" length="6" scale="-2"/>
+	</map:message-field-container>
+	<map:message-field-container class="it.bancomat.message.data.WorkstationInfo">
+		<map:message-sub-types>
+			<map:message-sub-type value="it.bancomat.message.data.CashierWorkstationInfo"/>
+			<map:message-sub-type value="it.bancomat.message.data.FullWorkstationInfo"/>
+		</map:message-sub-types>
+		<map:message-field property="workstationId" length="4" type="NUMERIC"/>
+		<map:message-field property="bankCode" length="4" type="NUMERIC"/>
+		<map:message-field property="branchCode" length="5" type="NUMERIC"/>
+		<map:message-field property="companyCode" length="3" type="NUMERIC"/>
+		<map:message-field property="dependencyCode" length="4" type="NUMERIC"/>
+		<map:message-field property="circolarityLevel" length="1"/>
+		<map:message-field property="workingRestriction" length="1"/>
+		<map:message-field property="workingState" length="1"/>
+		<map:message-field property="cassettes" length="26" pattern="EUR${denomination}${initialCount}${initialAmount}${dispensedCount}${dispensedAmount}" placeholder="EUR00000000000000000000000"/>
+		<map:message-field property="notifications" length="10" pattern="${dateTime:10}" placeholder="0000000000">
+			<map:message-field-map>
+				<map:message-field-entry key="Anomaly" length="12" pattern="${dateTime:10}${properties[&quot;AnomalyCode&quot;]:2:00}" placeholder="000000000000"/>
+				<map:message-field-entry key="CompletedOperation" length="15" pattern="${dateTime:10}${properties[&quot;TransactionNumber&quot;]:5:0}" placeholder="000000000000000"/>
+			</map:message-field-map>
+		</map:message-field>
+		<map:message-field property="operations">
+			<map:message-field-map>
+				<map:message-field-entry key="CashDeposit,DepositRecovery,Withdrawal" length="10" pattern="${totalCount:4}${totalAmount:6}" placeholder="0000000000"/>
+				<map:message-field-entry key="Payment,Utilities" length="13" pattern="${totalCount:4}${totalAmount:9}" placeholder="0000000000000"/>
+			</map:message-field-map>
+		</map:message-field>
+		<map:message-field property="totals" length="4" placeholder="0"/>
+	</map:message-field-container>
+	<map:message class="it.bancomat.message.data.CashierWorkstationInfo" pattern="${workstationId}${bankCode}${branchCode}${notifications[&quot;LocalAccountingClosure,CentralAccountingClosure,CashLoading&quot;].dateTime}${cassettes[0..2]}${totals[&quot;RejectedNote,RecoveryOperation&quot;]}${operations[&quot;Withdrawal&quot;].totalCount}${operations[&quot;Withdrawal&quot;].totalAmount}${operations[&quot;CashDeposit&quot;].totalCount}${operations[&quot;CashDeposit&quot;].totalAmount}${operations[&quot;Utilities&quot;].totalCount}${operations[&quot;Utilities&quot;].totalAmount:9}${operations[&quot;Payment&quot;].totalCount}${operations[&quot;Payment&quot;].totalAmount:9}${notifications[&quot;DepositRecovery&quot;].dateTime}${operations[&quot;DepositRecovery&quot;].totalCount}${operations[&quot;DepositRecovery&quot;].totalAmount}${notifications[&quot;RetainedCardRecovery&quot;].dateTime}${totals[&quot;RetainedCard&quot;]}"/>
+	<map:message class="it.bancomat.message.data.FullWorkstationInfo" pattern="${workstationId}${bankCode}${branchCode}${companyCode}${dependencyCode}${workstationType}${workstationBrand}${workstationModel}${workingHour}${circolarityLevel}${workingRestriction}${workingState}${notifications[&quot;Anomaly&quot;].dateTime}${notifications[&quot;Anomaly&quot;].properties[&quot;AnomalyCode&quot;]:2:00}${notifications[&quot;LocalAccountingClosure,CentralAccountingClosure,CashLoading&quot;].dateTime}${cassettes[0..2]}${totals[&quot;RejectedNote,RecoveryOperation&quot;]}${operations[&quot;Withdrawal&quot;].totalCount}${operations[&quot;Withdrawal&quot;].totalAmount}${operations[&quot;CashDeposit&quot;].totalCount}${operations[&quot;CashDeposit&quot;].totalAmount}${operations[&quot;Utilities&quot;].totalCount}${operations[&quot;Utilities&quot;].totalAmount:9}${operations[&quot;Payment&quot;].totalCount}${operations[&quot;Payment&quot;].totalAmount:9}${notifications[&quot;DepositRecovery&quot;].dateTime}${operations[&quot;DepositRecovery&quot;].totalCount}${operations[&quot;DepositRecovery&quot;].totalAmount}${notifications[&quot;RetainedCardRecovery&quot;].dateTime}${totals[&quot;RetainedCard&quot;]}${physicalAddress}${notifications[&quot;CompletedOperation&quot;].dateTime}${notifications[&quot;CompletedOperation&quot;].properties[&quot;TransactionNumber&quot;]:5:00000}${totals[&quot;AccountBalanceRequest,AccountMovementRequest,FailureOperation,ServiceOperation&quot;]}${totals[&quot;OverallOperation&quot;]:5}${printBackgroundJournal}${printAccountingClosure}">
+		<map:message-field property="workstationType" length="1"/>
+		<map:message-field property="workstationBrand" length="4" type="NUMERIC"/>
+		<map:message-field property="workstationModel" length="4" type="NUMERIC"/>
+		<map:message-field property="workingHour" length="1"/>
+		<map:message-field property="physicalAddress" length="4"/>
+		<map:message-field property="printBackgroundJournal" length="1"/>
+		<map:message-field property="printAccountingClosure" length="1"/>
+	</map:message>
+</map:message-mappings>

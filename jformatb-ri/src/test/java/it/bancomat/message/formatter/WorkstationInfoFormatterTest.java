@@ -17,12 +17,12 @@ package it.bancomat.message.formatter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
-import org.apache.commons.beanutils.BeanUtilsBean;
-import org.apache.commons.beanutils.PropertyUtilsBean;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
@@ -32,8 +32,6 @@ import it.bancomat.message.data.WorkstationInfo.Notification;
 import it.bancomat.message.data.WorkstationInfo.Operation;
 
 class WorkstationInfoFormatterTest {
-
-	private static PropertyUtilsBean propertyUtils = BeanUtilsBean.getInstance().getPropertyUtils();
 
 	@ParameterizedTest(name = "format{0}")
 	@ArgumentsSource(WorkstationInfoArgumentsProvider.class)
@@ -54,16 +52,15 @@ class WorkstationInfoFormatterTest {
 	}
 
 	private <T extends WorkstationInfo> void postProcess(T workstationInfo) {
-		initProperty(workstationInfo, "notifications", Collections.emptyMap());
-		initProperty(workstationInfo, "operations", Collections.emptyMap());
-		initProperty(workstationInfo, "totals", Collections.emptyMap());
+		setDefaultList(workstationInfo, WorkstationInfo::getCassettes, WorkstationInfo::setCassettes);
+		setDefaultMap(workstationInfo, WorkstationInfo::getNotifications, WorkstationInfo::setNotifications);
+		setDefaultMap(workstationInfo, WorkstationInfo::getOperations, WorkstationInfo::setOperations);
+		setDefaultMap(workstationInfo, WorkstationInfo::getTotals, WorkstationInfo::setTotals);
 
 		workstationInfo.getNotifications().entrySet().forEach(entry -> {
 			Notification notification = entry.getValue();
 			notification.setName(entry.getKey());
-			if (notification.getProperties() == null) {
-				notification.setProperties(Collections.emptyMap());
-			}
+			setDefaultMap(notification, Notification::getProperties, Notification::setProperties);
 		});
 
 		workstationInfo.getOperations().entrySet().forEach(entry -> {
@@ -72,14 +69,17 @@ class WorkstationInfoFormatterTest {
 		});
 	}
 
-	private static <T extends WorkstationInfo, V> void initProperty(T workstationInfo, String property, Map<String, V> map) {
-		try {
-			Object value = propertyUtils.getProperty(workstationInfo, property);
-			if (value == null) {
-				propertyUtils.setProperty(workstationInfo, property, map);
-			}
-		} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-			throw new IllegalArgumentException(e);
+	private static <T, E> void setDefaultList(T bean, Function<T, List<E>> getter, BiConsumer<T, List<E>> setter) {
+		setDefaultValue(bean, Collections.emptyList(), getter, setter);
+	}
+
+	private static <T, V> void setDefaultMap(T bean, Function<T, Map<String, V>> getter, BiConsumer<T, Map<String, V>> setter) {
+		setDefaultValue(bean, Collections.emptyMap(), getter, setter);
+	}
+
+	private static <T, U> void setDefaultValue(T bean, U value, Function<T, U> getter, BiConsumer<T, U> setter) {
+		if (getter.apply(bean) == null && value != null) {
+			setter.accept(bean, value);
 		}
 	}
 

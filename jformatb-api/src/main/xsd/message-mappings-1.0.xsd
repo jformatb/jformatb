@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Copyright 2024 jFormat-B
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+-->
+
+<xsd:schema
+  targetNamespace="https://github.io/jformatb/message/mapping"
+  xmlns:map="https://github.io/jformatb/message/mapping"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  elementFormDefault="qualified"
+  attributeFormDefault="unqualified"
+  version="1.0">
+
+  <xsd:annotation>
+    <xsd:documentation><![CDATA[
+        This is the XML Schema for Java Format Binding message mapping files.
+
+        Java Format Binding message mapping files must indicate the Java Format Binding
+        XML schema by using the message mapping namespace:
+
+        https://github.io/jformatb/message/mapping
+
+        and indicate the version of the schema by using the version attribute
+        as shown below:
+
+        <message-mappings
+            xmlns="https://github.io/jformatb/message/mapping"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="
+                https://github.io/jformatb/message/mapping
+                https://jformatb.github.io/message/mapping/message-mappings-1.0.xsd"
+            version="1.0">
+            ...
+        </message-mappings>
+    ]]>
+    </xsd:documentation>
+  </xsd:annotation>
+
+  <xsd:element name="message-mappings" type="map:message-mappingsType">
+    <xsd:key name="containerKey">
+      <xsd:selector xpath="*"/>
+      <xsd:field xpath="@class"/>
+    </xsd:key>
+  </xsd:element>
+
+  <xsd:complexType name="message-mappingsType">
+    <xsd:choice minOccurs="0" maxOccurs="unbounded">
+      <xsd:element name="message" type="map:messageType"/>
+      <xsd:element name="message-field-container" type="map:message-field-containerType"/>
+    </xsd:choice>
+    <xsd:attribute name="version" type="map:versionType" fixed="1.0" use="required"/>
+  </xsd:complexType>
+
+  <xsd:simpleType name="versionType">
+    <xsd:restriction base="xsd:token">
+      <xsd:pattern value="\d+(\.\d+)*"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="patternType">
+    <xsd:restriction base="xsd:string">
+      <xsd:pattern value="[ -~]+"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="accessType">
+    <xsd:restriction base="xsd:token">
+      <xsd:enumeration value="FIELD"/>
+      <xsd:enumeration value="PROPERTY"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:complexType name="message-type-infoType">
+    <xsd:attribute name="field-name" type="xsd:string" use="required"/>
+    <xsd:attribute name="length" type="xsd:unsignedInt" use="required"/>
+    <xsd:attribute name="start" type="xsd:unsignedInt" default="0" use="optional"/>
+  </xsd:complexType>
+
+  <xsd:complexType name="message-sub-typesType">
+    <xsd:sequence>
+      <xsd:element name="message-sub-type" type="map:message-sub-typeType" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="message-sub-typeType">
+    <xsd:attribute name="value" type="xsd:token" use="required"/>
+  </xsd:complexType>
+
+  <xsd:complexType name="message-field-converterType">
+    <xsd:attribute name="value" type="xsd:token" use="required"/>
+  </xsd:complexType>
+
+  <xsd:complexType name="message-field-propertyType">
+    <xsd:complexContent>
+      <xsd:extension base="map:message-fieldType">
+        <xsd:sequence>
+          <xsd:element name="message-field-map" type="map:message-field-mapType" minOccurs="0"/>
+        </xsd:sequence>
+        <xsd:attribute name="property" type="xsd:token" use="required"/>
+      </xsd:extension>
+    </xsd:complexContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="message-field-entryType">
+    <xsd:complexContent>
+      <xsd:extension base="map:message-fieldType">
+        <xsd:attribute name="key" type="xsd:token" use="required"/>
+        <xsd:attribute name="class" type="xsd:token" use="optional"/>
+      </xsd:extension>
+    </xsd:complexContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="message-field-mapType">
+    <xsd:sequence>
+      <xsd:element name="message-field-entry" type="map:message-field-entryType" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="message-field-containerType">
+    <xsd:sequence>
+      <xsd:element name="message-type-info" type="map:message-type-infoType" minOccurs="0"/>
+      <xsd:element name="message-sub-types" type="map:message-sub-typesType" minOccurs="0"/>
+      <xsd:element name="message-field-override" type="map:message-field-propertyType" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="message-field" type="map:message-field-propertyType" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="message-field-container" type="map:message-field-containerType" minOccurs="0" maxOccurs="unbounded">
+        <xsd:key name="propertyKey">
+          <xsd:selector xpath="."/>
+          <xsd:field xpath="@property"/>
+        </xsd:key>
+      </xsd:element>
+    </xsd:sequence>
+    <xsd:attribute name="property" type="xsd:string"/>
+    <xsd:attribute name="class" type="xsd:string"/>
+    <xsd:attribute name="name" type="xsd:string" use="optional"/>
+    <xsd:attribute name="access" type="map:accessType" default="FIELD" use="optional"/>
+  </xsd:complexType>
+
+  <xsd:complexType name="messageType">
+    <xsd:complexContent>
+      <xsd:extension base="map:message-field-containerType">
+        <xsd:attribute name="type" type="xsd:string" use="optional"/>
+        <xsd:attribute name="pattern" type="map:patternType" use="optional"/>
+      </xsd:extension>
+    </xsd:complexContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="message-fieldType">
+    <xsd:sequence>
+      <xsd:element name="message-type-info" type="map:message-type-infoType" minOccurs="0"/>
+      <xsd:element name="message-field-converter" type="map:message-field-converterType" minOccurs="0"/>
+    </xsd:sequence>
+    <xsd:attribute name="name" type="xsd:string" use="optional"/>
+    <xsd:attribute name="type" use="optional">
+      <xsd:simpleType>
+        <xsd:restriction base="xsd:token">
+          <xsd:enumeration value="DEFAULT"/>
+          <xsd:enumeration value="ALPHANUMERIC"/>
+          <xsd:enumeration value="NUMERIC"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+    </xsd:attribute>
+    <xsd:attribute name="length" type="xsd:unsignedInt" use="optional"/>
+    <xsd:attribute name="scale" type="xsd:int" use="optional"/>
+    <xsd:attribute name="format" type="xsd:string" use="optional"/>
+    <xsd:attribute name="locale" type="xsd:string" use="optional"/>
+    <xsd:attribute name="pattern" type="map:patternType" use="optional"/>
+    <xsd:attribute name="placeholder" type="xsd:string" use="optional"/>
+    <xsd:attribute name="read-only" type="xsd:boolean" default="false" use="optional"/>
+  </xsd:complexType>
+
+</xsd:schema>

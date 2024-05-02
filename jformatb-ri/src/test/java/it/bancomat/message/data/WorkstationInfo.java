@@ -12,8 +12,11 @@ import java.util.Map;
 import format.bind.annotation.FormatAccess;
 import format.bind.annotation.FormatAccess.Type;
 import format.bind.annotation.FormatField;
+import format.bind.annotation.FormatFieldConverter;
 import format.bind.annotation.FormatMapEntryField;
 import format.bind.annotation.FormatSubTypes;
+import it.bancomat.message.Denomination;
+import it.bancomat.message.converter.DenominationConverter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -48,8 +51,8 @@ public interface WorkstationInfo extends Serializable {
 		@Builder.Default
 		private String currencyCode = "EUR";
 
-		@Getter(onMethod_ = @FormatField(length = 3, scale = -2))
-		private int denomination;
+		@Getter(onMethod_ = { @FormatField(length = 3, scale = -2), @FormatFieldConverter(DenominationConverter.class) })
+		private Denomination denomination;
 
 		@Getter(onMethod_ = @FormatField(length = 4))
 		private int initialCount;
@@ -58,7 +61,7 @@ public interface WorkstationInfo extends Serializable {
 		private int dispensedCount;
 
 		private long getAmount(int count) {
-			return denomination * count;
+			return (long) denomination.value() * count;
 		}
 
 		@FormatField(length = 6, scale = -2, readOnly = true)
@@ -84,12 +87,12 @@ public interface WorkstationInfo extends Serializable {
 
 		private String name;
 
-		@FormatField(length = 10, format = "ddMMyyHHmm", placeholder = "0000000000")
+		@FormatField(length = 10, format = "ddMMyyHHmm")
 		private LocalDateTime dateTime;
 
 		@FormatField
 		@FormatMapEntryField(keys = "AnomalyCode", targetClass = String.class, field = @FormatField(length = 2, placeholder = "00"))
-		@FormatMapEntryField(keys = "TransactionNumber", targetClass = Integer.class, field = @FormatField(length = 5))
+		@FormatMapEntryField(keys = "TransactionNumber", targetClass = Integer.class, field = @FormatField)
 		@Singular
 		private Map<String, Object> properties;
 
@@ -163,5 +166,13 @@ public interface WorkstationInfo extends Serializable {
 	Map<String, Operation> getOperations();
 
 	Map<String, Integer> getTotals();
+
+	void setCassettes(List<Cassette> cassettes);
+
+	void setNotifications(Map<String, Notification> notifications);
+
+	void setOperations(Map<String, Operation> operations);
+
+	void setTotals(Map<String, Integer> totals);
 
 }
