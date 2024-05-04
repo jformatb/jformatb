@@ -13,24 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package format.bind.impl;
+package format.bind.sample.impl;
 
+import format.bind.FormatProcessingException;
 import format.bind.FormatReader;
-import format.bind.FormatWriter;
-import format.bind.spi.FormatProcessorFactory;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-public class FormatProcessorFactoryImpl implements FormatProcessorFactory {
+@Getter
+@AllArgsConstructor
+public class FormatReaderImpl<T> implements FormatReader<T, FormatReaderImpl<T>> {
 
-	@SuppressWarnings("unchecked")
+	private final Class<T> type;
+
+	private final String pattern;
+
 	@Override
-	public <T, F extends FormatReader<T, F>> FormatReader<T, F> createReader(Class<? extends T> type, String pattern) {
-		return (FormatReader<T, F>) new FormatReaderImpl<>(type, pattern);
+	public FormatReaderImpl<T> setListener(Listener<T> listener) {
+		throw new UnsupportedOperationException();
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
-	public <T, F extends FormatWriter<T, F>> FormatWriter<T, F> createWriter(Class<? extends T> type, String pattern) {
-		return (FormatWriter<T, F>) new FormatWriterImpl<>(type, pattern);
+	public T read(String text) throws FormatProcessingException {
+		throw new FormatProcessingException(String.format("Unable to parse text '%s'", text));
 	}
 
 }

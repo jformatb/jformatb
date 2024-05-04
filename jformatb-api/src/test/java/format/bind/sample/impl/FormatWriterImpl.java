@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package format.bind.impl;
+package format.bind.sample.impl;
 
 import format.bind.FormatProcessingException;
 import format.bind.FormatWriter;

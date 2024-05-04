@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package format.bind;
+package format.bind.sample;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
 import org.junit.jupiter.api.Test;
 
+import format.bind.FormatException;
+import format.bind.FormatProcessingException;
+import format.bind.Formatter;
 import format.bind.converter.FieldConverter;
 import format.bind.converter.spi.FieldConverterProvider;
 

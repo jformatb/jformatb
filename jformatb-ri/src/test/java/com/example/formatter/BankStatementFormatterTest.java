@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package format.datatype.test;
+package com.example.formatter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -27,12 +27,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.example.datatype.BankStatement;
+import com.example.datatype.BankStatement.Transaction;
 import com.opencsv.bean.CsvToBeanBuilder;
 
 import format.bind.FormatProcessingException;
 import format.bind.Formatter;
-import format.datatype.BankStatement;
-import format.datatype.BankStatement.Transaction;
 
 class BankStatementFormatterTest {
 
@@ -41,7 +41,8 @@ class BankStatementFormatterTest {
 	@BeforeEach
 	void init() {
 		input = Thread.currentThread()
-				.getContextClassLoader().getResourceAsStream("transactions.csv");
+				.getContextClassLoader()
+				.getResourceAsStream("transactions.csv");
 	}
 
 	@Test
@@ -90,17 +91,17 @@ class BankStatementFormatterTest {
 
 	private String buildTextMessage(List<Transaction> transactions) {
 		StringBuilder sb = new StringBuilder();
-	
+
 		DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("ddMMyy");
-	
+
 		transactions.forEach(transaction -> sb.append(new StringBuilder()
-					.append(dateTimeFormatter.format(transaction.getEntryDate()))
-					.append(dateTimeFormatter.format(transaction.getValueDate()))
-					.append(StringUtils.rightPad(transaction.getDescription(), 20))
-					.append(StringUtils.leftPad(String.valueOf(transaction.getAmount().abs().unscaledValue().longValueExact()), 12, "0"))
-					.append(transaction.getAmount().signum() == -1 ? "-" : "+")
-					.toString()));
-	
+				.append(dateTimeFormatter.format(transaction.getEntryDate()))
+				.append(dateTimeFormatter.format(transaction.getValueDate()))
+				.append(StringUtils.rightPad(transaction.getDescription(), 20))
+				.append(StringUtils.leftPad(String.valueOf(transaction.getAmount().abs().unscaledValue().longValueExact()), 12, "0"))
+				.append(transaction.getAmount().signum() == -1 ? "-" : "+")
+				.toString()));
+
 		return sb.toString();
 	}
 

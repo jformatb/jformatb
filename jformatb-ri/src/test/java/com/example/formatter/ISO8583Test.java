@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package format.datatype.test;
+package com.example.formatter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
+import com.example.datatype.ISO8583;
+
 import format.bind.Formatter;
-import format.datatype.ISO8583;
 
 class ISO8583Test {
 

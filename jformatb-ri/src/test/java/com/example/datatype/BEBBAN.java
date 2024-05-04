@@ -2,7 +2,7 @@
 * Copyright (c) 2019 by Diebold Nixdorf
 * This software is the confidential and proprietary information of Diebold Nixdorf.
 */
-package format.datatype;
+package com.example.datatype;
 
 import format.bind.annotation.Format;
 import format.bind.annotation.FormatTypeValue;
@@ -15,17 +15,18 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-@Format(pattern = "${bankCode:8}${accountNumber:10}")
-@FormatTypeValue("DE")
-public class DEBBAN extends BBAN {
+@Format(pattern = "${bankCode:3}${accountNumber:7}${checkDigits:2}")
+@FormatTypeValue("BE")
+public class BEBBAN extends BBAN {
 
-	private static final long serialVersionUID = 3417090294644946293L;
+	private static final long serialVersionUID = 5111671995761204500L;
 
 	@Override
 	public String toString() {
 		return new StringBuilder()
 				.append(getBankCode())
 				.append(getAccountNumber())
+				.append(getCheckDigits())
 				.toString();
 	}
 

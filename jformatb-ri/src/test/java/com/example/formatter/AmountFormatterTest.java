@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package format.datatype.test;
+package com.example.formatter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -23,8 +23,9 @@ import java.util.Locale;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvFileSource;
 
+import com.example.datatype.Amount;
+
 import format.bind.Formatter;
-import format.datatype.Amount;
 
 class AmountFormatterTest {
 

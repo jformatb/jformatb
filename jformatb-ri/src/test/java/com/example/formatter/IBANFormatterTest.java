@@ -2,7 +2,7 @@
 * Copyright (c) 2019 by Diebold Nixdorf
 * This software is the confidential and proprietary information of Diebold Nixdorf.
 */
-package format.datatype.test;
+package com.example.formatter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -17,14 +17,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvFileSource;
 
+import com.example.datatype.BEBBAN;
+import com.example.datatype.DEBBAN;
+import com.example.datatype.FRBBAN;
+import com.example.datatype.GBBBAN;
+import com.example.datatype.IBAN;
+import com.example.datatype.ITBBAN;
+import com.example.datatype.BBAN.BBANBuilder;
+
 import format.bind.Formatter;
-import format.datatype.BBAN.BBANBuilder;
-import format.datatype.BEBBAN;
-import format.datatype.DEBBAN;
-import format.datatype.FRBBAN;
-import format.datatype.GBBBAN;
-import format.datatype.IBAN;
-import format.datatype.ITBBAN;
 
 class IBANFormatterTest {
 
@@ -57,16 +58,7 @@ class IBANFormatterTest {
 		String actual = Formatter.of(IBAN.class)
 				.createWriter()
 				.withListener((obj, values) -> resolvedValues.putAll(values))
-				.write(IBAN.builder()
-						.countryCode(countryCode)
-						.checkDigits(checkDigits)
-						.BBAN(builders.get(countryCode)
-								.bankCode(StringUtils.trimToNull(bankCode))
-								.branchCode(StringUtils.trimToNull(branchCode))
-								.accountNumber(StringUtils.trimToNull(accountNumber))
-								.checkDigits(StringUtils.trimToNull(nationalCheckDigits))
-								.build())
-						.build());
+				.write(buildIBAN(countryCode, checkDigits, bankCode, branchCode, accountNumber, nationalCheckDigits));
 		assertThat(actual).isEqualTo(expected);
 		assertThat(resolvedValues).containsOnlyKeys("countryCode", "checkDigits", "BBAN");
 	}
@@ -79,7 +71,17 @@ class IBANFormatterTest {
 				.createReader()
 				.setListener((obj, values) -> resolvedValues.putAll(values))
 				.read(iban);
-		IBAN expected = IBAN.builder()
+		IBAN expected = buildIBAN(countryCode, checkDigits, bankCode, branchCode, accountNumber, nationalCheckDigits);
+		assertThat(actual)
+				.is(valid)
+				.isEqualTo(expected)
+				.hasToString(iban);
+		assertThat(resolvedValues).containsEntry("BBAN", actual.getBBAN());
+	}
+
+	private static IBAN buildIBAN(String countryCode, String checkDigits, String bankCode, String branchCode,
+			String accountNumber, String nationalCheckDigits) {
+		return IBAN.builder()
 				.countryCode(countryCode)
 				.checkDigits(checkDigits)
 				.BBAN(builders.get(countryCode)
@@ -89,11 +91,6 @@ class IBANFormatterTest {
 						.checkDigits(StringUtils.trimToNull(nationalCheckDigits))
 						.build())
 				.build();
-		assertThat(actual)
-				.is(valid)
-				.isEqualTo(expected)
-				.hasToString(iban);
-		assertThat(resolvedValues).containsEntry("BBAN", actual.getBBAN());
 	}
 
 }

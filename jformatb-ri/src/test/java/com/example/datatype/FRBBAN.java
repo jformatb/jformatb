@@ -2,11 +2,9 @@
 * Copyright (c) 2019 by Diebold Nixdorf
 * This software is the confidential and proprietary information of Diebold Nixdorf.
 */
-package format.datatype;
+package com.example.datatype;
 
 import format.bind.annotation.Format;
-import format.bind.annotation.FormatField;
-import format.bind.annotation.FormatFieldOverride;
 import format.bind.annotation.FormatTypeValue;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -17,22 +15,19 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-@Format(pattern = "${cin:1}${abi:5}${cab:5}${accountNumber:12}")
-@FormatTypeValue("IT")
-@FormatFieldOverride(property = "bankCode", field = @FormatField(name = "abi"))
-@FormatFieldOverride(property = "branchCode", field = @FormatField(name = "cab"))
-@FormatFieldOverride(property = "checkDigits", field = @FormatField(name = "cin"))
-public class ITBBAN extends BBAN {
+@Format(pattern = "${bankCode:5}${branchCode:5}${accountNumber:11}${checkDigits:2}")
+@FormatTypeValue("FR")
+public class FRBBAN extends BBAN {
 
-	private static final long serialVersionUID = 1074556192726878231L;
+	private static final long serialVersionUID = 3576067502835386208L;
 
 	@Override
 	public String toString() {
 		return new StringBuilder()
-				.append(getCheckDigits())
 				.append(getBankCode())
 				.append(getBranchCode())
 				.append(getAccountNumber())
+				.append(getCheckDigits())
 				.toString();
 	}
 

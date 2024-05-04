@@ -2,7 +2,7 @@
 * Copyright (c) 2019 by Diebold Nixdorf
 * This software is the confidential and proprietary information of Diebold Nixdorf.
 */
-package format.datatype;
+package com.example.datatype;
 
 import java.io.Serializable;
 
