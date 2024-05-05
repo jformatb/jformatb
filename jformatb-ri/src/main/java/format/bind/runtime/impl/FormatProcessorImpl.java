@@ -151,7 +151,7 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 	}
 
 	FormatFieldDescriptor buildFieldDescriptor(final FormatFieldAccessor accessor, final String expression, final Class<?> propertyType, final String[] options) {
-		String target = getLastProperty(expression);
+		String target = getTargetProperty(expression);
 
 		if (resolver.isMapped(target)) {
 			String key = resolver.getKey(target);
@@ -184,7 +184,7 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 	}
 
 	<X> FieldConverter<X> getFieldConverter(final FormatFieldAccessor accessor, final String expression, final Class<X> propertyType) {
-		String target = getLastProperty(expression);
+		String target = getTargetProperty(expression);
 
 		if (resolver.isMapped(target)) {
 			String key = resolver.getKey(target);
@@ -457,22 +457,23 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 		return value;
 	}
 
-	private String getLastProperty(final String expression) {
+	private String getTargetProperty(final String expression) {
 		return Arrays.stream(expression.split(PropertyResolver.NESTED_REGEX))
-				.reduce((current, next) -> next)
+				.reduce((previous, current) -> current)
 				.orElse(null);
 	}
 
 	private Class<?> getMappedPropertyType(final FormatFieldAccessor accessor, final String expression) {
-		String target = getLastProperty(expression);
+		String target = getTargetProperty(expression);
 
 		if (resolver.isMapped(target)) {
 			String key = resolver.getKey(target);
 			return Arrays.stream(accessor.getAnnotationsByType(FormatMapEntryField.class))
 					.filter(annotation -> Arrays.asList(annotation.keys()).contains(key))
-					.map(FormatMapEntryField::targetClass)
+					.map(FormatMapEntryField::field)
+					.map(FormatField::targetClass)
 					.findFirst()
-					.filter(clazz -> !Void.class.isAssignableFrom(clazz))
+					.filter(targetClass -> !Void.class.isAssignableFrom(targetClass))
 					.orElse(null);
 		}
 

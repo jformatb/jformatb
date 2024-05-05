@@ -91,8 +91,8 @@ public interface WorkstationInfo extends Serializable {
 		private LocalDateTime dateTime;
 
 		@FormatField
-		@FormatMapEntryField(keys = "AnomalyCode", targetClass = String.class, field = @FormatField(length = 2, placeholder = "00"))
-		@FormatMapEntryField(keys = "TransactionNumber", targetClass = Integer.class, field = @FormatField)
+		@FormatMapEntryField(keys = "AnomalyCode", field = @FormatField(length = 2, placeholder = "00", targetClass = String.class))
+		@FormatMapEntryField(keys = "TransactionNumber", field = @FormatField(targetClass = Integer.class))
 		@Singular
 		private Map<String, Object> properties;
 

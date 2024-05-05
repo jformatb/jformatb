@@ -117,7 +117,6 @@
     <xsd:complexContent>
       <xsd:extension base="map:message-fieldType">
         <xsd:attribute name="key" type="xsd:token" use="required"/>
-        <xsd:attribute name="class" type="xsd:token" use="optional"/>
       </xsd:extension>
     </xsd:complexContent>
   </xsd:complexType>
@@ -141,9 +140,9 @@
         </xsd:key>
       </xsd:element>
     </xsd:sequence>
-    <xsd:attribute name="property" type="xsd:string"/>
-    <xsd:attribute name="class" type="xsd:string"/>
-    <xsd:attribute name="name" type="xsd:string" use="optional"/>
+    <xsd:attribute name="property" type="xsd:token"/>
+    <xsd:attribute name="class" type="xsd:token"/>
+    <xsd:attribute name="name" type="xsd:token" use="optional"/>
     <xsd:attribute name="access" type="map:accessType" default="FIELD" use="optional"/>
   </xsd:complexType>
 
@@ -157,11 +156,12 @@
   </xsd:complexType>
 
   <xsd:complexType name="message-fieldType">
-    <xsd:sequence>
-      <xsd:element name="message-type-info" type="map:message-type-infoType" minOccurs="0"/>
-      <xsd:element name="message-field-converter" type="map:message-field-converterType" minOccurs="0"/>
-    </xsd:sequence>
-    <xsd:attribute name="name" type="xsd:string" use="optional"/>
+    <xsd:choice minOccurs="0">
+      <xsd:element name="message-field-converter" type="map:message-field-converterType"/>
+      <xsd:element name="message-type-info" type="map:message-type-infoType"/>
+    </xsd:choice>
+    <xsd:attribute name="name" type="xsd:token" use="optional"/>
+    <xsd:attribute name="class" type="xsd:token" use="optional"/>
     <xsd:attribute name="type" use="optional">
       <xsd:simpleType>
         <xsd:restriction base="xsd:token">
@@ -174,7 +174,7 @@
     <xsd:attribute name="length" type="xsd:unsignedInt" use="optional"/>
     <xsd:attribute name="scale" type="xsd:int" use="optional"/>
     <xsd:attribute name="format" type="xsd:string" use="optional"/>
-    <xsd:attribute name="locale" type="xsd:string" use="optional"/>
+    <xsd:attribute name="locale" type="xsd:token" use="optional"/>
     <xsd:attribute name="pattern" type="map:patternType" use="optional"/>
     <xsd:attribute name="placeholder" type="xsd:string" use="optional"/>
     <xsd:attribute name="read-only" type="xsd:boolean" default="false" use="optional"/>

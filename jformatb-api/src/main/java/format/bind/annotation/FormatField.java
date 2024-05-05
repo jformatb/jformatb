@@ -131,6 +131,13 @@ public @interface FormatField {
 	boolean readOnly() default false;
 
 	/**
+	 * (Optional) The target class of the text format field.
+	 * 
+	 * @return The target class of the text format field.
+	 */
+	Class<?> targetClass() default Void.class;
+
+	/**
 	 * Used in {@link FormatField#type()} to specify the type of the
 	 * text format field.
 	 */

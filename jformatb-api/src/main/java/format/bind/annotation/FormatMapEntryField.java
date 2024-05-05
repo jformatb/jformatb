@@ -53,13 +53,6 @@ public @interface FormatMapEntryField {
 	FormatField field();
 
 	/**
-	 * (Optional) The target class of the map entry value to map.
-	 * 
-	 * @return The target class of the map entry value.
-	 */
-	Class<?> targetClass() default Void.class;
-
-	/**
 	 * (Optional) The class that converts a text format field of the map entry
 	 * 		value.
 	 * 
