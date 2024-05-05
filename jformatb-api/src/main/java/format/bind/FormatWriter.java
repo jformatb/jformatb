@@ -15,6 +15,8 @@
  */
 package format.bind;
 
+import java.util.Map;
+
 /**
  * The {@code FormatWriter} class is responsible for processing the serialization of
  * Java object into text format.
@@ -25,6 +27,24 @@ package format.bind;
  * @author Yannick Ebongue
  */
 public interface FormatWriter<T, F extends FormatWriter<T, F>> extends FormatProcessor<T, F> {
+
+	/**
+	 * Set additional text field property values.
+	 * 
+	 * @param properties The additional text field property values to set
+	 * @return This {@code FormatWriter}.
+	 */
+	F setProperties(final Map<String, Object> properties);
+
+	/**
+	 * Set additional text field property values.
+	 * 
+	 * @param properties The additional text field property values to set
+	 * @return This {@code FormatWriter}.
+	 */
+	default F withProperties(final Map<String, Object> properties) {
+		return setProperties(properties);
+	}
 
 	/**
 	 * Serialize the specified {@code obj} into a formatted text data.

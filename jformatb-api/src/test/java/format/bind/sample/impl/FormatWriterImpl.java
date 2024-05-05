@@ -15,6 +15,9 @@
  */
 package format.bind.sample.impl;
 
+import java.util.Collections;
+import java.util.Map;
+
 import format.bind.FormatProcessingException;
 import format.bind.FormatWriter;
 import lombok.AllArgsConstructor;
@@ -28,9 +31,16 @@ public class FormatWriterImpl<T> implements FormatWriter<T, FormatWriterImpl<T>>
 
 	private final String pattern;
 
+	private final Map<String, Object> properties = Collections.emptyMap();
+
 	@Override
 	public FormatWriterImpl<T> setListener(Listener<T> listener) {
-		throw new UnsupportedOperationException();
+		return this;
+	}
+
+	@Override
+	public FormatWriterImpl<T> setProperties(Map<String, Object> properties) {
+		return this;
 	}
 
 	@Override

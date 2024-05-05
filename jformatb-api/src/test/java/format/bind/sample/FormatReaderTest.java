@@ -13,29 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package format.bind.sample.impl;
+package format.bind.sample;
 
-import format.bind.FormatProcessingException;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.jupiter.api.Test;
+
 import format.bind.FormatReader;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import format.bind.Formatter;
 
-@Getter
-@AllArgsConstructor
-public class FormatReaderImpl<T> implements FormatReader<T, FormatReaderImpl<T>> {
+class FormatReaderTest {
 
-	private final Class<T> type;
-
-	private final String pattern;
-
-	@Override
-	public FormatReaderImpl<T> setListener(Listener<T> listener) {
-		return this;
-	}
-
-	@Override
-	public T read(String text) throws FormatProcessingException {
-		throw new FormatProcessingException(String.format("Unable to parse text '%s'", text));
+	@Test
+	void createReaderWithListener() {
+		FormatReader<Object, ?> expected = Formatter.of(Object.class).createReader();
+		FormatReader<Object, ?> actual = expected.withListener((obj, fields) -> {});
+		assertThat(actual).isSameAs(expected);
 	}
 
 }

@@ -50,7 +50,7 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 	 * @param type The class instance of the Java object to create.
 	 * @param pattern The pattern of the text format to read.
 	 */
-	private FormatReaderImpl(Class<T> type, String pattern) {
+	private FormatReaderImpl(final Class<T> type, final String pattern) {
 		super(type, pattern);
 	}
 
@@ -61,12 +61,12 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 	 * @param pattern The pattern of the text format to read.
 	 * @return A new instance of {@code FormatReaderImpl}.
 	 */
-	public static <T> FormatReaderImpl<T> of(Class<T> type, String pattern) {
+	public static <T> FormatReaderImpl<T> of(final Class<T> type, final String pattern) {
 		return new FormatReaderImpl<>(type, pattern);
 	}
 
 	@Override
-	public T read(String text) {
+	public T read(final String text) {
 		try {
 			T obj = createObject(text);
 			Class<?> resultType = obj.getClass();
@@ -161,16 +161,16 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 		return type.getConstructor().newInstance();
 	}
 
-	private boolean isValid(Object value, FormatFieldDescriptor descriptor) {
+	private boolean isValid(final Object value, final FormatFieldDescriptor descriptor) {
 		return value != null && !descriptor.readOnly();
 	}
 
-	private FormatProcessingException handleException(final String text, final Exception eexception) {
-		if (eexception instanceof FormatProcessingException) {
-			return (FormatProcessingException) eexception;
+	private FormatProcessingException handleException(final String text, final Exception exception) {
+		if (exception instanceof FormatProcessingException) {
+			return (FormatProcessingException) exception;
 		}
 
-		return new FormatProcessingException(String.format("Unable to parse text [%s]", text), eexception);
+		return new FormatProcessingException(String.format("Unable to parse text [%s]", text), exception);
 	}
 
 }

@@ -17,10 +17,12 @@ package format.bind.runtime.impl;
 
 import static format.bind.runtime.impl.FormatUtil.*;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -43,12 +45,15 @@ import format.bind.converter.FieldConverter;
 final class FormatWriterImpl<T> extends FormatProcessorImpl<T, FormatWriterImpl<T>>
 		implements FormatWriter<T, FormatWriterImpl<T>> {
 
+	/** The map containing additional text field properties. */
+	private Map<String, Object> additionalProperties = Collections.emptyMap();
+
 	/**
 	 * Creates a new instance of {@code FormatWriterImpl}.
 	 * @param type The class instance of the Java object to format.
 	 * @param pattern The pattern of the text format to write.
 	 */
-	private FormatWriterImpl(Class<T> type, String pattern) {
+	private FormatWriterImpl(final Class<T> type, final String pattern) {
 		super(type, pattern);
 	}
 
@@ -59,12 +64,20 @@ final class FormatWriterImpl<T> extends FormatProcessorImpl<T, FormatWriterImpl<
 	 * @param pattern The pattern of the text format to write.
 	 * @return A new instance of {@code FormatWriterImpl}.
 	 */
-	public static <T> FormatWriterImpl<T> of(Class<T> type, String pattern) {
+	public static <T> FormatWriterImpl<T> of(final Class<T> type, final String pattern) {
 		return new FormatWriterImpl<>(type, pattern);
 	}
 
 	@Override
-	public String write(T obj) {
+	public FormatWriterImpl<T> setProperties(final Map<String, Object> properties) {
+		additionalProperties = Optional.ofNullable(properties)
+				.map(Collections::unmodifiableMap)
+				.orElseGet(Collections::emptyMap);
+		return this;
+	}
+
+	@Override
+	public String write(final T obj) throws FormatProcessingException {
 		try {
 			StringBuilder output = new StringBuilder();
 			Class<?> resultType = obj.getClass();
@@ -102,7 +115,8 @@ final class FormatWriterImpl<T> extends FormatProcessorImpl<T, FormatWriterImpl<
 				int counter = 0;
 				while (iterator.hasNext()) {
 					String property = nextProperty(iterator, counter);
-					Object value = getValue(obj, property);
+					Object value = Optional.ofNullable(getValue(obj, property))
+							.orElse(additionalProperties.get(property));
 
 					if (value == null && Pattern.compile("\\[(\\d+::)?\\*\\]").matcher(name).find()) {
 						lastIndex = matcher.end();
