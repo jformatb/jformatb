@@ -21,16 +21,24 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.ClassUtils;
+import org.apache.commons.lang3.function.Failable;
+import org.apache.commons.lang3.reflect.MethodUtils;
 
 import format.bind.FormatFieldAccessor;
 import format.bind.FormatFieldAccessor.Strategy;
 import format.bind.FormatFieldDescriptor;
+import format.bind.FormatProcessingException;
 import format.bind.Formatter;
 import format.bind.annotation.Format;
 import format.bind.annotation.FormatField;
@@ -42,10 +50,48 @@ import format.bind.annotation.FormatTypeInfo;
 import format.bind.annotation.FormatTypeValue;
 import format.bind.converter.FieldConverter;
 import format.bind.converter.spi.FieldConverterProvider;
+import lombok.Value;
 import lombok.experimental.UtilityClass;
 
 @UtilityClass
 class FormatUtil {
+
+	@Value(staticConstructor = "of")
+	private static class FieldDescriptorSetter<T> {
+
+		private BiConsumer<FormatFieldDescriptorImpl, T> setter;
+
+		private Function<String, T> extractor;
+
+		void accept(FormatFieldDescriptorImpl descriptor, String value) {
+			setter.accept(descriptor, extractor.apply(value));
+		}
+
+	}
+
+	private final String FORMAT_FIELD_OPTION_KEY = "key";
+	private final String FORMAT_FIELD_OPTION_VALUE = "value";
+	private final String FORMAT_FIELD_OPTION_FLAG = "flag";
+	private final String FORMAT_FIELD_OPTION_REGEX = String.format("\\-\\-(?<%s>\\w+)=(?<%s>[\\w\\.]+)|\\-\\-(?<%s>\\w+)",
+			FORMAT_FIELD_OPTION_KEY, FORMAT_FIELD_OPTION_VALUE, FORMAT_FIELD_OPTION_FLAG);
+
+	private Map<String, FieldDescriptorSetter<?>> fieldDescriptorSetters = new HashMap<>();
+
+	static {
+		registerFieldDescriptorSetter("name", FieldDescriptorSetter.of(FormatFieldDescriptorImpl::name, Function.identity()));
+		registerFieldDescriptorSetter("type", FieldDescriptorSetter.of(FormatFieldDescriptorImpl::type, FormatField.Type::valueOf));
+		registerFieldDescriptorSetter("length", FieldDescriptorSetter.of(FormatFieldDescriptorImpl::length, Integer::parseInt));
+		registerFieldDescriptorSetter("scale", FieldDescriptorSetter.of(FormatFieldDescriptorImpl::scale, Integer::parseInt));
+		registerFieldDescriptorSetter("format", FieldDescriptorSetter.of(FormatFieldDescriptorImpl::format, Function.identity()));
+		registerFieldDescriptorSetter("locale", FieldDescriptorSetter.of(FormatFieldDescriptorImpl::locale, Function.identity()));
+		registerFieldDescriptorSetter("placeholder", FieldDescriptorSetter.of(FormatFieldDescriptorImpl::placeholder, Function.identity()));
+		registerFieldDescriptorSetter("readOnly", FieldDescriptorSetter.of(FormatFieldDescriptorImpl::readOnly, Boolean::parseBoolean));
+		registerFieldDescriptorSetter("targetClass", FieldDescriptorSetter.of(FormatFieldDescriptorImpl::targetClass, Failable.asFunction(ClassUtils::getClass)));
+	}
+
+	private <T> void registerFieldDescriptorSetter(final String key, final FieldDescriptorSetter<T> setter) {
+		fieldDescriptorSetters.put(key, setter);
+	}
 
 	private <T> List<Class<? extends T>> getFormatSubTypes(final Class<T> superclass) {
 		List<Class<? extends T>> subclasses = new ArrayList<>();
@@ -170,14 +216,35 @@ class FormatUtil {
 
 		applyOverrides(descriptor, accessor, propertyType);
 
+		updateFieldDescriptorOptions(descriptor, accessor.getName(), options);
+
+		return descriptor;
+	}
+
+	void updateFieldDescriptorOptions(FormatFieldDescriptorImpl descriptor, String name, String[] options) {
 		if (descriptor.name().isEmpty()) {
 			// Use class field name
-			descriptor.name(accessor.getName());
+			descriptor.name(name);
 		}
 
 		if (options.length > 1) {
-			// Override annotation field length
-			descriptor.length(Integer.parseInt(options[1]));
+			if (options[1].matches("\\d+")) {
+				// Override annotation field length
+				descriptor.length(Integer.parseInt(options[1]));
+			} else {
+				// Override annotation options
+				try {
+					Matcher matcher = Pattern.compile(FORMAT_FIELD_OPTION_REGEX).matcher(options[1]);
+					while (matcher.find()) {
+						Optional.ofNullable(matcher.group(FORMAT_FIELD_OPTION_KEY)).ifPresent(
+								key -> fieldDescriptorSetters.get(key).accept(descriptor, matcher.group(FORMAT_FIELD_OPTION_VALUE)));
+						Optional.ofNullable(matcher.group(FORMAT_FIELD_OPTION_FLAG)).ifPresent(
+								key -> fieldDescriptorSetters.get(key).accept(descriptor, "true"));
+					}
+				} catch (Exception e) {
+					throw new FormatProcessingException("Unable to update field descriptor options", e);
+				}
+			}
 		}
 
 		if (options.length > 2) {
@@ -185,7 +252,6 @@ class FormatUtil {
 			descriptor.placeholder(options[2]);
 		}
 
-		return descriptor;
 	}
 
 	void applyOverrides(final FormatFieldDescriptorImpl descriptor, final FormatFieldAccessor accessor, final Class<?> propertyType) {
@@ -209,20 +275,15 @@ class FormatUtil {
 	}
 
 	void applyOverride(final FormatFieldDescriptorImpl descriptor, final FormatFieldOverride override) {
-		try {
-			FormatField field = override.field();
-			Class<FormatField> type = FormatField.class;
-			descriptor
-					.name(!type.getDeclaredMethod("name").getDefaultValue().equals(field.name()) ? field.name() : descriptor.name())
-					.type(!type.getDeclaredMethod("type").getDefaultValue().equals(field.type()) ? field.type() : descriptor.type())
-					.length(!type.getDeclaredMethod("length").getDefaultValue().equals(field.length()) ? field.length() : descriptor.length())
-					.scale(!type.getDeclaredMethod("scale").getDefaultValue().equals(field.scale()) ? field.scale() : descriptor.scale())
-					.format(!type.getDeclaredMethod("format").getDefaultValue().equals(field.format()) ? field.format() : descriptor.format())
-					.locale(!type.getDeclaredMethod("locale").getDefaultValue().equals(field.locale()) ? field.locale() : descriptor.locale())
-					.placeholder(!type.getDeclaredMethod("placeHolder").getDefaultValue().equals(field.placeholder()) ? field.placeholder() : descriptor.placeholder());
-		} catch (NoSuchMethodException | SecurityException e) {
-			throw new IllegalArgumentException(e);
-		}
+		FormatField field = override.field();
+		Class<FormatField> type = FormatField.class;
+		fieldDescriptorSetters.keySet().forEach(Failable.asConsumer(name -> {
+			Object defaultValue = type.getDeclaredMethod(name).getDefaultValue();
+			Object fieldValue = MethodUtils.invokeExactMethod(field, name);
+			Object descriptorValue = MethodUtils.invokeExactMethod(descriptor, name);
+			Object value = Objects.equals(defaultValue, fieldValue) ? descriptorValue : fieldValue;
+			MethodUtils.invokeExactMethod(descriptor, name, value);
+		}));
 	}
 
 }

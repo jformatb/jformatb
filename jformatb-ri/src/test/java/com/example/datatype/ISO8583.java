@@ -15,32 +15,48 @@
  */
 package com.example.datatype;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 
+import format.bind.annotation.FormatFactory;
 import format.bind.annotation.FormatField;
 import format.bind.annotation.FormatField.Type;
+import format.bind.annotation.FormatValue;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Singular;
+import lombok.Value;
+import lombok.With;
 
 @Data
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
 public class ISO8583 implements Serializable {
 
 	private static final long serialVersionUID = 2260586751727192971L;
 
 	@FormatField(name = "MTI", length = 4, type = Type.NUMERIC)
-	private String messageTypeIndicator;
+	private MessageTypeIndicator messageTypeIndicator;
 
 	@FormatField(name = "BITMAP")
 	private byte[] bitmap;
+
+	@FormatField(name = "DE")
+	@Singular
+	private List<DataElement> dataElements;
+
+	public ISO8583() {
+		dataElements = new ArrayList<>();
+	}
 
 	private static String extractMessageTypeIndicator(final String message) {
 		return message.substring(0, 4);
@@ -77,9 +93,105 @@ public class ISO8583 implements Serializable {
 
 	public static ISO8583 fromString(final String message) {
 		return ISO8583.builder()
-				.messageTypeIndicator(extractMessageTypeIndicator(message))
+				.messageTypeIndicator(MessageTypeIndicator.fromString(extractMessageTypeIndicator(message)))
 				.bitmap(extractBitmap(message))
 				.build();
+	}
+
+	public enum Version {
+		ISO_8583_1987,
+		ISO_8583_1993,
+		ISO_8583_2003
+	}
+
+	public enum MessageClass {
+		RESERVED,
+		AUTHORIZATION,
+		FINANCIAL,
+		FILE,
+		REVERSAL,
+		RECONCILIATION,
+		ADMINISTRATIVE,
+		FEE,
+		NETWORK
+	}
+
+	public enum MessageFunction {
+		REQUEST,
+		REQUEST_RESPONSE,
+		ADVICE,
+		ADVICE_RESPONSE,
+		NOTIFICATION,
+		NOTIFICATION_ACKNOWLEDGEMENT,
+		INSTRUCTION,
+		INSTRUCTION_ACKNOWLEDGEMENT
+	}
+
+	public enum MessageOrigin {
+		ACQUIRER,
+		ACQUIRER_REPEAT,
+		ISSUER,
+		ISSUER_REPEAT,
+		OTHER
+	}
+
+	@Value
+	@AllArgsConstructor(access = AccessLevel.PRIVATE)
+	public static class MessageTypeIndicator implements Serializable {
+
+		private static final long serialVersionUID = 2150669968457852006L;
+
+		private Version version;
+
+		private MessageClass messageClass;
+
+		private MessageFunction messageFunction;
+
+		private MessageOrigin messageOrigin;
+
+		@Override
+		@FormatValue
+		public String toString() {
+			return new StringBuilder()
+					.append(version.ordinal())
+					.append(messageClass.ordinal())
+					.append(messageFunction.ordinal())
+					.append(messageOrigin.ordinal())
+					.toString();
+		}
+
+		@FormatFactory
+		public static MessageTypeIndicator fromString(String mti) {
+			return new MessageTypeIndicator(
+					Version.values()[Character.getNumericValue(mti.charAt(0))],
+					MessageClass.values()[Character.getNumericValue(mti.charAt(1))],
+					MessageFunction.values()[Character.getNumericValue(mti.charAt(2))],
+					MessageOrigin.values()[Character.getNumericValue(mti.charAt(3))]);
+		}
+
+	}
+
+	@Value(staticConstructor = "of")
+	public static class DataElement implements Serializable {
+
+		private static final long serialVersionUID = -4932375871728633474L;
+
+		@With
+		private int position;
+
+		@FormatValue
+		private Object value;
+
+		private void writeObject(ObjectOutputStream out) throws IOException {
+			out.writeInt(position);
+			out.writeObject(value);
+		}
+
+		@FormatFactory
+		public static DataElement of(Object value) {
+			return new DataElement(0, value);
+		}
+
 	}
 
 }

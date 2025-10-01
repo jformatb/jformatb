@@ -140,14 +140,14 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 	}
 
 	String getPattern(Class<?> resultType) {
-		return pattern != null ? pattern : Optional.ofNullable(resultType.getAnnotation(Format.class))
-				.map(Format::pattern)
-				.orElse(null);
+		return Optional.ofNullable(pattern)
+				.orElseGet(() -> Optional.ofNullable(resultType.getAnnotation(Format.class))
+						.map(Format::pattern)
+						.orElse(null));
 	}
 
 	Matcher compile(String input) {
-		return Pattern.compile(REGEX)
-				.matcher(input);
+		return Pattern.compile(REGEX).matcher(input);
 	}
 
 	FormatFieldDescriptor buildFieldDescriptor(final FormatFieldAccessor accessor, final String expression, final Class<?> propertyType, final String[] options) {
@@ -162,20 +162,7 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 					.orElse(accessor.getAnnotation(FormatField.class));
 			FormatFieldDescriptorImpl descriptor = FormatFieldDescriptorImpl.from(field);
 
-			if (descriptor.name().isEmpty()) {
-				// Use class field name
-				descriptor.name(expression);
-			}
-
-			if (options.length > 1) {
-				// Override annotation field length
-				descriptor.length(Integer.parseInt(options[1]));
-			}
-
-			if (options.length > 2) {
-				// Override annotation field placeholder
-				descriptor.placeholder(options[2]);
-			}
+			updateFieldDescriptorOptions(descriptor, expression, options);
 
 			return descriptor;
 		}

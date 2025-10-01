@@ -22,11 +22,11 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 import format.bind.annotation.Format;
+import format.bind.annotation.FormatFactory;
 import format.bind.annotation.FormatField;
 import format.bind.annotation.FormatFieldContainer;
-import format.bind.annotation.FormatFieldConverter;
 import format.bind.annotation.FormatTypeValue;
-import it.bancomat.message.converter.DepositTypeConverter;
+import format.bind.annotation.FormatValue;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -64,9 +64,11 @@ public class DepositRequestMessage extends CustomerRequestMessage {
 				.collect(Collectors.toMap(Type::value, Function.identity()));
 
 		@JsonValue
+		@FormatValue
 		private final Integer value;
 
 		@JsonCreator
+		@FormatFactory
 		public static Type fromValue(Integer value) {
 			return VALUES.get(value);
 		}
@@ -180,7 +182,6 @@ public class DepositRequestMessage extends CustomerRequestMessage {
 	}
 
 	@FormatField(length = 1)
-	@FormatFieldConverter(DepositTypeConverter.class)
 	private Type depositType;
 
 	@FormatField(length = 20)

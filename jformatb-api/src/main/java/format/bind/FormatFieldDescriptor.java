@@ -93,4 +93,11 @@ public interface FormatFieldDescriptor {
 	 */
 	boolean readOnly();
 
+	/**
+	 * The target class of the text format field.
+	 * 
+	 * @return The target class of the text format field.
+	 */
+	Class<?> targetClass();
+
 }

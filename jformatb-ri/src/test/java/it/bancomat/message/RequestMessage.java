@@ -17,9 +17,11 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonValue;
 
+import format.bind.annotation.FormatFactory;
 import format.bind.annotation.FormatField;
 import format.bind.annotation.FormatSubTypes;
 import format.bind.annotation.FormatTypeInfo;
+import format.bind.annotation.FormatValue;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -59,9 +61,11 @@ public abstract class RequestMessage implements Serializable {
 				.collect(Collectors.toMap(TransmissionFlag::value, Function.identity()));
 
 		@JsonValue
+		@FormatValue
 		private final Integer value;
 
 		@JsonCreator
+		@FormatFactory
 		public static TransmissionFlag fromValue(Integer value) {
 			return VALUES.get(value);
 		}

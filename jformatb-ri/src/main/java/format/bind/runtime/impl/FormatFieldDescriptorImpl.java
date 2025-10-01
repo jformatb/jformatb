@@ -46,6 +46,8 @@ class FormatFieldDescriptorImpl implements FormatFieldDescriptor, Serializable {
 
 	private boolean readOnly;
 
+	private Class<?> targetClass;
+
 	public static final FormatFieldDescriptorImpl from(FormatField field) {
 		Objects.requireNonNull(field);
 		return new FormatFieldDescriptorImpl()
@@ -56,7 +58,8 @@ class FormatFieldDescriptorImpl implements FormatFieldDescriptor, Serializable {
 				.format(field.format())
 				.locale(field.locale())
 				.placeholder(field.placeholder())
-				.readOnly(field.readOnly());
+				.readOnly(field.readOnly())
+				.targetClass(field.targetClass());
 	}
 
 }

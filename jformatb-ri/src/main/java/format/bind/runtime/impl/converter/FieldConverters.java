@@ -135,6 +135,10 @@ class FieldConverters {
 		return EnumConverter.of((Class<E>) enumType);
 	}
 
+	private <T> FieldConverter<T> getValueConverter(final Class<T> fieldType) {
+		return ValueConverter.of(fieldType);
+	}
+
 	/**
 	 * Obtain the {@link FieldConverter} of the specified field type and converter type.
 	 * @param <T> The Java type of the field.
@@ -154,11 +158,19 @@ class FieldConverters {
 	 */
 	@SuppressWarnings("unchecked")
 	<T> FieldConverter<T> getConverter(Class<T> fieldType) {
-		if (fieldType.isEnum()) {
-			return addConverter(fieldType, FieldConverters::getEnumConverter);
+		FieldConverter<T> converter = (FieldConverter<T>) converters.get(fieldType);
+
+		if (converter == null) {
+			if (ValueConverter.containsAccessor(fieldType)) {
+				converter = addConverter(fieldType, FieldConverters::getValueConverter);
+			}
+
+			if (fieldType.isEnum()) {
+				converter = addConverter(fieldType, FieldConverters::getEnumConverter);
+			}
 		}
 
-		return (FieldConverter<T>) converters.get(fieldType);
+		return converter;
 	}
 
 	/**
