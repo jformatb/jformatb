@@ -5,9 +5,11 @@ plugins {
 }
 
 dependencies {
-    testImplementation 'org.assertj:assertj-core:3.25.1'
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.12.2'
-    testImplementation 'org.junit.platform:junit-platform-launcher:1.12.2'
+    implementation platform(project(':jformatb-dependencies'))
+
+    testImplementation 'org.assertj:assertj-core'
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.junit.platform:junit-platform-launcher'
 }
 
 java {

@@ -20,6 +20,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.opencsv.bean.CsvBindByName;
 import com.opencsv.bean.CsvDate;
 
@@ -80,8 +82,6 @@ public class BankStatement implements Serializable {
 
 	public static class AmountConverter implements FieldConverter<BigDecimal> {
 
-		private static final int LENGTH = 12;
-
 		private final FieldConverter<BigDecimal> converter;
 
 		public AmountConverter() {
@@ -98,9 +98,10 @@ public class BankStatement implements Serializable {
 
 		@Override
 		public BigDecimal parse(FormatFieldDescriptor descriptor, String source) throws FieldConversionException {
-			String str = new StringBuilder().append(0).append(source.substring(0, LENGTH)).toString();
-			return converter.parse(descriptor, str)
-					.multiply(parseSign(source.substring(LENGTH)));
+			int length = descriptor.length() - 1;
+			String value = StringUtils.leftPad(source.substring(0, length), descriptor.length(), "0");
+			return converter.parse(descriptor, value)
+					.multiply(parseSign(source.substring(length)));
 		}
 
 		private String formatSign(final BigDecimal value) {

@@ -23,6 +23,7 @@ gradleEnterprise {
 
 rootProject.name = 'jformatb'
 
+include 'jformatb-dependencies'
 include 'jformatb-bom'
 include 'jformatb-api'
 include 'jformatb-ri'
