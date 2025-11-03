@@ -16,7 +16,9 @@
 package format.bind.runtime.impl;
 
 import java.io.Serializable;
+import java.nio.charset.Charset;
 import java.util.Objects;
+import java.util.Optional;
 
 import format.bind.FormatFieldDescriptor;
 import format.bind.annotation.FormatField;
@@ -34,6 +36,8 @@ class FormatFieldDescriptorImpl implements FormatFieldDescriptor, Serializable {
 
 	private Type type;
 
+	private String charset;
+
 	private int length;
 
 	private int scale;
@@ -48,11 +52,14 @@ class FormatFieldDescriptorImpl implements FormatFieldDescriptor, Serializable {
 
 	private Class<?> targetClass;
 
-	public static final FormatFieldDescriptorImpl from(FormatField field) {
+	public static final FormatFieldDescriptorImpl from(FormatField field, Charset charset) {
 		Objects.requireNonNull(field);
 		return new FormatFieldDescriptorImpl()
 				.name(field.name())
 				.type(field.type())
+				.charset(Optional.ofNullable(field.charset())
+						.filter(charsetName -> !charsetName.isEmpty())
+						.orElseGet(charset::name))
 				.length(field.length())
 				.scale(field.scale())
 				.format(field.format())

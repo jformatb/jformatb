@@ -15,6 +15,7 @@
  */
 package format.bind;
 
+import java.nio.charset.Charset;
 import java.util.Optional;
 import java.util.function.BiFunction;
 
@@ -101,6 +102,46 @@ public class Formatter<T> {
 	}
 
 	/**
+	 * Formats the given object to produce the corresponding formatted byte array.
+	 * 
+	 * @param obj The object instance to format.
+	 * @return The formatted byte array.
+	 * @throws FormatProcessingException if an error occurs during {@code obj} formatting.
+	 * @see FormatWriter#writeBytes(Object)
+	 */
+	public final byte[] formatBytes(final T obj) throws FormatProcessingException {
+		return createWriter().writeBytes(obj);
+	}
+
+	/**
+	 * Formats the given object to produce the corresponding formatted byte array.
+	 * 
+	 * @param obj The object instance to format.
+	 * @param charsetName The default charset name for encoding operation.
+	 * @return The formatted byte array.
+	 * @throws FormatProcessingException if an error occurs during {@code obj} formatting.
+	 * @see FormatWriter#writeBytes(Object)
+	 * @see FormatProcessor#withCharset(String)
+	 */
+	public final byte[] formatBytes(final T obj, final String charsetName) throws FormatProcessingException {
+		return createWriter().withCharset(charsetName).writeBytes(obj);
+	}
+
+	/**
+	 * Formats the given object to produce the corresponding formatted byte array.
+	 * 
+	 * @param obj The object instance to format.
+	 * @param charset The default charset for encoding operation.
+	 * @return The formatted byte array.
+	 * @throws FormatProcessingException if an error occurs during {@code obj} formatting.
+	 * @see FormatWriter#writeBytes(Object)
+	 * @see FormatProcessor#withCharset(Charset)
+	 */
+	public final byte[] formatBytes(final T obj, final Charset charset) throws FormatProcessingException {
+		return createWriter().withCharset(charset).writeBytes(obj);
+	}
+
+	/**
 	 * Parses the given text format from the beginning to produce an object.
 	 * 
 	 * @param text The text format to parse.
@@ -110,6 +151,50 @@ public class Formatter<T> {
 	 */
 	public final T parse(final String text) throws FormatProcessingException {
 		return createReader().read(text);
+	}
+
+	/**
+	 * Parses the given formatted byte array from the beginning to produce an object.
+	 * 
+	 * <p>
+	 * The default charset used for decoding operation is provided the JVM.
+	 * </p>
+	 * 
+	 * @param bytes The formatted byte array to parse.
+	 * @return The parsed object.
+	 * @throws FormatProcessingException if an error occurs during {@code bytes} parsing.
+	 * @see FormatReader#readBytes(byte[])
+	 */
+	public final T parseBytes(final byte[] bytes) throws FormatProcessingException {
+		return createReader().readBytes(bytes);
+	}
+
+	/**
+	 * Parses the given formatted byte array from the beginning to produce an object.
+	 * 
+	 * @param bytes The formatted byte array to parse.
+	 * @param charsetName The default charset name for decoding operation.
+	 * @return The parsed object.
+	 * @throws FormatProcessingException if an error occurs during {@code bytes} parsing.
+	 * @see FormatReader#readBytes(byte[])
+	 * @see FormatProcessor#withCharset(String)
+	 */
+	public final T parseBytes(final byte[] bytes, final String charsetName) throws FormatProcessingException {
+		return createReader().withCharset(charsetName).readBytes(bytes);
+	}
+
+	/**
+	 * Parses the given formatted byte array from the beginning to produce an object.
+	 * 
+	 * @param bytes The formatted byte array to parse.
+	 * @param charset The default charset for decoding operation.
+	 * @return The parsed object.
+	 * @throws FormatProcessingException if an error occurs during {@code bytes} parsing.
+	 * @see FormatReader#readBytes(byte[])
+	 * @see FormatProcessor#withCharset(Charset)
+	 */
+	public final T parseBytes(final byte[] bytes, final Charset charset) throws FormatProcessingException {
+		return createReader().withCharset(charset).readBytes(bytes);
 	}
 
 	/**

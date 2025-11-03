@@ -15,6 +15,7 @@
  */
 package format.bind;
 
+import java.nio.charset.Charset;
 import java.util.Map;
 
 /**
@@ -51,6 +52,14 @@ public interface FormatProcessor<T, F extends FormatProcessor<T, F>> {
 	}
 
 	/**
+	 * Set the default charset to be used for encoding or decoding operations.
+	 * 
+	 * @param charset The default charset to use.
+	 * @return This {@code FormatProcessor}.
+	 */
+	F setCharset(final Charset charset);
+
+	/**
 	 * Register a post processing event callback {@link Listener} with this {@link FormatProcessor}.
 	 * 
 	 * <p>
@@ -61,6 +70,26 @@ public interface FormatProcessor<T, F extends FormatProcessor<T, F>> {
 	 * @return This {@code FormatProcessor}.
 	 */
 	F setListener(final Listener<T> listener);
+
+	/**
+	 * Provides the default charset to be used for encoding or decoding operations.
+	 * 
+	 * @param charsetName The name of the default charset to use.
+	 * @return This {@code FormatProcessor}.
+	 */
+	default F withCharset(final String charsetName) {
+		return setCharset(Charset.forName(charsetName));
+	}
+
+	/**
+	 * Provides the default charset to be used for encoding or decoding operations.
+	 * 
+	 * @param charset The default charset to use.
+	 * @return This {@code FormatProcessor}.
+	 */
+	default F withCharset(final Charset charset) {
+		return setCharset(charset);
+	}
 
 	/**
 	 * Register a post processing event callback {@link Listener} with this {@link FormatProcessor}.

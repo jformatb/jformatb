@@ -16,7 +16,10 @@
 package format.bind.sample;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.catchThrowable;
+
+import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
 
@@ -29,7 +32,7 @@ import format.bind.converter.spi.FieldConverterProvider;
 class FormatterTest {
 
 	@Test
-	void formatObject() {
+	void formatText() {
 		Throwable exception = catchThrowable(() -> Formatter.of(Object.class)
 				.format(new Object()));
 
@@ -38,12 +41,48 @@ class FormatterTest {
 	}
 
 	@Test
-	void parseObject() {
+	void formatBytesWithDefaultCharset() {
+		Formatter<Object> formatter = Formatter.of(Object.class);
+		Object obj = new Object();
+		assertThatExceptionOfType(FormatProcessingException.class)
+				.isThrownBy(() -> formatter.formatBytes(obj))
+				.withCauseInstanceOf(UnsupportedOperationException.class);
+	}
+
+	@Test
+	void formatBytesWithCharset() {
+		Formatter<Object> formatter = Formatter.of(Object.class);
+		Object obj = new Object();
+		assertThatExceptionOfType(FormatProcessingException.class)
+				.isThrownBy(() -> formatter.formatBytes(obj, StandardCharsets.US_ASCII))
+				.withCauseInstanceOf(UnsupportedOperationException.class);
+	}
+
+	@Test
+	void parseText() {
 		Throwable exception = catchThrowable(() -> Formatter.of(Object.class)
 				.parse(new StringBuilder().toString()));
 
 		assertThat(exception)
 				.isInstanceOf(FormatProcessingException.class);
+	}
+
+	@Test
+	void parseBytesWithDefaultCharset() {
+		Formatter<Object> formatter = Formatter.of(Object.class);
+		byte[] bytes = new byte[0];
+		assertThatExceptionOfType(FormatProcessingException.class)
+				.isThrownBy(() -> formatter.parseBytes(bytes))
+				.withCauseInstanceOf(UnsupportedOperationException.class);
+	}
+
+	@Test
+	void parseBytesWithCharset() {
+		Formatter<Object> formatter = Formatter.of(Object.class);
+		byte[] bytes = new byte[0];
+		assertThatExceptionOfType(FormatProcessingException.class)
+				.isThrownBy(() -> formatter.parseBytes(bytes, StandardCharsets.US_ASCII))
+				.withCauseInstanceOf(UnsupportedOperationException.class);
 	}
 
 	@Test

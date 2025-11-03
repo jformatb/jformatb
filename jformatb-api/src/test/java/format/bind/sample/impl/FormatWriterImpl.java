@@ -15,27 +15,16 @@
  */
 package format.bind.sample.impl;
 
-import java.util.Collections;
 import java.util.Map;
 
 import format.bind.FormatProcessingException;
 import format.bind.FormatWriter;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 
-@Getter
-@AllArgsConstructor
-public class FormatWriterImpl<T> implements FormatWriter<T, FormatWriterImpl<T>> {
+public class FormatWriterImpl<T> extends FormatProcessorImpl<T, FormatWriterImpl<T>>
+		implements FormatWriter<T, FormatWriterImpl<T>> {
 
-	private final Class<T> type;
-
-	private final String pattern;
-
-	private final Map<String, Object> properties = Collections.emptyMap();
-
-	@Override
-	public FormatWriterImpl<T> setListener(Listener<T> listener) {
-		return this;
+	public FormatWriterImpl(Class<T> type, String pattern) {
+		super(type, pattern);
 	}
 
 	@Override
@@ -45,7 +34,12 @@ public class FormatWriterImpl<T> implements FormatWriter<T, FormatWriterImpl<T>>
 
 	@Override
 	public String write(T obj) throws FormatProcessingException {
-		throw new FormatProcessingException(String.format("Unable to format object '%s'", obj));
+		throw new FormatProcessingException(String.format("Unable to format object '%s'", obj), new UnsupportedOperationException("Operation not supported"));
+	}
+
+	@Override
+	public byte[] writeBytes(T obj) throws FormatProcessingException {
+		throw new FormatProcessingException(String.format("Unable to format object '%s'", obj), new UnsupportedOperationException("Operation not supported"));
 	}
 
 }

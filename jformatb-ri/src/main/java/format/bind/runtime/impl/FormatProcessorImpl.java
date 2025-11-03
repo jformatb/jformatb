@@ -18,6 +18,7 @@ package format.bind.runtime.impl;
 import static format.bind.runtime.impl.FormatUtil.*;
 
 import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,6 +28,7 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -46,13 +48,13 @@ import format.bind.Formatter;
 import format.bind.annotation.Format;
 import format.bind.annotation.FormatAccess;
 import format.bind.annotation.FormatAccess.Type;
-import format.bind.converter.FieldConverter;
-import format.bind.converter.spi.FieldConverterProvider;
 import format.bind.annotation.FormatField;
 import format.bind.annotation.FormatFieldConverter;
 import format.bind.annotation.FormatMapEntry;
 import format.bind.annotation.FormatMapEntryField;
 import format.bind.annotation.FormatTypeInfo;
+import format.bind.converter.FieldConverter;
+import format.bind.converter.spi.FieldConverterProvider;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -71,6 +73,10 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 
 	/** The pattern of the text format to process. */
 	final String pattern;
+
+	/** The default charset reference for encoding or decoding operations. */
+	@EqualsAndHashCode.Exclude
+	final AtomicReference<Charset> charset = new AtomicReference<>(Charset.defaultCharset());
 
 	/** The post processing event callback {@link Listener} for this {@code FormatProcessorImpl}. */
 	@EqualsAndHashCode.Exclude
@@ -106,6 +112,14 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 	}
 
 	@SuppressWarnings("unchecked")
+	@Override
+	public F setCharset(Charset charset) {
+		this.charset.set(charset);
+		return (F) this;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
 	public F setListener(final Listener<T> listener) {
 		if (listener == null) {
 			this.listener.remove();
@@ -160,14 +174,14 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 					.map(FormatMapEntryField::field)
 					.findFirst()
 					.orElse(accessor.getAnnotation(FormatField.class));
-			FormatFieldDescriptorImpl descriptor = FormatFieldDescriptorImpl.from(field);
+			FormatFieldDescriptorImpl descriptor = FormatFieldDescriptorImpl.from(field, charset.get());
 
 			updateFieldDescriptorOptions(descriptor, expression, options);
 
 			return descriptor;
 		}
 
-		return FormatUtil.buildFieldDescriptor(accessor, propertyType, options);
+		return FormatUtil.buildFieldDescriptor(accessor, propertyType, charset.get(), options);
 	}
 
 	<X> FieldConverter<X> getFieldConverter(final FormatFieldAccessor accessor, final String expression, final Class<X> propertyType) {
@@ -203,9 +217,9 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 		return FormatUtil.getFieldConverter(accessor, propertyType);
 	}
 
-	Class<?> getPropertyType(final FormatFieldAccessor accessor, final String expression, final String text) {
+	Class<?> getPropertyType(final FormatFieldAccessor accessor, final String expression, final byte[] bytes) {
 		Class<?> propertyType = getMappedPropertyType(accessor, expression);
-		return propertyType != null ? propertyType : getFieldPropertyType(accessor, text);
+		return propertyType != null ? propertyType : getFieldPropertyType(accessor, bytes, charset.get());
 	}
 
 	Class<?> getPropertyType(final FormatFieldAccessor accessor, final String expression, final Object value) {
@@ -228,7 +242,7 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 		}
 	}
 
-	<U extends T> void setValue(final U target, final String expression, final Object value, final String text) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, InstantiationException {
+	<U extends T> void setValue(final U target, final String expression, final Object value, final byte[] bytes) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, InstantiationException {
 		// Create nested beans
 		Object bean = target;
 		String expr = expression;
@@ -245,7 +259,7 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 
 				if (val == null) {
 					// Initialize nested value
-					val = createNested(bean, next, text);
+					val = createNested(bean, next, bytes);
 				}
 
 				bean = val;
@@ -436,9 +450,9 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 		}
 	}
 
-	private Object createNested(final Object bean, final String expression, final String text) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalArgumentException, SecurityException {
+	private Object createNested(final Object bean, final String expression, final byte[] bytes) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalArgumentException, SecurityException {
 		FormatFieldAccessor field = FormatFieldAccessorUtil.getFieldAccessor(bean.getClass(), resolver.getProperty(expression));
-		Class<?> propertyType = getFieldPropertyType(field, text);
+		Class<?> propertyType = getFieldPropertyType(field, bytes, charset.get());
 		Object value = propertyType.getConstructor().newInstance();
 		propertyUtils.setProperty(bean, expression, value);
 		return value;
@@ -475,7 +489,7 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 	    static final String NESTED_REGEX  = "\\.";
 
 	    public int[] getBoundaries(final String expression) {
-	        if (expression == null || expression.length() == 0) {
+	        if (expression == null || expression.isEmpty()) {
 	            return new int[0];
 	        }
 
@@ -501,7 +515,7 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 
 		@Override
 		public int getIndex(final String expression) {
-	        if (expression == null || expression.length() == 0) {
+	        if (expression == null || expression.isEmpty()) {
 	            return -1;
 	        }
 
@@ -522,7 +536,7 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 
 		@Override
 		public String getKey(final String expression) {
-	        if (expression == null || expression.length() == 0) {
+	        if (expression == null || expression.isEmpty()) {
 	            return null;
 	        }
 
@@ -539,7 +553,7 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 
 		@Override
 		public String getProperty(final String expression) {
-	        if (expression == null || expression.length() == 0) {
+	        if (expression == null || expression.isEmpty()) {
 	            return expression;
 	        }
 
@@ -556,7 +570,7 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 
 		@Override
 		public boolean isIndexed(final String expression) {
-	        if (expression == null || expression.length() == 0) {
+	        if (expression == null || expression.isEmpty()) {
 	            return false;
 	        }
 
@@ -569,7 +583,7 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 
 		@Override
 		public boolean isMapped(String expression) {
-	        if (expression == null || expression.length() == 0) {
+	        if (expression == null || expression.isEmpty()) {
 	            return false;
 	        }
 
@@ -582,7 +596,7 @@ abstract class FormatProcessorImpl<T, F extends FormatProcessorImpl<T, F>> imple
 
 		@Override
 		public String next(final String expression) {
-	        if (expression == null || expression.length() == 0) {
+	        if (expression == null || expression.isEmpty()) {
 	            return null;
 	        }
 

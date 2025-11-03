@@ -47,6 +47,13 @@ public interface FormatFieldDescriptor {
 	Type type();
 
 	/**
+	 * The charset of the text format field.
+	 * 
+	 * @return The charset of the text format field.
+	 */
+	String charset();
+
+	/**
 	 * The length of the text format field.
 	 * 
 	 * @return The length of the text format field.

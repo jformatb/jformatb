@@ -55,4 +55,13 @@ public interface FormatWriter<T, F extends FormatWriter<T, F>> extends FormatPro
 	 */
 	String write(final T obj) throws FormatProcessingException;
 
+	/**
+	 * Serialize the specified {@code obj} into a formatted byte array data.
+	 * 
+	 * @param obj The Java object to serialize.
+	 * @return The formatted byte array data.
+	 * @throws FormatProcessingException if an error occurs during the write process.
+	 */
+	byte[] writeBytes(final T obj) throws FormatProcessingException;
+
 }

@@ -35,4 +35,13 @@ public interface FormatReader<T, F extends FormatReader<T, F>> extends FormatPro
 	 */
 	T read(final String text) throws FormatProcessingException;
 
+	/**
+	 * Deserialize byte array format data into the resulting Java type.
+	 * 
+	 * @param bytes the formatted byte array to deserialize.
+	 * @return The newly created Java object.
+	 * @throws FormatProcessingException if an error occurs during the read process.
+	 */
+	T readBytes(final byte[] bytes) throws FormatProcessingException;
+
 }

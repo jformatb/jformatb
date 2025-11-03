@@ -15,9 +15,11 @@
  */
 package format.bind.runtime.impl;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -168,14 +170,14 @@ class FormatUtil {
 		return getFieldPropertyType(type, accessor.getGenericType());
 	}
 
-	Class<?> getFieldPropertyType(final FormatFieldAccessor accessor, final String text) {
+	Class<?> getFieldPropertyType(final FormatFieldAccessor accessor, final byte[] bytes, final Charset charset) {
 		Class<?> propertyType = getFieldPropertyType(accessor);
 
 		FormatTypeInfo typeInfo = Optional.ofNullable(accessor.getAnnotation(FormatTypeInfo.class))
 				.orElse(propertyType.getAnnotation(FormatTypeInfo.class));
 
 		if (typeInfo != null) {
-			String typeValue = text.substring(typeInfo.start(), typeInfo.start() + typeInfo.length());
+			String typeValue = new String(bytes, typeInfo.start(), typeInfo.length(), charset);
 			propertyType = getFormatSubType(propertyType, typeValue);
 		}
 
@@ -203,16 +205,25 @@ class FormatUtil {
 	}
 
 	@SuppressWarnings("unchecked")
-	<T, C extends FieldConverter<T>> String formatFieldValue(final Object value, final FormatFieldDescriptor descriptor, final FieldConverter<?> converter) {
-		return ((C) converter).format(descriptor, (T) value);
+	<T> String formatFieldValue(final T value, final FormatFieldDescriptor descriptor, final FieldConverter<?> converter) {
+		return ((FieldConverter<T>) converter).format(descriptor, value);
+	}
+
+	@SuppressWarnings("unchecked")
+	<T> byte[] formatByteArrayFieldValue(final T value, final FormatFieldDescriptor descriptor, final FieldConverter<?> converter) throws UnsupportedEncodingException {
+		return ((FieldConverter<T>) converter).formatBytes(descriptor, value);
 	}
 
 	Object parseFieldValue(final String source, final FormatFieldDescriptor descriptor, final FieldConverter<?> converter) {
 		return converter.parse(descriptor, source);
 	}
 
-	FormatFieldDescriptorImpl buildFieldDescriptor(final FormatFieldAccessor accessor, final Class<?> propertyType, final String[] options) {
-		FormatFieldDescriptorImpl descriptor = FormatFieldDescriptorImpl.from(accessor.getAnnotation(FormatField.class));
+	Object parseByteArrayFieldValue(final byte[] source, final FormatFieldDescriptor descriptor, final FieldConverter<?> converter) throws UnsupportedEncodingException {
+		return converter.parseBytes(descriptor, source);
+	}
+
+	FormatFieldDescriptorImpl buildFieldDescriptor(final FormatFieldAccessor accessor, final Class<?> propertyType, final Charset charset, final String[] options) {
+		FormatFieldDescriptorImpl descriptor = FormatFieldDescriptorImpl.from(accessor.getAnnotation(FormatField.class), charset);
 
 		applyOverrides(descriptor, accessor, propertyType);
 

@@ -17,6 +17,7 @@ package format.bind.runtime.impl;
 
 import static format.bind.runtime.impl.FormatUtil.*;
 
+import java.io.ByteArrayOutputStream;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -79,7 +80,18 @@ final class FormatWriterImpl<T> extends FormatProcessorImpl<T, FormatWriterImpl<
 	@Override
 	public String write(final T obj) throws FormatProcessingException {
 		try {
-			StringBuilder output = new StringBuilder();
+			return new String(writeBytes(obj), charset.get());
+		} catch (FormatProcessingException e) {
+			throw handleException(obj, e.getCause());
+		} catch (Exception e) {
+			throw handleException(obj, e);
+		}
+	}
+
+	@Override
+	public byte[] writeBytes(T obj) throws FormatProcessingException {
+		try {
+			ByteArrayOutputStream output = new ByteArrayOutputStream();
 			Class<?> resultType = obj.getClass();
 			Strategy strategy = getStrategy(resultType);
 
@@ -102,8 +114,8 @@ final class FormatWriterImpl<T> extends FormatProcessorImpl<T, FormatWriterImpl<
 
 				if (isTypeInfoFieldAbsent(typeInfo, name, properties)) {
 					String value = resultType.getAnnotation(FormatTypeValue.class).value();
-					output.append(pattern, lastIndex, matcher.start());
-					output.append(value);
+					output.write(pattern.substring(lastIndex, matcher.start()).getBytes(charset.get()));
+					output.write(value.getBytes(charset.get()));
 					lastIndex = matcher.end();
 
 					resolvedValues.put(name, value);
@@ -128,30 +140,26 @@ final class FormatWriterImpl<T> extends FormatProcessorImpl<T, FormatWriterImpl<
 					FormatFieldDescriptor descriptor = buildFieldDescriptor(accessor, property, propertyType, parts);
 					FieldConverter<?> converter = getFieldConverter(accessor, property, propertyType);
 
-					output.append(pattern, lastIndex, matcher.start());
-					output.append(formatFieldValue(value, descriptor, converter));
+					output.write(pattern.substring(lastIndex, matcher.start()).getBytes(charset.get()));
+					output.write(formatByteArrayFieldValue(value, descriptor, converter));
 					resolvedValues.put(property, value);
 					lastIndex = ++counter < properties.size() ? matcher.start() : matcher.end();
 				}
 			}
 
 			if (lastIndex < pattern.length()) {
-				output.append(pattern, lastIndex, pattern.length());
+				output.write(pattern.substring(lastIndex, pattern.length()).getBytes(charset.get()));
 			}
 
 			listener.get().postProcessing(obj, resolvedValues);
 
-			return output.toString();
+			return output.toByteArray();
 		} catch (Exception e) {
 			throw handleException(obj, e);
 		}
 	}
 
-	private FormatProcessingException handleException(final Object obj, final Exception exception) {
-		if (exception instanceof FormatProcessingException) {
-			return (FormatProcessingException) exception;
-		}
-
+	private static FormatProcessingException handleException(final Object obj, final Throwable exception) {
 		return new FormatProcessingException(String.format("Unable to format object [%s]", obj), exception);
 	}
 

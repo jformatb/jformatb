@@ -15,27 +15,35 @@
  */
 package format.bind.sample.impl;
 
+import java.math.BigInteger;
+
 import format.bind.FormatProcessingException;
 import format.bind.FormatReader;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 
-@Getter
-@AllArgsConstructor
-public class FormatReaderImpl<T> implements FormatReader<T, FormatReaderImpl<T>> {
+public class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<T>>
+		implements FormatReader<T, FormatReaderImpl<T>> {
 
-	private final Class<T> type;
-
-	private final String pattern;
-
-	@Override
-	public FormatReaderImpl<T> setListener(Listener<T> listener) {
-		return this;
-	}
+	public FormatReaderImpl(Class<T> type, String pattern) {
+		super(type, pattern);
+    }
 
 	@Override
 	public T read(String text) throws FormatProcessingException {
-		throw new FormatProcessingException(String.format("Unable to parse text '%s'", text));
+		throw new FormatProcessingException(String.format("Unable to parse text '%s'", text), new UnsupportedOperationException("Operation not supported"));
+	}
+
+	@Override
+	public T readBytes(byte[] bytes) throws FormatProcessingException {
+		throw new FormatProcessingException(String.format("Unable to parse byte array '%s", formatHex(bytes)), new UnsupportedOperationException("Operation not supported"));
+	}
+
+	private static String formatHex(final byte[] bytes) {
+		if (bytes != null && bytes.length > 0) {
+			String format = "%0" + (bytes.length << 1) + "X";
+			return String.format(format, new BigInteger(1, bytes));
+		} else {
+			return "";
+		}
 	}
 
 }

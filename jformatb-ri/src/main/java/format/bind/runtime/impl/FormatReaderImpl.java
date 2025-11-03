@@ -18,6 +18,7 @@ package format.bind.runtime.impl;
 import static format.bind.runtime.impl.FormatUtil.*;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ListIterator;
@@ -25,7 +26,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.codec.binary.Hex;
 
 import format.bind.FormatFieldAccessor;
 import format.bind.FormatFieldAccessor.Strategy;
@@ -68,7 +69,18 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 	@Override
 	public T read(final String text) {
 		try {
-			T obj = createObject(text);
+			return readBytes(text.getBytes(charset.get()));
+		} catch (FormatProcessingException e) {
+			throw handleException(text, e.getCause());
+		} catch (Exception e) {
+			throw handleException(text, e);
+		}
+	}
+
+	@Override
+	public T readBytes(byte[] bytes) throws FormatProcessingException {
+		try {
+			T obj = createObject(bytes);
 			Class<?> resultType = obj.getClass();
 			Strategy strategy = getStrategy(resultType);
 
@@ -94,7 +106,7 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 					int start = matcher.start() - matcherEnd + lastIndex;
 					matcherEnd = matcher.end();
 					lastIndex = start + typeInfo.length();
-					String value = StringUtils.substring(text, start, lastIndex);
+					String value = new String(bytes, start, typeInfo.length(), charset.get());
 
 					resolvedValues.put(name, value);
 
@@ -107,32 +119,32 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 					String property = nextProperty(iterator, counter);
 
 					FormatFieldAccessor accessor = resolvedProperties.get(property);
-					Class<?> propertyType = getPropertyType(accessor, property, text);
+					Class<?> propertyType = getPropertyType(accessor, property, bytes);
 					FormatFieldDescriptor descriptor = buildFieldDescriptor(accessor, property, propertyType, parts);
 					FieldConverter<?> converter = getFieldConverter(accessor, property, propertyType);
 
 					int start = matcher.start() - matcherEnd + lastIndex;
 
-					if (start == text.length()) {
+					if (start == bytes.length) {
 						break;
 					}
 
 					int length = Optional.of(descriptor.length())
 							.filter(value -> value > 0)
-							.orElseGet(text::length);
+							.orElse(bytes.length);
 
-					lastIndex = Math.min((start + length), text.length());
+					lastIndex = Math.min((start + length), bytes.length);
 					matcherEnd = matcher.end();
 
-					String source = text.substring(start, lastIndex);
+					byte[] source = Arrays.copyOfRange(bytes, start, lastIndex);
 
-					Object value = parseFieldValue(source, descriptor, converter);
+					Object value = parseByteArrayFieldValue(source, descriptor, converter);
 
 					resolvedValues.put(property, value);
 
 					// Set field value if not null && not read only
 					if (isValid(value, descriptor)) {
-						setValue(obj, property, value, text);
+						setValue(obj, property, value, bytes);
 					}
 
 					if (++counter < properties.size()) {
@@ -146,14 +158,14 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 
 			return obj;
 		} catch (Exception e) {
-			throw handleException(text, e);
+			throw handleException(bytes, e);
 		}
 	}
 
-	private T createObject(final String text) throws InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+	private T createObject(final byte[] bytes) throws InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		if (type.isAnnotationPresent(FormatTypeInfo.class)) {
 			FormatTypeInfo typeInfo = type.getAnnotation(FormatTypeInfo.class);
-			String typeValue = StringUtils.substring(text, typeInfo.start(), typeInfo.start() + typeInfo.length());
+			String typeValue = new String(bytes, typeInfo.start(), typeInfo.length(), charset.get());
 			Class<? extends T> subType = getFormatSubType(type, typeValue);
 			return subType.getConstructor().newInstance();
 		}
@@ -161,16 +173,16 @@ final class FormatReaderImpl<T> extends FormatProcessorImpl<T, FormatReaderImpl<
 		return type.getConstructor().newInstance();
 	}
 
-	private boolean isValid(final Object value, final FormatFieldDescriptor descriptor) {
+	private static boolean isValid(final Object value, final FormatFieldDescriptor descriptor) {
 		return value != null && !descriptor.readOnly();
 	}
 
-	private FormatProcessingException handleException(final String text, final Exception exception) {
-		if (exception instanceof FormatProcessingException) {
-			return (FormatProcessingException) exception;
-		}
-
+	private static FormatProcessingException handleException(final String text, final Throwable exception) {
 		return new FormatProcessingException(String.format("Unable to parse text [%s]", text), exception);
+	}
+
+	private static FormatProcessingException handleException(final byte[] bytes, final Throwable exception) {
+		return new FormatProcessingException(String.format("Unable to parse byte array [%s]", Hex.encodeHexString(bytes, false)), exception);
 	}
 
 }

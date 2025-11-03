@@ -66,6 +66,13 @@ public @interface FormatField {
 	Type type() default Type.DEFAULT;
 
 	/**
+	 * (Optional) The charset of the text format field.
+	 * 
+	 * @return The charset of the text format field.
+	 */
+	String charset() default "";
+
+	/**
 	 * (Optional) The length of the text format field.
 	 * 
 	 * @return The length of the text format field.
@@ -150,7 +157,11 @@ public @interface FormatField {
 		ALPHANUMERIC,
 
 		/** Numeric text format field. */
-		NUMERIC
+		NUMERIC,
+
+		/** Binary text format field. */
+		BINARY
+
 	}
 
 }

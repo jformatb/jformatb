@@ -15,6 +15,7 @@
  */
 package format.bind.converter;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -47,6 +48,19 @@ public interface FieldConverter<T> {
 	String format(final FormatFieldDescriptor descriptor, final T value) throws FieldConversionException;
 
 	/**
+	 * Converts a bound type value to a byte array format value.
+	 * 
+	 * @param descriptor The text format field descriptor.
+	 * @param value The Java value to be converted. Can be null.
+	 * @return The formatted byte array value.
+	 * @throws FieldConversionException if there is an error during the conversion.
+	 * @throws UnsupportedEncodingException if the descriptor charset is not supported.
+	 */
+	default byte[] formatBytes(final FormatFieldDescriptor descriptor, final T value) throws FieldConversionException, UnsupportedEncodingException {
+		return format(descriptor, value).getBytes(descriptor.charset());
+	}
+
+	/**
 	 * Converts a text format value to a bound type value.
 	 * 
 	 * @param descriptor The text format field descriptor.
@@ -56,6 +70,19 @@ public interface FieldConverter<T> {
 	 * @throws FieldConversionException if there is an error during the conversion.
 	 */
 	T parse(final FormatFieldDescriptor descriptor, final String source) throws FieldConversionException;
+
+	/**
+	 * Converts a text format value to a bound type value.
+	 * 
+	 * @param descriptor The text format field descriptor.
+	 * @param source The byte array format value to be converted. Cannot be empty.
+	 * @return The bound type value.
+	 * @throws FieldConversionException if there is an error during the conversion.
+	 * @throws UnsupportedEncodingException if the descriptor charset is not supported.
+	 */
+	default T parseBytes(final FormatFieldDescriptor descriptor, final byte[] source) throws FieldConversionException, UnsupportedEncodingException {
+		return parse(descriptor, new String(source, descriptor.charset()));
+	}
 
 	/**
 	 * Returns the {@link Locale} of the given language tag
