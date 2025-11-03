@@ -1,6 +1,5 @@
 plugins {
     id 'java-platform'
-    id 'jacoco-report-aggregation'
 }
 
 javaPlatform {
@@ -12,9 +11,6 @@ dependencies {
         api project(':jformatb-api')
         api project(':jformatb-ri')
     }
-
-    jacocoAggregation project(':jformatb-api')
-    jacocoAggregation project(':jformatb-ri')
 }
 
 publishing {
@@ -27,23 +23,5 @@ publishing {
                 description = 'Bill of Material for getting full, complete set of compatible versions of Java Format Binding Platform'
             }
         }
-    }
-}
-
-reporting {
-    reports {
-        testCodeCoverageReport(JacocoCoverageReport) {
-            testType = TestSuiteType.UNIT_TEST
-        }
-    }
-}
-
-tasks.named('check') {
-    dependsOn tasks.named('testCodeCoverageReport', JacocoReport)
-}
-
-sonar {
-    properties {
-        property 'sonar.coverage.jacoco.xmlReportPaths', 'build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml'
     }
 }

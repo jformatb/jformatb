@@ -1,8 +1,14 @@
 plugins {
     id 'eclipse'
+    id 'jacoco-report-aggregation'
     id 'org.sonarqube' version '5.0.0.4638'
     id 'io.freefair.lombok' version '6.6.3' apply false
     id 'net.researchgate.release' version '3.0.2'
+}
+
+dependencies {
+    jacocoAggregation project(':jformatb-api')
+    jacocoAggregation project(':jformatb-ri')
 }
 
 release {
@@ -106,10 +112,23 @@ subprojects {
     }
 }
 
+reporting {
+    reports {
+        testCodeCoverageReport(JacocoCoverageReport) {
+            testType = TestSuiteType.UNIT_TEST
+        }
+    }
+}
+
+tasks.named('check') {
+    dependsOn tasks.named('testCodeCoverageReport', JacocoReport)
+}
+
 sonar {
     properties {
         property 'sonar.projectKey', 'jformatb_jformatb'
         property 'sonar.organization', 'jformatb'
         property 'sonar.host.url', 'https://sonarcloud.io'
+        property 'sonar.coverage.jacoco.xmlReportPaths', 'build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml'
     }
 }
