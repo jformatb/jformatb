@@ -17,9 +17,12 @@ package com.example.formatter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 
 import org.junit.jupiter.api.Test;
 
@@ -52,40 +55,47 @@ class ISO8583Test {
 	void formatDataElements() {
 		Instant now = Instant.now();
 		DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyMMddHHmm").withZone(ZoneId.of("UTC"));
-		String expected = new StringBuilder()
+		Charset charset = StandardCharsets.US_ASCII;
+		ISO8583 message = ISO8583.builder()
+				.dataElement(DataElement.of(7, now))
+				.dataElement(DataElement.of(11, 1))
+				.build();
+		String pattern = new StringBuilder()
+				.append("${DE[0]:--type=NUMERIC --length=10 --format=yyMMddHHmm --targetClass=java.time.Instant}")
+				.append("${DE[1]:--type=NUMERIC --length=6 --targetClass=java.lang.Integer}")
+				.toString();
+		byte[] expected = new StringBuilder()
 				.append(dateTimeFormatter.format(now))
 				.append("000001")
-				.toString();
-		String actual = Formatter.of(ISO8583.class)
-				.withPattern(new StringBuilder()
-						.append("${DE[0]:--type=NUMERIC --length=10 --format=yyMMddHHmm --targetClass=java.time.Instant}")
-						.append("${DE[1]:--type=NUMERIC --length=6 --targetClass=java.lang.Integer}")
-						.toString())
-				.format(ISO8583.builder()
-						.dataElement(DataElement.of(7, now))
-						.dataElement(DataElement.of(11, 1))
-						.build());
-		assertThat(actual).isEqualTo(expected);
+				.toString()
+				.getBytes(charset);
+		byte[] actual = Formatter.of(ISO8583.class)
+				.withPattern(pattern)
+				.formatBytes(message, charset);
+		assertThat(actual).matches(bytes -> Arrays.equals(bytes, expected));
 	}
 
 	@Test
 	void parseDataElements() {
 		Instant now = Instant.now();
 		DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyMMddHHmm").withZone(ZoneId.of("UTC"));
-		String message = new StringBuilder()
+		Charset charset = StandardCharsets.US_ASCII;
+		byte[] message = new StringBuilder()
 				.append(dateTimeFormatter.format(now))
 				.append("000001")
+				.toString()
+				.getBytes(charset);
+		String pattern = new StringBuilder()
+				.append("${DE[0]:--type=NUMERIC --length=10 --format=yyMMddHHmm --targetClass=java.time.Instant}")
+				.append("${DE[1]:--type=NUMERIC --length=6 --targetClass=java.lang.Integer}")
 				.toString();
 		ISO8583 expected = ISO8583.builder()
-				.dataElement(DataElement.of(dateTimeFormatter.parse(message.substring(0, 10), Instant::from)))
+				.dataElement(DataElement.of(dateTimeFormatter.parse(new String(Arrays.copyOfRange(message, 0, 10), charset), Instant::from)))
 				.dataElement(DataElement.of(1))
 				.build();
 		ISO8583 actual = Formatter.of(ISO8583.class)
-				.withPattern(new StringBuilder()
-						.append("${DE[0]:--type=NUMERIC --length=10 --format=yyMMddHHmm --targetClass=java.time.Instant}")
-						.append("${DE[1]:--type=NUMERIC --length=6 --targetClass=java.lang.Integer}")
-						.toString())
-				.parse(message);
+				.withPattern(pattern)
+				.parseBytes(message, charset);
 		assertThat(actual).isEqualTo(expected);
 	}
 
