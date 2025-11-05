@@ -33,7 +33,7 @@ final class CurrencyConverter implements FieldConverter<Currency> {
 					.map(Currency::toString)
 					.orElseGet(descriptor::placeholder), descriptor.length());
 		} catch (Exception e) {
-			return FieldConverters.throwFormatFieldConversionException(descriptor, value, e);
+			throw FieldConverters.formatFieldConversionException(descriptor, value, e);
 		}
 	}
 
@@ -42,7 +42,7 @@ final class CurrencyConverter implements FieldConverter<Currency> {
 		try {
 			return Currency.getInstance(StringUtils.trimToEmpty(source));
 		} catch (Exception e) {
-			return FieldConverters.throwParseFieldConversionException(descriptor, source, e);
+			throw FieldConverters.parseFieldConversionException(descriptor, source, e);
 		}
 	}
 

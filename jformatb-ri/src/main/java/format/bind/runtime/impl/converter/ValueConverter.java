@@ -55,13 +55,13 @@ final class ValueConverter<T> implements FieldConverter<T> {
 		try {
 			if (accessor instanceof Field) {
 				Field field = (Field) accessor;
-				return format(descriptor, FieldUtils.readField(field, value, true), field.getType());
+				return formatValue(descriptor, FieldUtils.readField(field, value, true));
 			} else {
 				Method getter = (Method) accessor;
-				return format(descriptor, MethodUtils.invokeMethod(value, getter.getName()), getter.getReturnType());
+				return formatValue(descriptor, MethodUtils.invokeMethod(value, getter.getName()));
 			}
 		} catch (Exception e) {
-			return FieldConverters.throwFormatFieldConversionException(descriptor, value, e);
+			throw FieldConverters.formatFieldConversionException(descriptor, value, e);
 		}
 	}
 
@@ -71,15 +71,15 @@ final class ValueConverter<T> implements FieldConverter<T> {
 		try {
 			if (factory instanceof Constructor) {
 				Constructor<T> constructor = (Constructor<T>) factory;
-				Object value = parse(descriptor, source, constructor.getParameterTypes()[0]);
+				Object value = parseValue(descriptor, source, constructor.getParameterTypes()[0]);
 				return ConstructorUtils.invokeConstructor(constructor.getDeclaringClass(), value);
 			} else {
 				Method method = (Method) factory;
-				Object value = parse(descriptor, source, method.getParameterTypes()[0]);
+				Object value = parseValue(descriptor, source, method.getParameterTypes()[0]);
 				return (T) MethodUtils.invokeStaticMethod(method.getReturnType(), method.getName(), value);
 			}
 		} catch (Exception e) {
-			return FieldConverters.throwParseFieldConversionException(descriptor, source, e);
+			throw FieldConverters.parseFieldConversionException(descriptor, source, e);
 		}
 	}
 
@@ -101,18 +101,16 @@ final class ValueConverter<T> implements FieldConverter<T> {
 	@SuppressWarnings("unchecked")
 	private static <V> FieldConverter<V> getConverter(Class<V> targetClass, FormatFieldDescriptor descriptor) {
 		return Optional.ofNullable(FieldConverters.getConverter(targetClass))
-				.orElseGet(() -> {
-					return (FieldConverter<V>) FieldConverters.getConverter(descriptor.targetClass());
-				});
+				.orElseGet(() -> (FieldConverter<V>) FieldConverters.getConverter(descriptor.targetClass()));
 	}
 
 	@SuppressWarnings("unchecked")
-	private static <V> String format(FormatFieldDescriptor descriptor, V value, Class<?> type) {
+	private static <V> String formatValue(FormatFieldDescriptor descriptor, V value) {
 		return getConverter((Class<V>) value.getClass(), descriptor).format(descriptor, value);
 	}
 
-	private static <V> V parse(FormatFieldDescriptor descriptor, String source, Class<V> type) {
-		return (V) getConverter(type, descriptor).parse(descriptor, source);
+	private static <V> V parseValue(FormatFieldDescriptor descriptor, String source, Class<V> type) {
+		return getConverter(type, descriptor).parse(descriptor, source);
 	}
 
 }

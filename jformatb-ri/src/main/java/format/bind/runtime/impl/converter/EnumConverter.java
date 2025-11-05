@@ -43,7 +43,7 @@ final class EnumConverter<E extends Enum<E>> implements FieldConverter<E> {
 				return StringUtils.leftPad(String.valueOf(value.ordinal()), descriptor.length(), "0");
 			}
 		} catch (Exception e) {
-			return FieldConverters.throwFormatFieldConversionException(descriptor, value, e);
+			throw FieldConverters.formatFieldConversionException(descriptor, value, e);
 		}
 	}
 
@@ -56,7 +56,7 @@ final class EnumConverter<E extends Enum<E>> implements FieldConverter<E> {
 				return enumType.getEnumConstants()[Integer.parseInt(StringUtils.trim(source))];
 			}
 		} catch (Exception e) {
-			return FieldConverters.throwParseFieldConversionException(descriptor, source, e);
+			throw FieldConverters.parseFieldConversionException(descriptor, source, e);
 		}
 	}
 

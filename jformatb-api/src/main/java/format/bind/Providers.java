@@ -77,7 +77,7 @@ public class Providers {
 	 * @param <T> The type of the SPI.
 	 * @param serviceProviderInterface The interface instance of the SPI implementation.
 	 * @return The SPI implementation.
-	 * @throws FormatException if no SPT implementation found.
+	 * @throws FormatException if no SPI implementation found.
 	 */
 	@SuppressWarnings("unchecked")
 	private <T> T get(Class<T> serviceProviderInterface) {

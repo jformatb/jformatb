@@ -38,7 +38,7 @@ final class StringConverter implements FieldConverter<String> {
 				return StringUtils.rightPad(StringUtils.defaultString(value, descriptor.placeholder()), descriptor.length());
 			}
 		} catch (Exception e) {
-			return FieldConverters.throwFormatFieldConversionException(descriptor, value, e);
+			throw FieldConverters.formatFieldConversionException(descriptor, value, e);
 		}
 	}
 
@@ -56,7 +56,7 @@ final class StringConverter implements FieldConverter<String> {
 				return StringUtils.trimToNull((source.equals(descriptor.placeholder()) ? "" : source));
 			}
 		} catch (Exception e) {
-			return FieldConverters.throwParseFieldConversionException(descriptor, source, e);
+			throw FieldConverters.parseFieldConversionException(descriptor, source, e);
 		}
 	}
 

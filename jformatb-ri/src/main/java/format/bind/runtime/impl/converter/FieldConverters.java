@@ -35,6 +35,8 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import org.apache.commons.codec.binary.Hex;
+
 import format.bind.FormatFieldDescriptor;
 import format.bind.Formatter;
 import format.bind.converter.FieldConversionException;
@@ -184,40 +186,44 @@ class FieldConverters {
 	}
 
 	/**
-	 * Throws a {@link FieldConversionException} during Java object formatting.
-	 * @param <T> The type of the Java object to format.
+	 * Returns the {@link FieldConversionException} to throw during Java object formatting.
 	 * @param descriptor The {@link FormatFieldDescriptor}.
 	 * @param value The Java object value to format.
 	 * @param cause The cause of the exception to throw.
 	 * @return The {@link FieldConversionException} to throw.
 	 */
-	<T> String throwFormatFieldConversionException(
-			final FormatFieldDescriptor descriptor, final T value, Exception cause) {
-		if (cause instanceof FieldConversionException) {
-			throw (FieldConversionException) cause;
-		}
-
-		throw new FieldConversionException(
+	FieldConversionException formatFieldConversionException(
+			final FormatFieldDescriptor descriptor, final Object value, Exception cause) {
+		return new FieldConversionException(
 				String.format("Unable to format value [%s] for field '%s'", value, descriptor.name()),
 				cause);
 	}
 
 	/**
-	 * Throws a {@link FieldConversionException} during text format parsing.
-	 * @param <T> The type of the Java object to create.
+	 * Returns the {@link FieldConversionException} to throw during text format parsing.
 	 * @param descriptor The {@link FormatFieldDescriptor}.
 	 * @param source The source text to parse.
 	 * @param cause The cause of the exception to throw.
 	 * @return The {@link FieldConversionException} to throw.
 	 */
-	<T> T throwParseFieldConversionException(
+	FieldConversionException parseFieldConversionException(
 			final FormatFieldDescriptor descriptor, final String source, Exception cause) {
-		if (cause instanceof FieldConversionException) {
-			throw (FieldConversionException) cause;
-		}
-
-		throw new FieldConversionException(
+		return new FieldConversionException(
 				String.format("Unable to parse text [%s] for field '%s'", source, descriptor.name()),
+				cause);
+	}
+
+	/**
+	 * Returns the {@link FieldConversionException} to throw during formatted byte array parsing.
+	 * @param descriptor The {@link FormatFieldDescriptor}.
+	 * @param source The source byte array to parse.
+	 * @param cause The cause of the exception to throw.
+	 * @return The {@link FieldConversionException} to throw.
+	 */
+	FieldConversionException parseFieldConversionException(
+			final FormatFieldDescriptor descriptor, final byte[] source, Exception cause) {
+		return new FieldConversionException(
+				String.format("Unable to parse byte array [%s] for field '%s'", Hex.encodeHexString(source, false), descriptor.name()),
 				cause);
 	}
 

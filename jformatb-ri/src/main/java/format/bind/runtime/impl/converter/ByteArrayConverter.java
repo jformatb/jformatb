@@ -15,7 +15,10 @@
  */
 package format.bind.runtime.impl.converter;
 
-import org.apache.commons.codec.DecoderException;
+import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
+import java.util.Arrays;
+
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 
@@ -27,10 +30,27 @@ class ByteArrayConverter implements FieldConverter<byte[]> {
 
 	@Override
 	public String format(FormatFieldDescriptor descriptor, byte[] value) throws FieldConversionException {
-		if (value == null || value.length == 0) {
-			return StringUtils.rightPad("", descriptor.length(), "0");
-		} else {
-			return new String(Hex.encodeHex(value, 0, (descriptor.length() / 2), false));
+		try {
+			if (value == null || value.length == 0) {
+				return StringUtils.rightPad("", descriptor.length(), "0");
+			} else {
+				return new String(Hex.encodeHex(value, 0, (descriptor.length() / 2), false));
+			}
+		} catch (Exception e) {
+			throw FieldConverters.formatFieldConversionException(descriptor, value, e);
+		}
+	}
+
+	@Override
+	public byte[] formatBytes(FormatFieldDescriptor descriptor, byte[] value)
+			throws FieldConversionException, UnsupportedEncodingException {
+		switch (descriptor.type()) {
+		case BINARY:
+			return Arrays.copyOf(value, descriptor.length());
+		case NUMERIC:
+			return FieldConverters.getConverter(Long.class).formatBytes(descriptor, new BigInteger(value).longValue());
+		default:
+			return format(descriptor, value).getBytes(descriptor.charset());
 		}
 	}
 
@@ -42,8 +62,21 @@ class ByteArrayConverter implements FieldConverter<byte[]> {
 			} else {
 				return Hex.decodeHex(source);
 			}
-		} catch (NumberFormatException | DecoderException e) {
-			return FieldConverters.throwParseFieldConversionException(descriptor, source, e);
+		} catch (Exception e) {
+			throw FieldConverters.parseFieldConversionException(descriptor, source, e);
+		}
+	}
+
+	@Override
+	public byte[] parseBytes(FormatFieldDescriptor descriptor, byte[] source)
+			throws FieldConversionException, UnsupportedEncodingException {
+		switch (descriptor.type()) {
+		case BINARY:
+			return Arrays.copyOf(source, source.length);
+		case NUMERIC:
+			return BigInteger.valueOf(FieldConverters.getConverter(Long.class).parseBytes(descriptor, source)).toByteArray();
+		default:
+			return parse(descriptor, new String(source, descriptor.charset()));
 		}
 	}
 

@@ -42,7 +42,7 @@ abstract class TemporalAccessorConverter<T extends TemporalAccessor> implements 
 					.orElseGet(descriptor::placeholder);
 			return StringUtils.leftPad(str, descriptor.length(), "0");
 		} catch (Exception e) {
-			return FieldConverters.throwFormatFieldConversionException(descriptor, value, e);
+			throw FieldConverters.formatFieldConversionException(descriptor, value, e);
 		}
 	}
 
@@ -55,7 +55,7 @@ abstract class TemporalAccessorConverter<T extends TemporalAccessor> implements 
 
 			return getFormatter(descriptor).parse(source, query());
 		} catch (Exception e) {
-			return FieldConverters.throwParseFieldConversionException(descriptor, source, e);
+			throw FieldConverters.parseFieldConversionException(descriptor, source, e);
 		}
 	}
 
