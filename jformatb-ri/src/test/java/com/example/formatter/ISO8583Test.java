@@ -35,19 +35,21 @@ class ISO8583Test {
 
 	@Test
 	void formatBitmap() {
-		String expected = "01107010001102C04804";
-		String actual = Formatter.of(ISO8583.class)
+		String message = "01107010001102C04804";
+		String expected = message;
+		byte[] actual = Formatter.of(ISO8583.class)
 				.withPattern("${MTI:4}${BITMAP:16}")
-				.format(ISO8583.fromString("01107010001102C04804"));
-		assertThat(actual).isEqualTo(expected);
+				.formatBytes(ISO8583.fromString("01107010001102C04804"), "US-ASCII");
+		assertThat(actual).asString(StandardCharsets.US_ASCII).isEqualTo(expected);
 	}
 
 	@Test
 	void parseBitmap() {
-		ISO8583 expected = ISO8583.fromString("08002038000000200002");
+		String message = "08002038000000200002";
+		ISO8583 expected = ISO8583.fromString(message);
 		ISO8583 actual = Formatter.of(ISO8583.class)
 				.withPattern("${MTI:4}${BITMAP:16}")
-				.parse("08002038000000200002");
+				.parseBytes(message.getBytes(StandardCharsets.US_ASCII), "US-ASCII");
 		assertThat(actual).isEqualTo(expected);
 	}
 
