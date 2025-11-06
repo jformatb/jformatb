@@ -51,7 +51,7 @@ class CurrencyConverterTest extends AbstractConverterTest<Currency> {
 		FormatFieldDescriptor descriptor = fieldDescriptorBuilder()
 				.length(3)
 				.build();
-		Currency expected = Currency.getInstance(Locale.getDefault());
+		Currency expected = Currency.getInstance(Locale.FRANCE);
 		Currency actual = converter.parse(descriptor, StringUtils.rightPad(expected.getCurrencyCode(), descriptor.length()));
 		assertThat(actual).usingComparator(Comparator.comparing(Currency::getCurrencyCode)).isEqualTo(expected);
 	}
@@ -74,7 +74,7 @@ class CurrencyConverterTest extends AbstractConverterTest<Currency> {
 				.length(3)
 				.type(Type.NUMERIC)
 				.build();
-		Currency expected = Currency.getInstance(Locale.getDefault());
+		Currency expected = Currency.getInstance(Locale.UK);
 		Currency actual = converter.parse(descriptor, StringUtils.leftPad(String.valueOf(expected.getNumericCode()), descriptor.length(), "0"));
 		assertThat(actual).usingComparator(Comparator.comparing(Currency::getNumericCode)).isEqualTo(expected);
 	}
