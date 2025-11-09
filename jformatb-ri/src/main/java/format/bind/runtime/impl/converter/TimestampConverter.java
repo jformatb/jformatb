@@ -28,15 +28,15 @@ final class TimestampConverter implements FieldConverter<Timestamp> {
 	private static FieldConverter<LocalDateTime> converter = FieldConverters.getConverter(LocalDateTime.class);
 
 	@Override
-	public String format(FormatFieldDescriptor descriptor, Timestamp value) throws FieldConversionException {
-		return converter.format(descriptor, Optional.ofNullable(value)
+	public byte[] formatBytes(final FormatFieldDescriptor descriptor, final Timestamp value) throws FieldConversionException {
+		return converter.formatBytes(descriptor, Optional.ofNullable(value)
 				.map(Timestamp::toLocalDateTime)
 				.orElse(null));
 	}
 
 	@Override
-	public Timestamp parse(FormatFieldDescriptor descriptor, String source) throws FieldConversionException {
-		return Optional.ofNullable(converter.parse(descriptor, source))
+	public Timestamp parseBytes(final FormatFieldDescriptor descriptor, final byte[] source) throws FieldConversionException {
+		return Optional.ofNullable(converter.parseBytes(descriptor, source))
 				.map(Timestamp::valueOf)
 				.orElse(null);
 	}

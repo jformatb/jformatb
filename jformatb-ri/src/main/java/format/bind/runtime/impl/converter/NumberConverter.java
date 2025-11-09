@@ -27,21 +27,21 @@ import format.bind.converter.FieldConverter;
 abstract class NumberConverter<N extends Number> implements FieldConverter<N> {
 
 	@Override
-	public String format(final FormatFieldDescriptor descriptor, final N number) throws FieldConversionException {
+	public byte[] formatBytes(final FormatFieldDescriptor descriptor, final N number) throws FieldConversionException {
 		try {
 			long longValue = Optional.ofNullable(number)
 					.map(value -> valueOf(value).setScale(descriptor.scale()).unscaledValue().longValueExact())
 					.orElse(Long.parseLong(StringUtils.defaultIfBlank(descriptor.placeholder(), "0")));
-			return StringUtils.leftPad(String.valueOf(longValue), descriptor.length(), "0");
+			return StringUtils.leftPad(String.valueOf(longValue), descriptor.length(), "0").getBytes(descriptor.charset());
 		} catch (Exception e) {
 			throw FieldConverters.formatFieldConversionException(descriptor, number, e);
 		}
 	}
 
 	@Override
-	public N parse(final FormatFieldDescriptor descriptor, final String source) throws FieldConversionException {
+	public N parseBytes(final FormatFieldDescriptor descriptor, final byte[] source) throws FieldConversionException {
 		try {
-			long longValue = Long.parseLong(source);
+			long longValue = Long.parseLong(new String(source, descriptor.charset()));
 
 			if (!descriptor.placeholder().isEmpty() && longValue == Long.parseLong(descriptor.placeholder())) {
 				return null;

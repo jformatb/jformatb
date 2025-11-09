@@ -51,14 +51,15 @@ final class ValueConverter<T> implements FieldConverter<T> {
 	}
 
 	@Override
-	public String format(FormatFieldDescriptor descriptor, T value) throws FieldConversionException {
+	public byte[] formatBytes(FormatFieldDescriptor descriptor, T value)
+			throws FieldConversionException {
 		try {
 			if (accessor instanceof Field) {
 				Field field = (Field) accessor;
-				return formatValue(descriptor, FieldUtils.readField(field, value, true));
+				return formatByteArrayValue(descriptor, FieldUtils.readField(field, value, true));
 			} else {
 				Method getter = (Method) accessor;
-				return formatValue(descriptor, MethodUtils.invokeMethod(value, getter.getName()));
+				return formatByteArrayValue(descriptor, MethodUtils.invokeMethod(value, getter.getName()));
 			}
 		} catch (Exception e) {
 			throw FieldConverters.formatFieldConversionException(descriptor, value, e);
@@ -67,15 +68,16 @@ final class ValueConverter<T> implements FieldConverter<T> {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public T parse(FormatFieldDescriptor descriptor, String source) throws FieldConversionException {
+	public T parseBytes(FormatFieldDescriptor descriptor, byte[] source)
+			throws FieldConversionException {
 		try {
 			if (factory instanceof Constructor) {
 				Constructor<T> constructor = (Constructor<T>) factory;
-				Object value = parseValue(descriptor, source, constructor.getParameterTypes()[0]);
+				Object value = parseByteArrayValue(descriptor, source, constructor.getParameterTypes()[0]);
 				return ConstructorUtils.invokeConstructor(constructor.getDeclaringClass(), value);
 			} else {
 				Method method = (Method) factory;
-				Object value = parseValue(descriptor, source, method.getParameterTypes()[0]);
+				Object value = parseByteArrayValue(descriptor, source, method.getParameterTypes()[0]);
 				return (T) MethodUtils.invokeStaticMethod(method.getReturnType(), method.getName(), value);
 			}
 		} catch (Exception e) {
@@ -105,12 +107,12 @@ final class ValueConverter<T> implements FieldConverter<T> {
 	}
 
 	@SuppressWarnings("unchecked")
-	private static <V> String formatValue(FormatFieldDescriptor descriptor, V value) {
-		return getConverter((Class<V>) value.getClass(), descriptor).format(descriptor, value);
+	private static <V> byte[] formatByteArrayValue(FormatFieldDescriptor descriptor, V value) {
+		return getConverter((Class<V>) value.getClass(), descriptor).formatBytes(descriptor, value);
 	}
 
-	private static <V> V parseValue(FormatFieldDescriptor descriptor, String source, Class<V> type) {
-		return getConverter(type, descriptor).parse(descriptor, source);
+	private static <V> V parseByteArrayValue(FormatFieldDescriptor descriptor, byte[] source, Class<V> type) {
+		return getConverter(type, descriptor).parseBytes(descriptor, source);
 	}
 
 }

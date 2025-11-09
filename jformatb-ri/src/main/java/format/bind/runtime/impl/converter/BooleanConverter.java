@@ -25,18 +25,18 @@ import format.bind.converter.FieldConverter;
 final class BooleanConverter implements FieldConverter<Boolean> {
 
 	@Override
-	public String format(final FormatFieldDescriptor descriptor, final Boolean value) throws FieldConversionException {
+	public byte[] formatBytes(final FormatFieldDescriptor descriptor, final Boolean value) throws FieldConversionException {
 		try {
-			return StringUtils.leftPad(String.valueOf(BooleanUtils.toInteger(value.booleanValue())), descriptor.length());
+			return StringUtils.leftPad(String.valueOf(BooleanUtils.toInteger(value.booleanValue())), descriptor.length()).getBytes(descriptor.charset());
 		} catch (Exception e) {
 			throw FieldConverters.formatFieldConversionException(descriptor, value, e);
 		}
 	}
 
 	@Override
-	public Boolean parse(final FormatFieldDescriptor descriptor, final String source) throws FieldConversionException {
+	public Boolean parseBytes(final FormatFieldDescriptor descriptor, final byte[] source) throws FieldConversionException {
 		try {
-			return BooleanUtils.toBooleanObject(Integer.parseInt(StringUtils.trim(source)));
+			return BooleanUtils.toBooleanObject(Integer.parseInt(StringUtils.trim(new String(source, descriptor.charset()))));
 		} catch (Exception e) {
 			throw FieldConverters.parseFieldConversionException(descriptor, source, e);
 		}

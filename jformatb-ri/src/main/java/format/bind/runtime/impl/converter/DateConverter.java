@@ -16,6 +16,7 @@
 package format.bind.runtime.impl.converter;
 
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Optional;
 
@@ -28,25 +29,25 @@ import format.bind.converter.FieldConverter;
 final class DateConverter implements FieldConverter<Date> {
 
 	@Override
-	public String format(final FormatFieldDescriptor descriptor, final Date value) throws FieldConversionException {
+	public byte[] formatBytes(final FormatFieldDescriptor descriptor, final Date value) throws FieldConversionException {
 		try {
 			String str = Optional.ofNullable(value)
 					.map(new SimpleDateFormat(descriptor.format(), locale(descriptor.locale()))::format)
 					.orElseGet(descriptor::placeholder);
-			return StringUtils.leftPad(str, descriptor.length(), "0");
+			return StringUtils.leftPad(str, descriptor.length(), "0").getBytes(descriptor.charset());
 		} catch (Exception e) {
 			throw FieldConverters.formatFieldConversionException(descriptor, value, e);
 		}
 	}
 
 	@Override
-	public Date parse(final FormatFieldDescriptor descriptor, final String source) throws FieldConversionException {
+	public Date parseBytes(final FormatFieldDescriptor descriptor, final byte[] source) throws FieldConversionException {
 		try {
-			if (source.equals(descriptor.placeholder())) {
+			if (Arrays.equals(source, descriptor.placeholder().getBytes(descriptor.charset()))) {
 				return null;
 			}
 
-			return new SimpleDateFormat(descriptor.format(), locale(descriptor.locale())).parse(source);
+			return new SimpleDateFormat(descriptor.format(), locale(descriptor.locale())).parse(new String(source, descriptor.charset()));
 		} catch (Exception e) {
 			throw FieldConverters.parseFieldConversionException(descriptor, source, e);
 		}

@@ -11,13 +11,13 @@ import it.bancomat.message.DepositRequestMessage.Type;
 public class DepositTypeConverter implements FieldConverter<Type> {
 
 	@Override
-	public String format(FormatFieldDescriptor descriptor, Type depositType) {
-		return String.valueOf(depositType.value());
+	public byte[] formatBytes(FormatFieldDescriptor descriptor, Type depositType) {
+		return String.valueOf(depositType.value()).getBytes(descriptor.charset());
 	}
 
 	@Override
-	public Type parse(FormatFieldDescriptor descriptor, String source) {
-		return Type.fromValue(Integer.valueOf(source));
+	public Type parseBytes(FormatFieldDescriptor descriptor, byte[] source) {
+		return Type.fromValue(Integer.valueOf(new String(source, descriptor.charset())));
 	}
 
 }

@@ -16,6 +16,7 @@
 package format.bind.runtime.impl.converter;
 
 import java.text.DecimalFormat;
+import java.util.Arrays;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
@@ -28,14 +29,14 @@ import format.bind.converter.FieldConverter;
 final class StringConverter implements FieldConverter<String> {
 
 	@Override
-	public String format(final FormatFieldDescriptor descriptor, final String value) throws FieldConversionException {
+	public byte[] formatBytes(final FormatFieldDescriptor descriptor, final String value) throws FieldConversionException {
 		try {
 			if (descriptor.type() == Type.NUMERIC) {
 				String str = Optional.ofNullable(value)
 						.orElse(StringUtils.defaultIfBlank(descriptor.placeholder(), "0"));
-				return StringUtils.leftPad(String.valueOf(Long.parseLong(str)), descriptor.length(), "0");
+				return StringUtils.leftPad(String.valueOf(Long.parseLong(str)), descriptor.length(), "0").getBytes(descriptor.charset());
 			} else {
-				return StringUtils.rightPad(StringUtils.defaultString(value, descriptor.placeholder()), descriptor.length());
+				return StringUtils.rightPad(StringUtils.defaultString(value, descriptor.placeholder()), descriptor.length()).getBytes(descriptor.charset());
 			}
 		} catch (Exception e) {
 			throw FieldConverters.formatFieldConversionException(descriptor, value, e);
@@ -43,17 +44,17 @@ final class StringConverter implements FieldConverter<String> {
 	}
 
 	@Override
-	public String parse(final FormatFieldDescriptor descriptor, final String source) throws FieldConversionException {
+	public String parseBytes(final FormatFieldDescriptor descriptor, final byte[] source) throws FieldConversionException {
 		try {
 			if (descriptor.type() == Type.NUMERIC) {
-				long value = Long.parseLong(source);
+				long value = Long.parseLong(new String(source, descriptor.charset()));
 				if (StringUtils.defaultIfBlank(descriptor.placeholder(), "0").equals(String.valueOf(value))) {
 					return null;
 				} else {
 					return new DecimalFormat(StringUtils.defaultIfBlank(descriptor.format(), StringUtils.leftPad("", descriptor.length(), "0"))).format(value);
 				}
 			} else {
-				return StringUtils.trimToNull((source.equals(descriptor.placeholder()) ? "" : source));
+				return StringUtils.trimToNull((Arrays.equals(source, descriptor.placeholder().getBytes(descriptor.charset()))) ? "" : new String(source, descriptor.charset()));
 			}
 		} catch (Exception e) {
 			throw FieldConverters.parseFieldConversionException(descriptor, source, e);

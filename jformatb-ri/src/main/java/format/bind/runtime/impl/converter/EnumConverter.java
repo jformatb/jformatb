@@ -35,28 +35,20 @@ final class EnumConverter<E extends Enum<E>> implements FieldConverter<E> {
 	}
 
 	@Override
-	public String format(final FormatFieldDescriptor descriptor, final E value) throws FieldConversionException {
-		try {
-			if (descriptor.type() == Type.ALPHANUMERIC) {
-				return StringUtils.rightPad(value.name(), descriptor.length());
-			} else {
-				return StringUtils.leftPad(String.valueOf(value.ordinal()), descriptor.length(), "0");
-			}
-		} catch (Exception e) {
-			throw FieldConverters.formatFieldConversionException(descriptor, value, e);
+	public byte[] formatBytes(final FormatFieldDescriptor descriptor, final E value) throws FieldConversionException {
+		if (descriptor.type() == Type.ALPHANUMERIC) {
+			return StringUtils.rightPad(value.name(), descriptor.length()).getBytes(descriptor.charset());
+		} else {
+			return StringUtils.leftPad(String.valueOf(value.ordinal()), descriptor.length(), "0").getBytes(descriptor.charset());
 		}
 	}
 
 	@Override
-	public E parse(final FormatFieldDescriptor descriptor, final String source) throws FieldConversionException {
-		try {
-			if (descriptor.type() == Type.ALPHANUMERIC) {
-				return Enum.valueOf(enumType, StringUtils.trim(source));
-			} else {
-				return enumType.getEnumConstants()[Integer.parseInt(StringUtils.trim(source))];
-			}
-		} catch (Exception e) {
-			throw FieldConverters.parseFieldConversionException(descriptor, source, e);
+	public E parseBytes(final FormatFieldDescriptor descriptor, final byte[] source) throws FieldConversionException {
+		if (descriptor.type() == Type.ALPHANUMERIC) {
+			return Enum.valueOf(enumType, StringUtils.trim(new String(source, descriptor.charset())));
+		} else {
+			return enumType.getEnumConstants()[Integer.parseInt(StringUtils.trim(new String(source, descriptor.charset())))];
 		}
 	}
 

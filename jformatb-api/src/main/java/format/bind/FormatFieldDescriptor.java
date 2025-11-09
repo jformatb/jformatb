@@ -15,6 +15,7 @@
  */
 package format.bind;
 
+import java.nio.charset.Charset;
 import java.util.Locale;
 
 import format.bind.annotation.FormatField;
@@ -51,7 +52,7 @@ public interface FormatFieldDescriptor {
 	 * 
 	 * @return The charset of the text format field.
 	 */
-	String charset();
+	Charset charset();
 
 	/**
 	 * The length of the text format field.

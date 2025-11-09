@@ -46,26 +46,29 @@ final class CurrencyConverter implements FieldConverter<Currency> {
 	}
 
 	@Override
-	public String format(FormatFieldDescriptor descriptor, Currency value) throws FieldConversionException {
+	public byte[] formatBytes(FormatFieldDescriptor descriptor, Currency value) throws FieldConversionException {
 		if (descriptor.type() == Type.NUMERIC) {
 			return StringUtils.leftPad(Optional.ofNullable(value)
 					.map(Currency::getNumericCode)
 					.map(String::valueOf)
-					.orElseGet(descriptor::placeholder), descriptor.length(), "0");
+					.orElseGet(descriptor::placeholder), descriptor.length(), "0")
+					.getBytes(descriptor.charset());
 		} else {
 			return StringUtils.rightPad(Optional.ofNullable(value)
 					.map(Currency::getCurrencyCode)
-					.orElseGet(descriptor::placeholder), descriptor.length());
+					.orElseGet(descriptor::placeholder), descriptor.length())
+					.getBytes(descriptor.charset());
 		}
 	}
 
 	@Override
-	public Currency parse(FormatFieldDescriptor descriptor, String source) throws FieldConversionException {
+	public Currency parseBytes(FormatFieldDescriptor descriptor, byte[] source) throws FieldConversionException {
 		try {
+			String value = new String(source, descriptor.charset());
 			if (descriptor.type() == Type.NUMERIC) {
-				return getInstance(Integer.valueOf(source));
+				return getInstance(Integer.valueOf(value));
 			} else {
-				return getInstance(StringUtils.trimToEmpty(source));
+				return getInstance(StringUtils.trimToEmpty(value));
 			}
 		} catch (Exception e) {
 			throw FieldConverters.parseFieldConversionException(descriptor, source, e);

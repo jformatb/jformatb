@@ -10,14 +10,16 @@ import it.bancomat.message.Denomination;
 
 public final class DenominationConverter implements FieldConverter<Denomination> {
 
+	private static FieldConverter<Integer> converter = FieldConverter.provider().getConverter(Integer.class);
+
 	@Override
-	public String format(FormatFieldDescriptor descriptor, Denomination denomination) {
-		return FieldConverter.provider().getConverter(Integer.class).format(descriptor, denomination.value());
+	public byte[] formatBytes(FormatFieldDescriptor descriptor, Denomination denomination) {
+		return converter.formatBytes(descriptor, denomination.value());
 	}
 
 	@Override
-	public Denomination parse(FormatFieldDescriptor descriptor, String source) {
-		return Denomination.valueOf(FieldConverter.provider().getConverter(Integer.class).parse(descriptor, source));
+	public Denomination parseBytes(FormatFieldDescriptor descriptor, byte[] source) {
+		return Denomination.valueOf(converter.parseBytes(descriptor, source));
 	}
 
 }

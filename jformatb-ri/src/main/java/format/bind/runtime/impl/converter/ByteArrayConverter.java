@@ -15,14 +15,15 @@
  */
 package format.bind.runtime.impl.converter;
 
-import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.util.Arrays;
 
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import format.bind.FormatFieldDescriptor;
+import format.bind.annotation.FormatField.Type;
 import format.bind.converter.FieldConversionException;
 import format.bind.converter.FieldConverter;
 
@@ -30,26 +31,19 @@ class ByteArrayConverter implements FieldConverter<byte[]> {
 
 	@Override
 	public String format(FormatFieldDescriptor descriptor, byte[] value) throws FieldConversionException {
-		try {
-			if (value == null || value.length == 0) {
-				return StringUtils.rightPad("", descriptor.length(), "0");
-			} else {
-				return new String(Hex.encodeHex(value, 0, (descriptor.length() / 2), false));
-			}
-		} catch (Exception e) {
-			throw FieldConverters.formatFieldConversionException(descriptor, value, e);
+		if (ArrayUtils.isEmpty(value)) {
+			return StringUtils.rightPad("", descriptor.length(), "0");
+		} else {
+			return new String(Hex.encodeHex(value, 0, (descriptor.length() / 2), false));
 		}
 	}
 
 	@Override
 	public byte[] formatBytes(FormatFieldDescriptor descriptor, byte[] value)
-			throws FieldConversionException, UnsupportedEncodingException {
-		switch (descriptor.type()) {
-		case BINARY:
+			throws FieldConversionException {
+		if (descriptor.type() == Type.BINARY) {
 			return Arrays.copyOf(value, descriptor.length());
-		case NUMERIC:
-			return FieldConverters.getConverter(Long.class).formatBytes(descriptor, new BigInteger(value).longValue());
-		default:
+		} else {
 			return format(descriptor, value).getBytes(descriptor.charset());
 		}
 	}
@@ -57,10 +51,11 @@ class ByteArrayConverter implements FieldConverter<byte[]> {
 	@Override
 	public byte[] parse(FormatFieldDescriptor descriptor, String source) throws FieldConversionException {
 		try {
-			if (Long.parseLong(source, 16) == 0L) {
+			byte[] bytes = Hex.decodeHex(source);
+			if (new BigInteger(bytes).equals(BigInteger.ZERO)) {
 				return new byte[0];
 			} else {
-				return Hex.decodeHex(source);
+				return bytes;
 			}
 		} catch (Exception e) {
 			throw FieldConverters.parseFieldConversionException(descriptor, source, e);
@@ -69,13 +64,10 @@ class ByteArrayConverter implements FieldConverter<byte[]> {
 
 	@Override
 	public byte[] parseBytes(FormatFieldDescriptor descriptor, byte[] source)
-			throws FieldConversionException, UnsupportedEncodingException {
-		switch (descriptor.type()) {
-		case BINARY:
+			throws FieldConversionException {
+		if (descriptor.type() == Type.BINARY) {
 			return Arrays.copyOf(source, source.length);
-		case NUMERIC:
-			return BigInteger.valueOf(FieldConverters.getConverter(Long.class).parseBytes(descriptor, source)).toByteArray();
-		default:
+		} else {
 			return parse(descriptor, new String(source, descriptor.charset()));
 		}
 	}

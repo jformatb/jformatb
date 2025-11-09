@@ -15,7 +15,6 @@
  */
 package format.bind.runtime.impl;
 
-import java.io.UnsupportedEncodingException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -74,7 +73,7 @@ class FormatUtil {
 	private final String FORMAT_FIELD_OPTION_KEY = "key";
 	private final String FORMAT_FIELD_OPTION_VALUE = "value";
 	private final String FORMAT_FIELD_OPTION_FLAG = "flag";
-	private final String FORMAT_FIELD_OPTION_REGEX = String.format("\\-\\-(?<%s>\\w+)=(?<%s>[\\w\\.]+)|\\-\\-(?<%s>\\w+)",
+	private final String FORMAT_FIELD_OPTION_REGEX = String.format("\\-\\-(?<%s>\\w+)=(?<%s>[\\w\\.\\-\\[\\],;:']+)|\\-\\-(?<%s>\\w+)",
 			FORMAT_FIELD_OPTION_KEY, FORMAT_FIELD_OPTION_VALUE, FORMAT_FIELD_OPTION_FLAG);
 
 	private Map<String, FieldDescriptorSetter<?>> fieldDescriptorSetters = new HashMap<>();
@@ -82,6 +81,7 @@ class FormatUtil {
 	static {
 		registerFieldDescriptorSetter("name", FieldDescriptorSetter.of(FormatFieldDescriptorImpl::name, Function.identity()));
 		registerFieldDescriptorSetter("type", FieldDescriptorSetter.of(FormatFieldDescriptorImpl::type, FormatField.Type::valueOf));
+		registerFieldDescriptorSetter("charset", FieldDescriptorSetter.of(FormatFieldDescriptorImpl::charset, Charset::forName));
 		registerFieldDescriptorSetter("length", FieldDescriptorSetter.of(FormatFieldDescriptorImpl::length, Integer::parseInt));
 		registerFieldDescriptorSetter("scale", FieldDescriptorSetter.of(FormatFieldDescriptorImpl::scale, Integer::parseInt));
 		registerFieldDescriptorSetter("format", FieldDescriptorSetter.of(FormatFieldDescriptorImpl::format, Function.identity()));
@@ -210,7 +210,7 @@ class FormatUtil {
 	}
 
 	@SuppressWarnings("unchecked")
-	<T> byte[] formatByteArrayFieldValue(final T value, final FormatFieldDescriptor descriptor, final FieldConverter<?> converter) throws UnsupportedEncodingException {
+	<T> byte[] formatByteArrayFieldValue(final T value, final FormatFieldDescriptor descriptor, final FieldConverter<?> converter) {
 		return ((FieldConverter<T>) converter).formatBytes(descriptor, value);
 	}
 
@@ -218,7 +218,7 @@ class FormatUtil {
 		return converter.parse(descriptor, source);
 	}
 
-	Object parseByteArrayFieldValue(final byte[] source, final FormatFieldDescriptor descriptor, final FieldConverter<?> converter) throws UnsupportedEncodingException {
+	Object parseByteArrayFieldValue(final byte[] source, final FormatFieldDescriptor descriptor, final FieldConverter<?> converter) {
 		return converter.parseBytes(descriptor, source);
 	}
 

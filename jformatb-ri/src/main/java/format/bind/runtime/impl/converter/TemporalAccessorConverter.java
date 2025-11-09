@@ -18,6 +18,7 @@ package format.bind.runtime.impl.converter;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.time.temporal.TemporalQuery;
+import java.util.Arrays;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
@@ -35,25 +36,25 @@ abstract class TemporalAccessorConverter<T extends TemporalAccessor> implements 
 	}
 
 	@Override
-	public String format(final FormatFieldDescriptor descriptor, final T value) throws FieldConversionException {
+	public byte[] formatBytes(final FormatFieldDescriptor descriptor, final T value) throws FieldConversionException {
 		try {
 			String str = Optional.ofNullable(value)
 					.map(getFormatter(descriptor)::format)
 					.orElseGet(descriptor::placeholder);
-			return StringUtils.leftPad(str, descriptor.length(), "0");
+			return StringUtils.leftPad(str, descriptor.length(), "0").getBytes(descriptor.charset());
 		} catch (Exception e) {
 			throw FieldConverters.formatFieldConversionException(descriptor, value, e);
 		}
 	}
 
 	@Override
-	public T parse(final FormatFieldDescriptor descriptor, final String source) throws FieldConversionException {
+	public T parseBytes(final FormatFieldDescriptor descriptor, final byte[] source) throws FieldConversionException {
 		try {
-			if (source.equals(descriptor.placeholder())) {
+			if (Arrays.equals(source, descriptor.placeholder().getBytes(descriptor.charset()))) {
 				return null;
 			}
 
-			return getFormatter(descriptor).parse(source, query());
+			return getFormatter(descriptor).parse(new String(source, descriptor.charset()), query());
 		} catch (Exception e) {
 			throw FieldConverters.parseFieldConversionException(descriptor, source, e);
 		}

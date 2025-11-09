@@ -11,13 +11,13 @@ import it.bancomat.message.RequestMessage.TransmissionFlag;
 public class TransmissionFlagConverter implements FieldConverter<TransmissionFlag> {
 
 	@Override
-	public String format(FormatFieldDescriptor descriptor, TransmissionFlag transmissionFlag) {
-		return String.valueOf(transmissionFlag.value());
+	public byte[] formatBytes(FormatFieldDescriptor descriptor, TransmissionFlag transmissionFlag) {
+		return String.valueOf(transmissionFlag.value()).getBytes(descriptor.charset());
 	}
 
 	@Override
-	public TransmissionFlag parse(FormatFieldDescriptor descriptor, String source) {
-		return TransmissionFlag.fromValue(Integer.valueOf(source));
+	public TransmissionFlag parseBytes(FormatFieldDescriptor descriptor, byte[] source) {
+		return TransmissionFlag.fromValue(Integer.valueOf(new String(source, descriptor.charset())));
 	}
 
 }

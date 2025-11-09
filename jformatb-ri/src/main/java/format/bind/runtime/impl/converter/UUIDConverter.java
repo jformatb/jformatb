@@ -15,22 +15,60 @@
  */
 package format.bind.runtime.impl.converter;
 
+import java.nio.ByteBuffer;
+import java.util.Optional;
 import java.util.UUID;
 
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+
 import format.bind.FormatFieldDescriptor;
+import format.bind.annotation.FormatField.Type;
 import format.bind.converter.FieldConversionException;
 import format.bind.converter.FieldConverter;
 
 final class UUIDConverter implements FieldConverter<UUID> {
 
 	@Override
-	public String format(FormatFieldDescriptor descriptor, UUID value) throws FieldConversionException {
-		return FieldConverters.getConverter(String.class).format(descriptor, value.toString());
+	public byte[] formatBytes(FormatFieldDescriptor descriptor, UUID value) throws FieldConversionException {
+		if (descriptor.type() == Type.BINARY) {
+			return FieldConverters.getConverter(byte[].class).formatBytes(descriptor, toByteArray(value));
+		} else {
+			return FieldConverters.getConverter(String.class).formatBytes(descriptor, value.toString());
+		}
 	}
 
 	@Override
-	public UUID parse(FormatFieldDescriptor descriptor, String source) throws FieldConversionException {
-		return UUID.fromString(FieldConverters.getConverter(String.class).parse(descriptor, source));
+	public UUID parseBytes(final FormatFieldDescriptor descriptor, final byte[] source) throws FieldConversionException {
+		try {
+			if (descriptor.type() == Type.BINARY) {
+				return Optional.ofNullable(FieldConverters.getConverter(byte[].class).parseBytes(descriptor, source))
+						.filter(ArrayUtils::isNotEmpty)
+						.map(UUIDConverter::valueOf)
+						.orElse(null);
+			} else {
+				return Optional.ofNullable(FieldConverters.getConverter(String.class).parseBytes(descriptor, source))
+						.filter(StringUtils::isNotBlank)
+						.map(UUID::fromString)
+						.orElse(null);
+			}
+		} catch (Exception e) {
+			throw FieldConverters.parseFieldConversionException(descriptor, source, e);
+		}
+	}
+
+	private static byte[] toByteArray(final UUID uuid) {
+		ByteBuffer buffer = ByteBuffer.allocate(16);
+		buffer.putLong(uuid.getMostSignificantBits());
+		buffer.putLong(uuid.getLeastSignificantBits());
+		return buffer.array();
+	}
+
+	private static UUID valueOf(final byte[] bytes) {
+		ByteBuffer buffer = ByteBuffer.wrap(bytes);
+		long mostSigBits = buffer.getLong();
+		long leastSigBits = buffer.getLong();
+		return new UUID(mostSigBits, leastSigBits);
 	}
 
 }

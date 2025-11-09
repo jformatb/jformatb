@@ -24,26 +24,18 @@ import format.bind.converter.FieldConverter;
 class CharacterConverter implements FieldConverter<Character> {
 
 	@Override
-	public String format(FormatFieldDescriptor descriptor, Character value) throws FieldConversionException {
-		try {
-			return FieldConverters.getConverter(String.class)
-					.format(descriptor, String.valueOf(value.charValue()));
-		} catch (Exception e) {
-			throw FieldConverters.formatFieldConversionException(descriptor, value, e);
-		}
+	public byte[] formatBytes(FormatFieldDescriptor descriptor, Character value) throws FieldConversionException {
+		return FieldConverters.getConverter(String.class)
+				.formatBytes(descriptor, String.valueOf(value.charValue()));
 	}
 
 	@Override
-	public Character parse(FormatFieldDescriptor descriptor, String source) throws FieldConversionException {
-		try {
-			String value = FieldConverters.getConverter(String.class)
-					.parse(descriptor, source);
-			return Optional.ofNullable(value)
-					.map(str -> str.charAt(0))
-					.orElse(null);
-		} catch (Exception e) {
-			throw FieldConverters.parseFieldConversionException(descriptor, source, e);
-		}
+	public Character parseBytes(FormatFieldDescriptor descriptor, byte[] source) throws FieldConversionException {
+		String value = FieldConverters.getConverter(String.class)
+				.parseBytes(descriptor, source);
+		return Optional.ofNullable(value)
+				.map(str -> str.charAt(0))
+				.orElse(null);
 	}
 
 }

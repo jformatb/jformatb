@@ -31,7 +31,7 @@ import format.bind.converter.FieldConversionException;
 
 class CurrencyConverterTest extends AbstractConverterTest<Currency> {
 
-	public CurrencyConverterTest() {
+	CurrencyConverterTest() {
 		super(Currency.class);
 	}
 

@@ -24,6 +24,9 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 
 import com.example.datatype.ISO8583;
@@ -74,7 +77,7 @@ class ISO8583Test {
 		byte[] actual = Formatter.of(ISO8583.class)
 				.withPattern(pattern)
 				.formatBytes(message, charset);
-		assertThat(actual).matches(bytes -> Arrays.equals(bytes, expected));
+		assertThat(actual).containsExactly(expected);
 	}
 
 	@Test
@@ -99,6 +102,38 @@ class ISO8583Test {
 				.withPattern(pattern)
 				.parseBytes(message, charset);
 		assertThat(actual).isEqualTo(expected);
+	}
+
+	@Test
+	void formatEmvRequestData() throws DecoderException {
+		String data = "5F2A0209768407A00000000410109F360200039F03060000000000009C01005F3401019F10120110A0000F040000000000000000000000FF9F33030008C89A032204259F2608093A260A58500E949F2701809F020600000000010082021B809F34033F00029F1A0209769F37046F4D8104950500200000019F6E06005601023030";
+		ISO8583 message = ISO8583.builder()
+				.dataElement(DataElement.of(55, Hex.decodeHex(data)))
+				.build();
+		String pattern = new StringBuilder()
+				.append("${DE[0]:--type=BINARY --charset=US-ASCII --length=129 --targetClass=[B}")
+				.toString();
+		byte[] actual = Formatter.of(ISO8583.class)
+				.withPattern(pattern)
+				.formatBytes(message);
+		assertThat(actual).asHexString().isEqualTo(data);
+	}
+
+	@Test
+	void parseEmvResponseData() throws DecoderException {
+		String data = "9F36020015910AB58D60185BEF0247303072179F180430303031860E04DA9F580903B1BAEDFD1438BA48";
+		String pattern = new StringBuilder()
+				.append("${DE[0]:--type=BINARY --charset=US-ASCII --length=42 --targetClass=[B}")
+				.toString();
+		ISO8583 actual = Formatter.of(ISO8583.class)
+				.withPattern(pattern)
+				.parseBytes(Hex.decodeHex(data));
+		assertThat(actual.getDataElements())
+				.singleElement()
+				.extracting(DataElement::getValue)
+				.asInstanceOf(InstanceOfAssertFactories.BYTE_ARRAY)
+				.asHexString()
+				.isEqualTo(data);
 	}
 
 }

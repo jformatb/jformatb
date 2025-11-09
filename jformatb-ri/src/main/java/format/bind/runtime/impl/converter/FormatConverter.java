@@ -15,6 +15,7 @@
  */
 package format.bind.runtime.impl.converter;
 
+import java.util.Arrays;
 import java.util.Optional;
 
 import format.bind.FormatFieldDescriptor;
@@ -35,15 +36,17 @@ final class FormatConverter<T> implements FieldConverter<T> {
 	}
 
 	@Override
-	public String format(final FormatFieldDescriptor descriptor, final T value) throws FieldConversionException {
+	public byte[] formatBytes(FormatFieldDescriptor descriptor, T value)
+			throws FieldConversionException {
 		return Optional.ofNullable(value)
-				.map(formatter::format)
-				.orElseGet(descriptor::placeholder);
+				.map(obj -> formatter.formatBytes(obj, descriptor.charset()))
+				.orElseGet(() -> descriptor.placeholder().getBytes(descriptor.charset()));
 	}
 
 	@Override
-	public T parse(final FormatFieldDescriptor descriptor, final String source) throws FieldConversionException {
-		return source.equals(descriptor.placeholder()) ? null : formatter.parse(source);
+	public T parseBytes(FormatFieldDescriptor descriptor, byte[] source)
+			throws FieldConversionException {
+		return Arrays.equals(source, descriptor.placeholder().getBytes(descriptor.charset())) ? null : formatter.parseBytes(source, descriptor.charset());
 	}
 
 }

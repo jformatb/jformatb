@@ -18,9 +18,8 @@ package com.example.datatype;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
 
 import com.opencsv.bean.CsvBindByName;
 import com.opencsv.bean.CsvDate;
@@ -89,19 +88,20 @@ public class BankStatement implements Serializable {
 		}
 
 		@Override
-		public String format(FormatFieldDescriptor descriptor, BigDecimal value) throws FieldConversionException {
+		public byte[] formatBytes(FormatFieldDescriptor descriptor, BigDecimal value) throws FieldConversionException {
 			return new StringBuilder()
 					.append(converter.format(descriptor, value.abs()).substring(1))
 					.append(formatSign(value))
-					.toString();
+					.toString()
+					.getBytes(descriptor.charset());
 		}
 
 		@Override
-		public BigDecimal parse(FormatFieldDescriptor descriptor, String source) throws FieldConversionException {
+		public BigDecimal parseBytes(FormatFieldDescriptor descriptor, byte[] source) throws FieldConversionException {
 			int length = descriptor.length() - 1;
-			String value = StringUtils.leftPad(source.substring(0, length), descriptor.length(), "0");
-			return converter.parse(descriptor, value)
-					.multiply(parseSign(source.substring(length)));
+			byte[] value = Arrays.copyOf(source, length);
+			return converter.parseBytes(descriptor, value)
+					.multiply(parseSign(new String(source, descriptor.charset()).substring(length)));
 		}
 
 		private String formatSign(final BigDecimal value) {

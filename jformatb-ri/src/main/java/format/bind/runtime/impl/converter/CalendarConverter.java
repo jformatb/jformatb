@@ -29,15 +29,15 @@ final class CalendarConverter implements FieldConverter<Calendar> {
 	private static FieldConverter<ZonedDateTime> converter = FieldConverters.getConverter(ZonedDateTime.class);
 
 	@Override
-	public String format(FormatFieldDescriptor descriptor, Calendar value) throws FieldConversionException {
-		return converter.format(descriptor, Optional.ofNullable(value)
+	public byte[] formatBytes(FormatFieldDescriptor descriptor, Calendar value) throws FieldConversionException {
+		return converter.formatBytes(descriptor, Optional.ofNullable(value)
 				.map(calendar -> calendar.toInstant().atZone(calendar.getTimeZone().toZoneId()))
 				.orElse(null));
 	}
 
 	@Override
-	public Calendar parse(FormatFieldDescriptor descriptor, String source) throws FieldConversionException {
-		return Optional.ofNullable(converter.parse(descriptor, source))
+	public Calendar parseBytes(FormatFieldDescriptor descriptor, byte[] source) throws FieldConversionException {
+		return Optional.ofNullable(converter.parseBytes(descriptor, source))
 				.map(GregorianCalendar::from)
 				.orElse(null);
 	}

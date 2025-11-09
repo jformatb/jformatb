@@ -15,7 +15,6 @@
  */
 package format.bind.runtime.impl;
 
-import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.Objects;
 import java.util.Optional;
@@ -28,15 +27,13 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(fluent = true)
-class FormatFieldDescriptorImpl implements FormatFieldDescriptor, Serializable {
-
-	private static final long serialVersionUID = -8126209693278152073L;
+class FormatFieldDescriptorImpl implements FormatFieldDescriptor {
 
 	private String name;
 
 	private Type type;
 
-	private String charset;
+	private Charset charset;
 
 	private int length;
 
@@ -59,7 +56,8 @@ class FormatFieldDescriptorImpl implements FormatFieldDescriptor, Serializable {
 				.type(field.type())
 				.charset(Optional.ofNullable(field.charset())
 						.filter(charsetName -> !charsetName.isEmpty())
-						.orElseGet(charset::name))
+						.map(Charset::forName)
+						.orElse(charset))
 				.length(field.length())
 				.scale(field.scale())
 				.format(field.format())

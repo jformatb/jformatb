@@ -15,12 +15,18 @@
  */
 package format.bind.runtime.impl;
 
+import java.nio.charset.Charset;
+
 import format.bind.FormatFieldDescriptor;
 import format.bind.annotation.FormatField.Type;
 
 public class FormatFieldDescriptorBuilderImpl {
 
-	private FormatFieldDescriptorImpl descriptor = new FormatFieldDescriptorImpl();
+	private FormatFieldDescriptorImpl descriptor = new FormatFieldDescriptorImpl()
+			.type(Type.DEFAULT)
+			.charset(Charset.defaultCharset())
+			.locale("")
+			.placeholder("");
 
 	public FormatFieldDescriptorBuilderImpl name(String name) {
 		descriptor.name(name);
@@ -32,7 +38,7 @@ public class FormatFieldDescriptorBuilderImpl {
 		return this;
 	}
 
-	public FormatFieldDescriptorBuilderImpl charset(String charset) {
+	public FormatFieldDescriptorBuilderImpl charset(Charset charset) {
 		descriptor.charset(charset);
 		return this;
 	}
