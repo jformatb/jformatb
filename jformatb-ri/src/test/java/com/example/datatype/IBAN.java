@@ -8,8 +8,8 @@ import java.io.Serializable;
 
 import org.apache.commons.validator.routines.IBANValidator;
 
-import format.bind.annotation.FormatField;
 import format.bind.annotation.Format;
+import format.bind.annotation.FormatField;
 import format.bind.annotation.FormatTypeInfo;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Format(name = "IBAN", pattern = "${countryCode:2}${checkDigits:2}${BBAN}")
+@Format(name = "IBAN", pattern = "${countryCode:2}${checkDigits:2}${bban}")
 public class IBAN implements Serializable {
 
 	private static final long serialVersionUID = -8396968741896336280L;
@@ -33,14 +33,14 @@ public class IBAN implements Serializable {
 
 	@FormatField
 	@FormatTypeInfo(fieldName = "countryCode", length = 2)
-	private BBAN BBAN;
+	private BBAN bban;
 
 	@Override
 	public String toString() {
 		return new StringBuilder(30)
 				.append(countryCode)
 				.append(checkDigits)
-				.append(BBAN)
+				.append(bban)
 				.toString();
 	}
 

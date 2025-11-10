@@ -60,7 +60,7 @@ class IBANFormatterTest {
 				.withListener((obj, values) -> resolvedValues.putAll(values))
 				.write(buildIBAN(countryCode, checkDigits, bankCode, branchCode, accountNumber, nationalCheckDigits));
 		assertThat(actual).isEqualTo(expected);
-		assertThat(resolvedValues).containsOnlyKeys("countryCode", "checkDigits", "BBAN");
+		assertThat(resolvedValues).containsOnlyKeys("countryCode", "checkDigits", "bban");
 	}
 
 	@ParameterizedTest(name = "parse{0}IBAN")
@@ -76,7 +76,7 @@ class IBANFormatterTest {
 				.is(valid)
 				.isEqualTo(expected)
 				.hasToString(iban);
-		assertThat(resolvedValues).containsEntry("BBAN", actual.getBBAN());
+		assertThat(resolvedValues).containsEntry("bban", actual.getBban());
 	}
 
 	private static IBAN buildIBAN(String countryCode, String checkDigits, String bankCode, String branchCode,
@@ -84,7 +84,7 @@ class IBANFormatterTest {
 		return IBAN.builder()
 				.countryCode(countryCode)
 				.checkDigits(checkDigits)
-				.BBAN(builders.get(countryCode)
+				.bban(builders.get(countryCode)
 						.bankCode(StringUtils.trimToNull(bankCode))
 						.branchCode(StringUtils.trimToNull(branchCode))
 						.accountNumber(StringUtils.trimToNull(accountNumber))

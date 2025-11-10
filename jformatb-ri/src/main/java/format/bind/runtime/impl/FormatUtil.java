@@ -70,10 +70,10 @@ class FormatUtil {
 
 	}
 
-	private final String FORMAT_FIELD_OPTION_KEY = "key";
-	private final String FORMAT_FIELD_OPTION_VALUE = "value";
-	private final String FORMAT_FIELD_OPTION_FLAG = "flag";
-	private final String FORMAT_FIELD_OPTION_REGEX = String.format("\\-\\-(?<%s>\\w+)=(?<%s>[\\w\\.\\-\\[\\]\\\\/,;:'_]+)|\\-\\-(?<%s>\\w+)",
+	private static final String FORMAT_FIELD_OPTION_KEY = "key";
+	private static final String FORMAT_FIELD_OPTION_VALUE = "value";
+	private static final String FORMAT_FIELD_OPTION_FLAG = "flag";
+	private static final String FORMAT_FIELD_OPTION_REGEX = String.format("\\-\\-(?<%s>\\w+)=(?<%s>[\\w\\.\\-\\[\\]\\\\/,;:'_]+)|\\-\\-(?<%s>\\w+)",
 			FORMAT_FIELD_OPTION_KEY, FORMAT_FIELD_OPTION_VALUE, FORMAT_FIELD_OPTION_FLAG);
 
 	private Map<String, FieldDescriptorSetter<?>> fieldDescriptorSetters = new HashMap<>();
