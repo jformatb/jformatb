@@ -63,6 +63,11 @@ public class FormatFieldDescriptorBuilderImpl {
 		return this;
 	}
 
+	public FormatFieldDescriptorBuilderImpl zone(String zone) {
+		descriptor.zone(zone);
+		return this;
+	}
+
 	public FormatFieldDescriptorBuilderImpl placeholder(String placeholder) {
 		descriptor.placeholder(placeholder);
 		return this;

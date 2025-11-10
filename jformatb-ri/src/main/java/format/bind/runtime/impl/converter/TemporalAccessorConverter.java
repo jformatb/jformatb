@@ -32,7 +32,9 @@ abstract class TemporalAccessorConverter<T extends TemporalAccessor> implements 
 	protected abstract TemporalQuery<T> query();
 
 	protected DateTimeFormatter getFormatter(FormatFieldDescriptor descriptor) {
-		return DateTimeFormatter.ofPattern(descriptor.format(), locale(descriptor.locale()));
+		return DateTimeFormatter.ofPattern(descriptor.format())
+				.withLocale(locale(descriptor.locale()))
+				.withZone(zone(descriptor.zone()));
 	}
 
 	@Override

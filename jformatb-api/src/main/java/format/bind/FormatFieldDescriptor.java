@@ -16,6 +16,7 @@
 package format.bind;
 
 import java.nio.charset.Charset;
+import java.time.ZoneId;
 import java.util.Locale;
 
 import format.bind.annotation.FormatField;
@@ -83,6 +84,15 @@ public interface FormatFieldDescriptor {
 	 * @see FormatField#locale()
 	 */
 	String locale();
+
+	/**
+	 * The {@link ZoneId} to be used to format and parse Java Time text format field.
+	 * 
+	 * @return The {@link ZoneId} of the text format field.
+	 * 
+	 * @see FormatField#zone()
+	 */
+	String zone();
 
 	/**
 	 * The placeholder of the text format field.

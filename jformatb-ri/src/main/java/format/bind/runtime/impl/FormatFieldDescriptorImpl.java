@@ -43,6 +43,8 @@ class FormatFieldDescriptorImpl implements FormatFieldDescriptor {
 
 	private String locale;
 
+	private String zone;
+
 	private String placeholder;
 
 	private boolean readOnly;
@@ -62,6 +64,7 @@ class FormatFieldDescriptorImpl implements FormatFieldDescriptor {
 				.scale(field.scale())
 				.format(field.format())
 				.locale(field.locale())
+				.zone(field.zone())
 				.placeholder(field.placeholder())
 				.readOnly(field.readOnly())
 				.targetClass(field.targetClass());

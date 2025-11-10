@@ -53,15 +53,17 @@ class CalendarConverterTest extends AbstractConverterTest<Calendar> {
 
 	@Test
 	void parseCalendar() {
+		String zoneId = "Europe/Rome";
 		String locale = "en-US";
 		String pattern = "yyyyMMddHHmmss";
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern).withZone(ZoneId.systemDefault());
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern).withZone(ZoneId.of(zoneId));
 		FormatFieldDescriptor descriptor = fieldDescriptorBuilder()
 				.length(12)
 				.format(pattern)
 				.locale(locale)
+				.zone(zoneId)
 				.build();
-		String source = formatter.format(Instant.now().atZone(ZoneId.systemDefault()));
+		String source = formatter.format(Instant.now().atZone(formatter.getZone()));
 		Calendar expected = GregorianCalendar.from(formatter.parse(source, ZonedDateTime::from));
 		Calendar actual = converter.parse(descriptor, source);
 		assertThat(actual).isEqualByComparingTo(expected);

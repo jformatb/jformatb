@@ -15,23 +15,14 @@
  */
 package format.bind.runtime.impl.converter;
 
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalQuery;
-
-import format.bind.FormatFieldDescriptor;
 
 final class ZonedDateTimeConverter extends TemporalAccessorConverter<ZonedDateTime> {
 
 	@Override
 	protected TemporalQuery<ZonedDateTime> query() {
 		return ZonedDateTime::from;
-	}
-
-	@Override
-	protected DateTimeFormatter getFormatter(FormatFieldDescriptor descriptor) {
-		return super.getFormatter(descriptor).withZone(ZoneId.systemDefault());
 	}
 
 }

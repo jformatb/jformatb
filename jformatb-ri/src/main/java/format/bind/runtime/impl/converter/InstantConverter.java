@@ -17,10 +17,7 @@ package format.bind.runtime.impl.converter;
 
 import java.time.Instant;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalQuery;
-
-import format.bind.FormatFieldDescriptor;
 
 final class InstantConverter extends TemporalAccessorConverter<Instant> {
 
@@ -30,8 +27,8 @@ final class InstantConverter extends TemporalAccessorConverter<Instant> {
 	}
 
 	@Override
-	protected DateTimeFormatter getFormatter(FormatFieldDescriptor descriptor) {
-		return super.getFormatter(descriptor).withZone(ZoneId.of("UTC"));
+	public ZoneId defaultZone() {
+		return ZoneId.of("UTC");
 	}
 
 }

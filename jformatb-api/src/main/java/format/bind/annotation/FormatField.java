@@ -24,6 +24,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
+import java.time.ZoneId;
 import java.util.Locale;
 
 /**
@@ -113,6 +114,21 @@ public @interface FormatField {
 	 * @see Locale#forLanguageTag(String)
 	 */
 	String locale() default "";
+
+	/**
+	 * (Optional) The {@link ZoneId} to be used to format and parse Java Time types.
+	 * 
+	 * <p>
+	 * If the value is empty (the default value), the {@link ZoneId#systemDefault()} will be
+	 * used during formatting and parsing operations.
+	 * </p>
+	 * 
+	 * @return The {@link ZoneId} of the text format field.
+	 * 
+	 * @see ZoneId
+	 * @see ZoneId#systemDefault()
+	 */
+	String zone() default "";
 
 	/**
 	 * (Optional) The placeholder of the text format field.

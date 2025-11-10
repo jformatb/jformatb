@@ -73,7 +73,7 @@ class FormatUtil {
 	private final String FORMAT_FIELD_OPTION_KEY = "key";
 	private final String FORMAT_FIELD_OPTION_VALUE = "value";
 	private final String FORMAT_FIELD_OPTION_FLAG = "flag";
-	private final String FORMAT_FIELD_OPTION_REGEX = String.format("\\-\\-(?<%s>\\w+)=(?<%s>[\\w\\.\\-\\[\\],;:']+)|\\-\\-(?<%s>\\w+)",
+	private final String FORMAT_FIELD_OPTION_REGEX = String.format("\\-\\-(?<%s>\\w+)=(?<%s>[\\w\\.\\-\\[\\]\\\\/,;:'_]+)|\\-\\-(?<%s>\\w+)",
 			FORMAT_FIELD_OPTION_KEY, FORMAT_FIELD_OPTION_VALUE, FORMAT_FIELD_OPTION_FLAG);
 
 	private Map<String, FieldDescriptorSetter<?>> fieldDescriptorSetters = new HashMap<>();
@@ -86,6 +86,7 @@ class FormatUtil {
 		registerFieldDescriptorSetter("scale", FieldDescriptorSetter.of(FormatFieldDescriptorImpl::scale, Integer::parseInt));
 		registerFieldDescriptorSetter("format", FieldDescriptorSetter.of(FormatFieldDescriptorImpl::format, Function.identity()));
 		registerFieldDescriptorSetter("locale", FieldDescriptorSetter.of(FormatFieldDescriptorImpl::locale, Function.identity()));
+		registerFieldDescriptorSetter("zone", FieldDescriptorSetter.of(FormatFieldDescriptorImpl::zone, Function.identity()));
 		registerFieldDescriptorSetter("placeholder", FieldDescriptorSetter.of(FormatFieldDescriptorImpl::placeholder, Function.identity()));
 		registerFieldDescriptorSetter("readOnly", FieldDescriptorSetter.of(FormatFieldDescriptorImpl::readOnly, Boolean::parseBoolean));
 		registerFieldDescriptorSetter("targetClass", FieldDescriptorSetter.of(FormatFieldDescriptorImpl::targetClass, Failable.asFunction(ClassUtils::getClass)));
