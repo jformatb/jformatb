@@ -54,6 +54,8 @@ jformatb
 │   └── build.gradle
 ├── jformatb-bom
 │   └── build.gradle
+├── jformatb-dependencies
+│   └── build.gradle
 ├── jformatb-ri
 │   ├── src
 │   │   ├── main
